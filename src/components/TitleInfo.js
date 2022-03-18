@@ -127,7 +127,7 @@ export default function TitleInfo(props) {
   return (
     // d-flex without wrapping div is not always full height; I don't understand the root cause.
     <>
-      <div className="title">
+      <div className={`title ${(title === 'Polyphony' ? 'status-title' : '')}`}>
         <div className="title-left">
           {title}
         </div>

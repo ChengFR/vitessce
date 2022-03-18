@@ -105,6 +105,8 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       refCellsEntries: cellsEntries
     } = this;
     const {
+      refCellsVisible,
+      refCellEncoding,
       theme,
       cellRadius = 1.0,
       cellOpacity = 1.0,
@@ -132,6 +134,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         src: cellsEntries.data,
         length: cellsEntries.shape[1]
       },
+      visible: (refCellsVisible && refCellEncoding === 'heatmap'),
       pickable: true,
       autoHighlight: true,
       filled: true,
@@ -180,6 +183,8 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       refCellAnchorSet
     } = this;
     const {
+      refCellsVisible,
+      refCellEncoding,
       theme,
       refCellsIndex,
       refCellColors,
@@ -200,6 +205,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
           src: group.entries,
           length: group.set.length
         },
+        visible: (refCellsVisible && refCellEncoding === 'contour'),
         pickable: false,
         autoHighlight: false,
         filled: true,
@@ -224,6 +230,8 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
   createQryCellsLayer() {
     const { qryCellsEntries: cellsEntries } = this;
     const {
+      qryCellsVisible,
+      qryCellEncoding,
       theme,
       cellRadius = 1.0,
       cellOpacity = 1.0,
@@ -251,6 +259,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         src: cellsEntries.data,
         length: cellsEntries.shape[1]
       },
+      visible: (qryCellsVisible && qryCellEncoding === 'scatterplot'),
       pickable: true,
       autoHighlight: true,
       stroked: false,
@@ -408,7 +417,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       supportingBoundsLayer,
     } = this;
     return [
-      //refCellsLayer,
+      refCellsLayer,
       qryCellsLayer,
       //...cellSetsLayers,
       supportingBoundsLayer,
@@ -561,6 +570,15 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       // Cells data changed.
       this.onUpdateRefCellsData();
       this.onUpdateRefAnchorLayer();
+      this.forceUpdate();
+    }
+    if (['refCellsVisible', 'refCellEncoding'].some(shallowDiff)) {
+      this.onUpdateRefCellsLayer();
+      this.onUpdateRefAnchorLayer();
+      this.forceUpdate();
+    }
+    if (['qryCellsVisible', 'qryCellEncoding'].some(shallowDiff)) {
+      this.onUpdateQryCellsLayer();
       this.forceUpdate();
     }
 

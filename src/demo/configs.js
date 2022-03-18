@@ -52,6 +52,6 @@ export const configs = {
   vanderbilt: notPublic(spraggins2020),
   'dries-2019': notPublic(eng2019),
   ...coordinationTypeConfigs,
-  xai: xaiConfig,
+  xai: notPublic(xaiConfig),
   'xai-polyphony': polyphonyConfig,
 };

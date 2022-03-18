@@ -186,6 +186,14 @@ export const polyphonyConfig = {
             ref: null,
             qry: null,
           },
+          embeddingVisible: {
+            ref: true,
+            qry: true,
+          },
+          embeddingEncoding: {
+            ref: 'contour',
+            qry: 'scatterplot',
+          },
     },
     layout: [
         {
@@ -234,6 +242,8 @@ export const polyphonyConfig = {
               embeddingType: { REFERENCE: 'ref', QUERY: 'qry' },
               anchorSetFocus: { REFERENCE: 'ref', QUERY: 'qry' },
               anchorSetHighlight: { REFERENCE: 'ref', QUERY: 'qry' },
+              embeddingVisible: { REFERENCE: 'ref', QUERY: 'qry' },
+              embeddingEncoding: { REFERENCE: 'ref', QUERY: 'qry' },
               embeddingZoom: 'comparison',
               embeddingTargetX: 'comparison',
               embeddingTargetY: 'comparison',

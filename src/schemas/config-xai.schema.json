@@ -102,7 +102,9 @@
                 "anchorEditTool": { "$ref": "#/definitions/componentCoordinationScopeValue" },
                 "anchorEditMode": { "$ref": "#/definitions/componentCoordinationScopeValue" },
                 "anchorSetFocus": { "$ref": "#/definitions/componentCoordinationScopeValue" },
-                "anchorSetHighlight": { "$ref": "#/definitions/componentCoordinationScopeValue" }
+                "anchorSetHighlight": { "$ref": "#/definitions/componentCoordinationScopeValue" },
+                "embeddingVisible": { "$ref": "#/definitions/componentCoordinationScopeValue" },
+                "embeddingEncoding": { "$ref": "#/definitions/componentCoordinationScopeValue" }
               }
             }
           }
@@ -1140,6 +1142,34 @@
                     "description": ""
                   },
                   { "type": "array" }
+                ]
+              }
+            }
+          },
+          "embeddingVisible": {
+            "type": "object",
+            "patternProperties": {
+              ".": {
+                "oneOf": [
+                  {
+                    "type": "null",
+                    "description": ""
+                  },
+                  { "type": "boolean" }
+                ]
+              }
+            }
+          },
+          "embeddingEncoding": {
+            "type": "object",
+            "patternProperties": {
+              ".": {
+                "oneOf": [
+                  {
+                    "type": "null",
+                    "description": ""
+                  },
+                  { "type": "string" }
                 ]
               }
             }

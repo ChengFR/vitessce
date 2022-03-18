@@ -26,7 +26,7 @@ import {
 import { getCellColors } from '../interpolate-colors';
 import QRComparisonScatterplot from './QRComparisonScatterplot';
 import ScatterplotTooltipSubscriber from './ScatterplotTooltipSubscriber';
-import ScatterplotOptions from './ScatterplotOptions';
+import QRComparisonScatterplotOptions from './QRComparisonScatterplotOptions';
 import {
   useMultiDatasetCoordination,
   useLoaders,
@@ -336,8 +336,18 @@ export default function QRComparisonScatterplotSubscriber(props) {
       theme={theme}
       isReady={isReady}
       options={(
-        <ScatterplotOptions
+        <QRComparisonScatterplotOptions
           observationsLabel={observationsLabel}
+
+          qryCellsVisible={qryValues.embeddingVisible}
+          setQryCellsVisible={qrySetters.setEmbeddingVisible}
+          qryCellEncoding={qryValues.embeddingEncoding}
+          setQryCellEncoding={qrySetters.setEmbeddingEncoding}
+          refCellsVisible={refValues.embeddingVisible}
+          setRefCellsVisible={refSetters.setEmbeddingVisible}
+          refCellEncoding={refValues.embeddingEncoding}
+          setRefCellEncoding={refSetters.setEmbeddingEncoding}
+
           cellRadius={qryValues.embeddingCellRadius}
           setCellRadius={qrySetters.setEmbeddingCellRadius}
           cellRadiusMode={qryValues.embeddingCellRadiusMode}
@@ -413,7 +423,11 @@ export default function QRComparisonScatterplotSubscriber(props) {
         updateViewInfo={setComponentViewInfo}
         getExpressionValue={getQryExpressionValue}
         getCellIsSelected={getCellIsSelected}
-
+        
+        qryCellsVisible={qryValues.embeddingVisible}
+        qryCellEncoding={qryValues.embeddingEncoding}
+        refCellsVisible={refValues.embeddingVisible}
+        refCellEncoding={refValues.embeddingEncoding}
       />
       {!disableTooltip && (
       <ScatterplotTooltipSubscriber

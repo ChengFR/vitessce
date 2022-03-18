@@ -109,6 +109,6 @@ export const CoordinationType = {
   ANCHOR_EDIT_MODE: 'anchorEditMode', // Which anchor set is the user currently editing?
   ANCHOR_SET_FOCUS: 'anchorSetFocus', // Which anchor set to focus?
   ANCHOR_SET_HIGHLIGHT: 'anchorSetHighlight', // After the anchorSetFocus has been set by QRCellSetsManagerSubscriber, a supporting plot will call setAnchorSetHighlight(cellIndices).
-  EMBEDDING_VISIBLE: 'embeddingVisible', // Whether the embedding is visible. Intended to be used by the comparison view to determine whether to show the reference or query only.
-  EMBEDDING_ENCODING: 'embeddingEncoding', // Whether the embedding is rendered as a scatterplot or a contour plot.
+  EMBEDDING_VISIBLE: 'embeddingVisible', // Whether the embedding is visible (boolean). Intended to be used by the comparison view to determine whether to show the reference or query only.
+  EMBEDDING_ENCODING: 'embeddingEncoding', // scatterplot, heatmap, or contour.
 };

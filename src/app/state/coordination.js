@@ -60,6 +60,8 @@ export const DEFAULT_COORDINATION_VALUES = {
   [CoordinationType.ANCHOR_EDIT_TOOL]: null,
   [CoordinationType.ANCHOR_EDIT_MODE]: null,
   [CoordinationType.ANCHOR_SET_HIGHLIGHT]: null,
+  [CoordinationType.EMBEDDING_VISIBLE]: true,
+  [CoordinationType.EMBEDDING_ENCODING]: 'scatterplot',
 };
 
 // The following coordination types should be
@@ -295,6 +297,8 @@ export const COMPONENT_COORDINATION_TYPES = {
     CoordinationType.ANCHOR_EDIT_MODE,
     CoordinationType.ANCHOR_SET_FOCUS,
     CoordinationType.ANCHOR_SET_HIGHLIGHT,
+    CoordinationType.EMBEDDING_VISIBLE,
+    CoordinationType.EMBEDDING_ENCODING,
   ],
   [Component.QR_SUPPORTING_SCATTERPLOT_QUERY]: [
     CoordinationType.DATASET,
