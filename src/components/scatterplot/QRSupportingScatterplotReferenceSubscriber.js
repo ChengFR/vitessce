@@ -165,7 +165,7 @@ export default function QRSupportingScatterplotReferenceSubscriber(props) {
   // Cell IDs
   const [cellsIndex, genesIndex] = useAnnDataIndices(loaders, dataset, setItemIsReady, true);
 
-  const [refAnchorCluster, refAnchorClusterStatus] = useAnnDataDynamic(loaders, dataset, options?.features?.anchorCluster?.path, 'columnNumeric', modelIteration, setItemIsReady, false);
+  const [refAnchorCluster, refAnchorClusterStatus] = useAnnDataDynamic(loaders, dataset, options?.features?.anchorCluster?.path, 'columnString', modelIteration, setItemIsReady, false);
 
   // Cell sets
   const [refCellType] = useAnnDataStatic(loaders, dataset, options?.features?.cellType?.path, 'columnString', setItemIsReady, false);
@@ -187,12 +187,12 @@ export default function QRSupportingScatterplotReferenceSubscriber(props) {
   useEffect(() => {
     // TODO(scXAI): debounce?
     if(anchorSetFocus && cellsIndex && embedding && refAnchorCluster) {
-      const anchorId = anchorSetFocus;
+      const anchorId = `${anchorSetFocus}`;
       
-      // TODO: use refAnchorCluster to get the matching cell indices.
+      // Use refAnchorCluster to get the matching cell indices.
 
       const cellIndices = []
-      refAnchorCluster.data.forEach((clusterId, i) => {
+      refAnchorCluster.forEach((clusterId, i) => {
         if(clusterId === anchorId) {
           cellIndices.push(i);
         }

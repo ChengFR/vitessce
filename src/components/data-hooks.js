@@ -263,7 +263,7 @@ export function useExpressionMatrixData(
       return;
     }
 
-    if (loaders[dataset].loaders['expression-matrix']) {
+    if (false && loaders[dataset].loaders['expression-matrix']) {
       loaders[dataset].loaders['expression-matrix'].load().catch(e => warn(e, setWarning)).then((payload) => {
         if (!payload) return;
         const { data, url, coordinationValues } = payload;
