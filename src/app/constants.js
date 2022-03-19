@@ -111,4 +111,5 @@ export const CoordinationType = {
   ANCHOR_SET_HIGHLIGHT: 'anchorSetHighlight', // After the anchorSetFocus has been set by QRCellSetsManagerSubscriber, a supporting plot will call setAnchorSetHighlight(cellIndices).
   EMBEDDING_VISIBLE: 'embeddingVisible', // Whether the embedding is visible (boolean). Intended to be used by the comparison view to determine whether to show the reference or query only.
   EMBEDDING_ENCODING: 'embeddingEncoding', // scatterplot, heatmap, or contour.
+  EMBEDDING_LINKS_VISIBLE: 'embeddingLinksVisible', // Whether the lines linking between corresponding query and reference anchor sets are visible (boolean).
 };

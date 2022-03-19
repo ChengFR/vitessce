@@ -22,6 +22,7 @@ import {
   useCellSetsTree,
   useDiffGeneNames,
   useInitialCellSetSelection,
+  useAnchors,
 } from '../data-hooks';
 import { getCellColors } from '../interpolate-colors';
 import QRComparisonScatterplot from './QRComparisonScatterplot';
@@ -41,6 +42,7 @@ import {
 } from '../shared-spatial-scatterplot/dynamic-opacity';
 import { COMPONENT_COORDINATION_TYPES } from '../../app/state/coordination';
 import { Component } from '../../app/constants';
+import sum from 'lodash/sum';
 
 /**
  * A subscriber component for the scatterplot.
@@ -92,6 +94,9 @@ export default function QRComparisonScatterplotSubscriber(props) {
   const [qryValues, qrySetters] = [cValues[qryScope], cSetters[qryScope]];
   const [refValues, refSetters] = [cValues[refScope], cSetters[refScope]];
 
+  const anchorApiState = qryValues.anchorApiState;
+  const anchorIteration = anchorApiState.iteration;
+  const anchorStatus = anchorApiState.status;
   const modelIteration = qryValues.modelApiState.iteration;
   const modelStatus = qryValues.modelApiState.status;
 
@@ -125,6 +130,8 @@ export default function QRComparisonScatterplotSubscriber(props) {
   const [qryCellsIndex, qryGenesIndex] = useAnnDataIndices(loaders, qryDataset, setItemIsReady, true);
   const [refCellsIndex, refGenesIndex] = useAnnDataIndices(loaders, refDataset, setItemIsReady, true);
 
+  const [anchors, anchorsStatus] = useAnchors(qryLoader, anchorIteration, setItemIsReady);
+
   // Cell sets
   const [refCellType] = useAnnDataStatic(loaders, refDataset, refOptions?.features?.cellType?.path, 'columnString', setItemIsReady, false);
   const [qryPrediction, qryPredictionStatus] = useAnnDataDynamic(loaders, qryDataset, qryOptions?.features?.prediction?.path, 'columnString', modelIteration, setItemIsReady, false);
@@ -138,8 +145,9 @@ export default function QRComparisonScatterplotSubscriber(props) {
   const [refAnchorMatrix, refAnchorMatrixStatus] = useAnnDataDynamic(loaders, refDataset, refOptions?.anchorMatrix?.path, 'columnNumeric', modelIteration, setItemIsReady, false);
 
   // Anchor cluster
-  const [qryAnchorCluster, qryAnchorClusterStatus] = useAnnDataDynamic(loaders, qryDataset, qryOptions?.features?.anchorCluster?.path, 'columnNumeric', modelIteration, setItemIsReady, false);
-  const [refAnchorCluster, refAnchorClusterStatus] = useAnnDataDynamic(loaders, refDataset, refOptions?.features?.anchorCluster?.path, 'columnNumeric', modelIteration, setItemIsReady, false);
+  // TODO(scXAI): should this depend on the anchor iteration (instead of the model iteration)?
+  const [qryAnchorCluster, qryAnchorClusterStatus] = useAnnDataDynamic(loaders, qryDataset, qryOptions?.features?.anchorCluster?.path, 'columnString', modelIteration, setItemIsReady, false);
+  const [refAnchorCluster, refAnchorClusterStatus] = useAnnDataDynamic(loaders, refDataset, refOptions?.features?.anchorCluster?.path, 'columnString', modelIteration, setItemIsReady, false);
   const [qryAnchorDist, qryAnchorDistStatus] = useAnnDataDynamic(loaders, qryDataset, qryOptions?.features?.anchorDist?.path, 'columnNumeric', modelIteration, setItemIsReady, false);
 
   // Differential expression
@@ -172,6 +180,39 @@ export default function QRComparisonScatterplotSubscriber(props) {
   
   const [dynamicCellRadius, setDynamicCellRadius] = useState(qryValues.embeddingCellRadius);
   const [dynamicCellOpacity, setDynamicCellOpacity] = useState(qryValues.embeddingCellOpacity);
+
+  const anchorLinks = useMemo(() => {
+    if(anchors && refAnchorCluster && qryEmbedding && refEmbedding && qryCellsIndex) {
+      const result = [];
+      Object.keys(anchors).forEach(anchorType => {
+        anchors[anchorType].forEach((anchorObj) => {
+          const refAnchorId = `${anchorObj.anchor_ref_id}`; // convert to string
+          const qryAnchorId = anchorObj.id;
+
+          const qryCellIds = anchorObj.cells.map(c => c.cell_id);
+          const qryCellIndices = qryCellIds.map(cellId => qryCellsIndex.indexOf(cellId));
+
+          const refCellIndices = [];
+          refAnchorCluster.forEach((anchorClusterId, i) => {
+            if(anchorClusterId === refAnchorId) {
+              refCellIndices.push(i);
+            }
+          });
+
+          const qryX = qryCellIndices.map(i => qryEmbedding.data[0][i]);
+          const qryY = qryCellIndices.map(i => qryEmbedding.data[1][i]);
+          const refX = refCellIndices.map(i => refEmbedding.data[0][i]);
+          const refY = refCellIndices.map(i => refEmbedding.data[1][i]);
+
+          const qryCentroid = [ sum(qryX) / qryX.length, sum(qryY) / qryY.length ];
+          const refCentroid = [ sum(refX) / refX.length, sum(refY) / refY.length ];
+          result.push({ qry: qryCentroid, ref: refCentroid });
+        });
+      });
+      return result;
+    }
+    return null;
+  }, [anchors, refAnchorCluster, qryEmbedding, refEmbedding, qryCellsIndex]);
 
   // TODO(scXAI): determine if query and reference should use same cell sets tree
   const mergedQryCellSets = useMemo(() => mergeCellSets(
@@ -347,6 +388,9 @@ export default function QRComparisonScatterplotSubscriber(props) {
           setRefCellsVisible={refSetters.setEmbeddingVisible}
           refCellEncoding={refValues.embeddingEncoding}
           setRefCellEncoding={refSetters.setEmbeddingEncoding}
+
+          linksVisible={qryValues.embeddingLinksVisible}
+          setLinksVisible={qrySetters.setEmbeddingLinksVisible}
 
           cellRadius={qryValues.embeddingCellRadius}
           setCellRadius={qrySetters.setEmbeddingCellRadius}

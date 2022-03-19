@@ -140,8 +140,9 @@ export default function QRCellSetsManagerSubscriber(props) {
   // Differential expression
   const [refDiffGeneNameIndices, refDiffGeneNamesStatus] = useAnnDataDynamic(loaders, refDataset, refOptions?.differentialGenes?.names?.path, 'columnNumeric', modelIteration, setItemIsReady, false);
   const [refDiffGeneScores, refDiffGeneScoresStatus] = useAnnDataDynamic(loaders, refDataset, refOptions?.differentialGenes?.scores?.path, 'columnNumeric', modelIteration, setItemIsReady, false);
+  const [refDiffClusters, refDiffClustersStatus] = useAnnDataDynamic(loaders, refDataset, refOptions?.differentialGenes?.clusters?.path, 'columnString', modelIteration, setItemIsReady, false);
 
-  const refDiffGeneNames = useDiffGeneNames(refGenesIndex,refDiffGeneNameIndices);
+  const refDiffGeneNames = useDiffGeneNames(refGenesIndex, refDiffGeneNameIndices);
 
   const mergedQryCellSets = useMemo(() => mergeCellSets(
     qryCellSets, qryValues.additionalCellSets,
@@ -156,7 +157,7 @@ export default function QRCellSetsManagerSubscriber(props) {
   useInitialCellSetSelection(mergedRefCellSets, refValues, refSetters, "Cell Type");
 
   const qryTopGenesLists = useProcessedAnchorSets(
-    anchors, refDiffGeneNames, refDiffGeneScores, qryPrediction, qryCellsIndex, qryCellSets, qryValues.cellSetColor, "Prediction"
+    anchors, refDiffGeneNames, refDiffGeneScores, refDiffClusters, qryPrediction, qryCellsIndex, qryCellSets, qryValues.cellSetColor, "Prediction"
   );
 
   const onHighlightAnchors = useCallback((anchorId) => {
@@ -182,7 +183,6 @@ export default function QRCellSetsManagerSubscriber(props) {
     if(anchorApiState.status === 'success') {
       qrySetters.setAnchorApiState({ ...anchorApiState, status: 'loading' });
       qryLoader.anchorConfirm(anchorId).then(result => {
-        console.log(result);
         qrySetters.setAnchorApiState({ ...anchorApiState, iteration: anchorApiState.iteration+1, status: 'success' });
       });
     }
@@ -231,7 +231,6 @@ export default function QRCellSetsManagerSubscriber(props) {
       const cellIds = qryValues.additionalCellSets.tree[0].children[0].set.map(c => ({ cell_id: c[0] }));
       qrySetters.setAnchorApiState({ ...anchorApiState, status: 'loading' });
       qryLoader.anchorRefine(anchorId, cellIds).then(result => {
-        console.log(result);
         qrySetters.setAnchorApiState({ ...anchorApiState, iteration: anchorApiState.iteration+1, status: 'success' });
         resetCellSets(true);
 
@@ -246,7 +245,6 @@ export default function QRCellSetsManagerSubscriber(props) {
       const anchorId = `user-${anchorApiState.iteration}`; // TODO(scXAI)
       qrySetters.setAnchorApiState({ ...anchorApiState, status: 'loading' });
       qryLoader.anchorAdd(anchorId, cellIds).then(result => {
-        console.log(result);
         qrySetters.setAnchorApiState({ ...anchorApiState, iteration: anchorApiState.iteration+1, status: 'success' });
         resetCellSets(true);
         qrySetters.setAnchorSetFocus(null);

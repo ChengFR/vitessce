@@ -479,7 +479,6 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
   onUpdateRefAnchorLayer() {
     if (this.refCellAnchorSet.length > 0) {
       this.refAnchorLayers = this.createRefAnchorLayers();
-      console.log(this.refAnchorLayers);
     }
   }
 

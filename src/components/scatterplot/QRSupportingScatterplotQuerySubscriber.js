@@ -2,7 +2,8 @@
 import React, {
   useState, useEffect, useCallback, useMemo,
 } from 'react';
-import {LinearInterpolator} from '@deck.gl/core';
+import { LinearInterpolator } from '@deck.gl/core';
+import { TRANSITION_EVENTS } from 'deck.gl';
 import { extent } from 'd3-array';
 import isEqual from 'lodash/isEqual';
 import TitleInfo from '../TitleInfo';
@@ -42,7 +43,6 @@ import {
 import { COMPONENT_COORDINATION_TYPES } from '../../app/state/coordination';
 import { Component } from '../../app/constants';
 import sum from 'lodash/sum';
-import { TRANSITION_EVENTS } from 'deck.gl';
 
 const SCATTERPLOT_DATA_TYPES = ['cells', 'expression-matrix', 'cell-sets'];
 

@@ -30,6 +30,9 @@ export const polyphonyConfig = {
                 },
                 scores: {
                   path: 'uns/rank_genes_groups/_scores'
+                },
+                clusters: {
+                  path: 'uns/rank_genes_groups/_valid_cluster'
                 }
               },
               features: {
@@ -80,6 +83,9 @@ export const polyphonyConfig = {
                   },
                   scores: {
                     path: 'uns/rank_genes_groups/_scores'
+                  },
+                  clusters: {
+                    path: 'uns/rank_genes_groups/_valid_cluster'
                   }
                 },
                 features: {
@@ -194,6 +200,9 @@ export const polyphonyConfig = {
             ref: 'contour',
             qry: 'scatterplot',
           },
+          embeddingLinksVisible: {
+            comparison: false,
+          },
     },
     layout: [
         {
@@ -252,6 +261,7 @@ export const polyphonyConfig = {
               embeddingCellOpacity: 'comparison',
               embeddingCellOpacityMode: 'comparison',
               embeddingCellSetLabelsVisible: 'comparison',
+              embeddingLinksVisible: 'comparison',
             },
             props: {
               qrySupportingUuid: 3,

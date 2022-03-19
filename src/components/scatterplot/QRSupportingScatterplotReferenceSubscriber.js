@@ -2,6 +2,8 @@
 import React, {
   useState, useEffect, useCallback, useMemo,
 } from 'react';
+import { LinearInterpolator } from '@deck.gl/core';
+import { TRANSITION_EVENTS } from 'deck.gl';
 import { extent } from 'd3-array';
 import isEqual from 'lodash/isEqual';
 import TitleInfo from '../TitleInfo';
@@ -131,6 +133,9 @@ export default function QRSupportingScatterplotReferenceSubscriber(props) {
     coordinationScopes,
   );
 
+  const [transitionInterpolator, setTransitionInterpolator] = useState(undefined);
+  const [transitionDuration, setTransitionDuration] = useState(undefined);
+
   const modelIteration = modelApiState.iteration;
   const modelStatus = modelApiState.status;
 
@@ -208,6 +213,10 @@ export default function QRSupportingScatterplotReferenceSubscriber(props) {
       const newTargetX = sum(xVals) / xVals.length;
       const newTargetY = sum(yVals) / yVals.length;
       const newZoom = Math.log2(Math.min(width / xR, height / yR));
+
+      setTransitionDuration(800);
+      setTransitionInterpolator(new LinearInterpolator({ transitionProps: ['target', 'zoom'] }));
+
       setTargetX(newTargetX);
       // Graphics rendering has the y-axis going south so we need to multiply by negative one.
       setTargetY(newTargetY);
@@ -215,6 +224,11 @@ export default function QRSupportingScatterplotReferenceSubscriber(props) {
       setAnchorSetHighlight(cellIndices);
     }
   }, [anchorSetFocus]);
+
+  const onTransitionEnd = useCallback((val) => {
+    setTransitionDuration(undefined);
+    setTransitionInterpolator(undefined);
+  }, []);
   
   
 
@@ -377,7 +391,14 @@ export default function QRSupportingScatterplotReferenceSubscriber(props) {
         ref={deckRef}
         uuid={uuid}
         theme={theme}
-        viewState={{ zoom, target: [targetX, targetY, targetZ] }}
+        viewState={{
+          zoom,
+          target: [targetX, targetY, targetZ],
+          transitionDuration,
+          transitionInterpolator,
+          transitionInterruption: TRANSITION_EVENTS.IGNORE,
+          onTransitionEnd
+        }}
         setViewState={({ zoom: newZoom, target }) => {
           setZoom(newZoom);
           setTargetX(target[0]);

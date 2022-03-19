@@ -85,7 +85,6 @@ export default function StatusSubscriber(props) {
     if(modelApiState.status === 'success') {
       qrySetters.setModelApiState({ ...modelApiState, status: 'loading' });
       qryLoader.modelGet(modelApiState.iteration+1).then(result => {
-        console.log(result);
         qrySetters.setModelApiState({ ...modelApiState, iteration: modelApiState.iteration+1, status: 'success' });
       });
     }

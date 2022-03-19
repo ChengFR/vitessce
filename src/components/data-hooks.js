@@ -926,7 +926,6 @@ export function useAnchors(
     if (loader) {
       loader.anchorGet(iteration).catch(e => warn(e, setWarning)).then((payload) => {
         if (!payload) return;
-        console.log(payload);
         setResult(payload)
         setItemIsReady('anchors');
       });
@@ -945,10 +944,10 @@ export function useAnchors(
 }
 
 export function useProcessedAnchorSets(
-  anchors, refDiffGeneNames, refDiffGeneScores, qryPrediction, qryCellsIndex, qryCellSets, cellSetColor, parentKey
+  anchors, refDiffGeneNames, refDiffGeneScores, refDiffClusters, qryPrediction, qryCellsIndex, qryCellSets, cellSetColor, parentKey
 ) {
   const qryTopGenesLists = useMemo(() => {
-    if(anchors && refDiffGeneNames && refDiffGeneScores && qryPrediction && qryCellsIndex && qryCellSets && cellSetColor) {
+    if(anchors && refDiffGeneNames && refDiffGeneScores && refDiffClusters && qryPrediction && qryCellsIndex && qryCellSets && cellSetColor) {
       const predictionNode = qryCellSets.tree.find(n => n.name === parentKey);
       const predictionPaths = predictionNode.children.map(n => ([parentKey, n.name]));
 
@@ -958,9 +957,12 @@ export function useProcessedAnchorSets(
       Object.keys(anchors).forEach(anchorType => {
         result[anchorType] = {};
         anchors[anchorType].forEach((anchorObj, clusterIndex) => {
-          const refClusterTopGeneNames = refDiffGeneNames[anchorObj.anchor_ref_id].slice(0, NUM_GENES);
-          const refClusterAllGeneNames = refDiffGeneNames[anchorObj.anchor_ref_id];
-          const refClusterAllGeneScores = refDiffGeneScores.data[anchorObj.anchor_ref_id];
+
+          const refAnchorId = `${anchorObj.anchor_ref_id}`; // convert to string
+          const refClusterIndex = refDiffClusters.indexOf(refAnchorId);
+          const refClusterTopGeneNames = refDiffGeneNames[refClusterIndex].slice(0, NUM_GENES);
+          const refClusterAllGeneNames = refDiffGeneNames[refClusterIndex];
+          const refClusterAllGeneScores = refDiffGeneScores.data[refClusterIndex];
           
           let qryClusterAllGeneNames = [];
           let qryClusterAllGeneScores = [];
@@ -1005,6 +1007,6 @@ export function useProcessedAnchorSets(
       return result;
     }
     return null;
-  }, [anchors, refDiffGeneNames, refDiffGeneScores, qryPrediction, qryCellsIndex, anchors, qryCellSets, cellSetColor, parentKey]);
+  }, [anchors, refDiffGeneNames, refDiffGeneScores, refDiffClusters, qryPrediction, qryCellsIndex, anchors, qryCellSets, cellSetColor, parentKey]);
   return qryTopGenesLists;
 }

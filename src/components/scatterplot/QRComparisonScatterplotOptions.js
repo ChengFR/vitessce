@@ -25,6 +25,9 @@ export default function QRComparisonScatterplotOptions(props) {
     refCellEncoding,
     setRefCellEncoding,
 
+    linksVisible,
+    setLinksVisible,
+
     cellRadius,
     setCellRadius,
     cellRadiusMode,
@@ -62,6 +65,10 @@ export default function QRComparisonScatterplotOptions(props) {
   }
   function handleRefCellEncodingChange(event) {
     setRefCellEncoding(event.target.value);
+  }
+
+  function handleLinksVisibilityChange(event) {
+    setLinksVisible(event.target.checked);
   }
 
 
@@ -171,6 +178,20 @@ export default function QRComparisonScatterplotOptions(props) {
             <option value="heatmap">Heatmap</option>
             <option value="contour">Contour</option>
           </OptionSelect>
+        </TableCell>
+      </TableRow>
+      <TableRow>
+        <TableCell className={classes.labelCell}>
+          Query-Reference Links Visible
+        </TableCell>
+        <TableCell className={classes.inputCell}>
+          <Checkbox
+            className={classes.checkbox}
+            checked={linksVisible}
+            onChange={handleLinksVisibilityChange}
+            name="scatterplot-option-links-visible"
+            color="default"
+          />
         </TableCell>
       </TableRow>
       <CellColorEncodingOption
