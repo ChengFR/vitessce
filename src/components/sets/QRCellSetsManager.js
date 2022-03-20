@@ -1,13 +1,7 @@
 /* eslint-disable */
 /* eslint-disable no-underscore-dangle */
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import isEqual from 'lodash/isEqual';
-import Tree from './Tree';
-import TreeNode from './TreeNode';
-import { PlusButton, SetOperationButtons } from './SetsManagerButtons';
-import { nodeToRenderProps } from './cell-set-utils';
-import { getDefaultColor } from '../utils';
-import { pathToKey } from './utils';
+import * as _ from 'lodash'
 import { useVitessceContainer } from '../hooks';
 
 import { makeStyles } from '@material-ui/core/styles';
@@ -19,11 +13,6 @@ import MoreVert from '@material-ui/icons/MoreVert';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 
-
-import { ReactComponent as SignifInQry } from '../../assets/qr/signif_in_qry.svg';
-import { ReactComponent as SignifInRef } from '../../assets/qr/signif_in_ref.svg';
-import { ReactComponent as SignifInBoth } from '../../assets/qr/signif_in_both.svg';
-
 const useStyles = makeStyles((theme) => ({
   arrowButtonRoot: {
     padding: '0px',
@@ -34,7 +23,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 function SignificanceIcon(props) {
-  const { inRef, inQry, scoreRef, scoreQry, geneName } = props;
+  const { inRef, inQry, scoreRef, scoreQry, geneName, yScale } = props;
 
   const scoreRefStr = Number(scoreRef).toFixed(2);
   const scoreQryStr = Number(scoreQry).toFixed(2);
@@ -47,6 +36,8 @@ function SignificanceIcon(props) {
   const getTooltipContainer = useVitessceContainer(outerRef);
 
   const [open, setOpen] = useState(false);
+
+  const className = (inRef && inQry) ? 'inBoth' : (inRef ? 'inRef' : 'inQry');
 
   useEffect(() => {
     if (outerRef && outerRef.current) {
@@ -72,19 +63,16 @@ function SignificanceIcon(props) {
     return () => { };
   }, [iconRef, outerRef, x, y]);
 
-  return (<div ref={outerRef} style={{ position: 'relative' }}>
+  return (<div className="iconContainer" ref={outerRef} style={{ position: 'relative' }}>
 
-    <span ref={iconRef}>{
-      (inRef && inQry ? (
-        <SignifInBoth className="signifInBoth" />
-      ) : (inRef ? (
-        <SignifInRef className="signifInRef" />
-      ) : (inQry ? (
-        <SignifInQry className="signifInQry" />
-      ) : null)))}
-    </span>
+    <div className="geneIcon" ref={iconRef}>
+      <div className={`geneIconOuter ${className}`} style={{
+        height: yScale ? yScale(scoreQry) : 30,
+      }} />
+      <div className="geneName">{geneName}</div>
+    </div>
     {true ?
-      <div className="signifIconTooltip" style={{ top: `30px`, left: `0px`, display: (open ? 'inline-block' : 'none') }}>
+      <div className="signifIconTooltip" style={{ display: (open ? 'inline-block' : 'none') }}>
         {geneName}<br />
         Score in Query: {inQry ? (<b>{scoreQryStr}</b>) : (<span>{scoreQryStr}</span>)}<br />
         Score in Reference: {inRef ? (<b>{scoreRefStr}</b>) : (<span>{scoreRefStr}</span>)}
@@ -95,6 +83,7 @@ function SignificanceIcon(props) {
 
 
 const barWidth = 120 - 2;
+const barHeight = 24;
 
 function TableRowLeft(props) {
   const {
@@ -156,7 +145,7 @@ function TableRowLeft(props) {
           <div className="predictionBar" key={predictionObj.name}
             title={`${predictionObj.name} (${Number(predictionObj.proportion).toFixed(2)})`}
             style={{
-              marginTop: '4px', height: '22px', width: `${barWidth * predictionObj.proportion}px`,
+              width: `${barWidth * predictionObj.proportion}px`,
               backgroundColor: `rgb(${predictionObj.color[0]}, ${predictionObj.color[1]}, ${predictionObj.color[2]})`
             }}>
           </div>
@@ -167,7 +156,6 @@ function TableRowLeft(props) {
         <div className="predictionBar"
           title={`Median Anchor Distance (${Number(clusterResults.latentDist).toFixed(2)})`}
           style={{
-            marginTop: '4px', marginLeft: '4px', height: '22px',
             width: `${(barWidth - 4) * clusterResults.latentDist}px`, backgroundColor: `rgb(110, 110, 110)`
           }}>
         </div>
@@ -204,6 +192,9 @@ function TableRowRight(props) {
 
   const classes = useStyles();
 
+  const maxScore = _.max(clusterResults.scores.map(score => score.qry))
+  const yScale = (score) => Math.max(score, 0) / maxScore * barHeight;
+
   return (
     <div className="qrCellSetsTableRow" key={clusterIndex}>
       {clusterResults.names.map((geneName, geneIndex) => (
@@ -214,6 +205,7 @@ function TableRowRight(props) {
             scoreRef={clusterResults.scores[geneIndex].ref}
             scoreQry={clusterResults.scores[geneIndex].qry}
             geneName={geneName}
+            yScale={yScale}
           />
         </div>
       ))}
@@ -267,16 +259,17 @@ export default function QRCellSetsManager(props) {
           )) : null}
         </div>
         <div className="qrCellSetsTableRight">
-          <div className="qrCellSetsTableRightInner">
+          {/* <div className="qrCellSetsTableRightInner"> */}
             <div className="qrCellSetsTableRow">
               <div className="qrCellSetsTableHead colTopGenes">Top genes</div>
             </div>
             {qryTopGenesLists ? Object.entries(qryTopGenesLists).map(([anchorType, anchorResults]) => (
               Object.entries(anchorResults).map(([clusterIndex, clusterResults]) => (
-                <TableRowRight key={clusterIndex} clusterIndex={clusterIndex} clusterResults={clusterResults} />
+                <TableRowRight
+                  key={clusterIndex} clusterIndex={clusterIndex} clusterResults={clusterResults} />
               ))
             )) : null}
-          </div>
+          {/* </div> */}
         </div>
       </div>
     </div>

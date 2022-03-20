@@ -1,5 +1,4 @@
 @mixin xai($theme-name, $theme-colors) {
-
   /* Cell Sets component */
   .qrCellSets {
     border: 0px solid blue;
@@ -9,7 +8,7 @@
     display: flex;
   }
   .qrCellSetsTableLeft {
-    flex: 50%;
+    // flex: 50%;
     .qrCellSetsTableRow {
       width: 100%;
       overflow-y: hidden;
@@ -17,23 +16,21 @@
     }
   }
   .qrCellSetsTableRight {
-    flex: 50%;
+    // flex: 50%;
     overflow-x: auto;
-    overflow-y: hidden;
+    overflow-y: visible;
 
     .qrCellSetsTableRightInner {
       .qrCellSetsTableRow {
         overflow-y: visible;
-        width: 1400px;
       }
     }
   }
-  
+
   .qrCellSetsTableRow {
     display: inline-block;
+    white-space: nowrap;
     height: 30px;
-    max-height: 30px;
-    min-width: 2px;
     border: 0px solid green;
     .colArrow {
       width: 20px;
@@ -48,10 +45,13 @@
         display: inline-block;
       }
     }
-    .colPrediction, .colSimilarity {
+    .colPrediction,
+    .colSimilarity {
       width: 120px;
       .predictionBar {
         float: left;
+        height: 22px;
+        margin-top: 4px;
       }
     }
     .colEdit {
@@ -61,44 +61,9 @@
       width: 120px;
     }
     .colGeneResult {
-      width: 30px;
+      width: 80px;
       height: 30px;
       overflow: visible;
-      svg {
-        width: 22px;
-        height: 22px;
-        margin-top: 4px;
-        margin-left: 4px;
-        rect {
-          stroke-width: 8px !important;
-          stroke: #999 !important;
-          fill: #999 !important;
-        }
-        &.signifInBoth {
-          circle:nth-child(2) {
-            stroke-width: 12px !important;
-            stroke: #999 !important;
-          }
-          circle:nth-child(3) {
-            fill: #999 !important;
-          }
-        }
-        &.signifInRef {
-          circle:nth-child(2) {
-            stroke-width: 12px !important;
-            stroke: #999 !important;
-          }
-        }
-        &.signifInQry {
-          circle:nth-child(1) {
-            stroke-width: 12px !important;
-            stroke: #999 !important;
-          }
-          circle:nth-child(2) {
-            fill: #999 !important;
-          }
-        }
-      }
     }
   }
   .qrCellSetsTableArrow {
@@ -126,8 +91,67 @@
     border-radius: 5px;
     box-shadow: 5px 5px 5px rgba(110, 110, 110, 0.5);
     z-index: 100;
+    top: 30px;
+    left: 0px;
   }
 
+  .iconContainer {
+    overflow-y: visible;
+    overflow-x: visible;
+    display: flex;
+    .signifIconTooltip {
+      display: none;
+    }
+  }
+  .iconContainer:hover {
+    .signifIconTooltip {
+      display: block;
+    }
+  }
+
+  .geneIcon {
+    height: 30px;
+    margin-right: 1px;
+    min-width: 12px;
+    position: relative;
+  }
+
+  .geneIconOuter {
+    position: absolute;
+    width: 70px;
+    left: 0px;
+    top: 0px;
+  }
+  .geneIconOuter.inBoth {
+    border: 2px solid rgb(161, 161, 161);
+    border-top: 8px solid rgb(161, 161, 161);
+  }
+
+  .geneIconOuter.inQry {
+    border: 2px solid #9796e0;
+    border-top: 8px solid #9796e0;
+  }
+
+  .geneIconOuter.inRef {
+    border: 2px solid rgb(218, 168, 211);
+    border-top: 8px solid rgb(218, 168, 211);
+  }
+
+  .geneIconInner {
+    position: absolute;
+    width: 70px;
+    background-color: rgb(110, 110, 110);
+    left: 0px;
+    top: 0px;
+    display: none;
+  }
+
+  .geneName {
+    margin-left: 5px;
+    margin-right: 5px;
+    margin-top: 4px;
+    font-size: 14px !important;
+  }
 
   /* Status component */
   .qrStatus {
