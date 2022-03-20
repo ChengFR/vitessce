@@ -21,8 +21,8 @@
     overflow-y: visible;
     .qrCellSetsTableRow {
       width: 100%;
-      overflow-y: hidden;
-      margin-bottom: -6px;
+      overflow-y: visible;
+      margin-bottom: 0.9px;
     }
   }
 
@@ -60,7 +60,6 @@
       width: 120px;
     }
     .colGeneResult {
-      width: 80px;
       height: 30px;
       overflow: visible;
     }
@@ -114,43 +113,66 @@
     margin-top: 2px;
     min-width: 12px;
     position: relative;
+    transition: all 0.3s ease;
+    .geneIconOuter {
+      position: absolute;
+      width: 70px;
+      left: 0px;
+      top: 0px;
+    }
+    .geneName {
+      margin-left: 5px;
+      margin-right: 5px;
+      margin-top: 4px;
+      font-size: 14px !important;
+    }
   }
 
-  .geneIconOuter {
-    position: absolute;
-    width: 70px;
-    left: 0px;
-    top: 0px;
-  }
-  .geneIconOuter.inBoth {
-    border: 2px solid rgb(161, 161, 161);
-    border-top: 8px solid rgb(161, 161, 161);
+  .geneIcon.withGeneName {
+    width: 80px;
+    .geneIconOuter {
+      position: absolute;
+      width: 70px;
+    }
+    .geneIconOuter.inBoth {
+      border: 2px solid rgb(161, 161, 161);
+      border-top: 8px solid rgb(161, 161, 161);
+    }
+
+    .geneIconOuter.inQry {
+      border: 2px solid #9796e0;
+      border-top: 8px solid #9796e0;
+    }
+
+    .geneIconOuter.inRef {
+      border: 2px solid rgb(218, 168, 211);
+      border-top: 8px solid rgb(218, 168, 211);
+    }
+    .geneName {
+      display: block;
+    }
   }
 
-  .geneIconOuter.inQry {
-    border: 2px solid #9796e0;
-    border-top: 8px solid #9796e0;
-  }
+  .geneIcon.withoutGeneName {
+    width: 10px;
+    .geneIconOuter {
+      position: absolute;
+      width: 10px;
+    }
+    .geneIconOuter.inBoth {
+      background-color: rgb(161, 161, 161);
+    }
 
-  .geneIconOuter.inRef {
-    border: 2px solid rgb(218, 168, 211);
-    border-top: 8px solid rgb(218, 168, 211);
-  }
+    .geneIconOuter.inQry {
+      background-color: #9796e0;
+    }
 
-  .geneIconInner {
-    position: absolute;
-    width: 70px;
-    background-color: rgb(110, 110, 110);
-    left: 0px;
-    top: 0px;
-    display: none;
-  }
-
-  .geneName {
-    margin-left: 5px;
-    margin-right: 5px;
-    margin-top: 4px;
-    font-size: 14px !important;
+    .geneIconOuter.inRef {
+      background-color: rgb(218, 168, 211);
+    }
+    .geneName {
+      display: none;
+    }
   }
 
   /* Status component */

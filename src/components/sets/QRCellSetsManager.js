@@ -23,7 +23,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 function SignificanceIcon(props) {
-  const { inRef, inQry, scoreRef, scoreQry, geneName, yScale } = props;
+  const { inRef, inQry, scoreRef, scoreQry, geneName, yScale, showGeneName } = props;
 
   const scoreRefStr = Number(scoreRef).toFixed(2);
   const scoreQryStr = Number(scoreQry).toFixed(2);
@@ -65,7 +65,7 @@ function SignificanceIcon(props) {
 
   return (<div className="iconContainer" ref={outerRef} style={{ position: 'relative' }}>
 
-    <div className="geneIcon" ref={iconRef}>
+    <div className={`geneIcon ${true ? "withGeneName" : "withoutGeneName"}`} ref={iconRef}>
       <div className={`geneIconOuter ${className}`} style={{
         height: yScale ? yScale(scoreQry) : 30,
       }} />
@@ -188,6 +188,7 @@ function TableRowRight(props) {
   const {
     clusterIndex,
     clusterResults,
+    showGeneName
   } = props;
 
   const classes = useStyles();
@@ -204,6 +205,7 @@ function TableRowRight(props) {
             inQry={clusterResults.significances[geneIndex].qry}
             scoreRef={clusterResults.scores[geneIndex].ref}
             scoreQry={clusterResults.scores[geneIndex].qry}
+            showGeneName={showGeneName}
             geneName={geneName}
             yScale={yScale}
           />
@@ -224,6 +226,8 @@ export default function QRCellSetsManager(props) {
     refCellSets,
 
     qryTopGenesLists,
+
+    showGeneName,
 
     onHighlightAnchors,
     onDeleteAnchors,
@@ -260,15 +264,17 @@ export default function QRCellSetsManager(props) {
         </div>
         <div className="qrCellSetsTableRight">
           {/* <div className="qrCellSetsTableRightInner"> */}
-            <div className="qrCellSetsTableRow">
-              <div className="qrCellSetsTableHead colTopGenes">Top genes</div>
-            </div>
-            {qryTopGenesLists ? Object.entries(qryTopGenesLists).map(([anchorType, anchorResults]) => (
-              Object.entries(anchorResults).map(([clusterIndex, clusterResults]) => (
-                <TableRowRight
-                  key={clusterIndex} clusterIndex={clusterIndex} clusterResults={clusterResults} />
-              ))
-            )) : null}
+          <div className="qrCellSetsTableRow">
+            <div className="qrCellSetsTableHead colTopGenes">Top genes</div>
+          </div>
+          {qryTopGenesLists ? Object.entries(qryTopGenesLists).map(([anchorType, anchorResults]) => (
+            Object.entries(anchorResults).map(([clusterIndex, clusterResults]) => (
+              <TableRowRight
+                key={clusterIndex} clusterIndex={clusterIndex} clusterResults={clusterResults}
+                showGeneName={showGeneName}
+              />
+            ))
+          )) : null}
           {/* </div> */}
         </div>
       </div>
