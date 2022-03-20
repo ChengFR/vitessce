@@ -357,6 +357,7 @@ export default function QRSupportingScatterplotQuerySubscriber(props) {
       urls={urls}
       theme={theme}
       isReady={isReady}
+      extraClassName={"supporting-query-container"}
       options={(
         <ScatterplotOptions
           observationsLabel={observationsLabel}

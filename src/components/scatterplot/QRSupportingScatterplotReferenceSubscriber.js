@@ -361,6 +361,7 @@ export default function QRSupportingScatterplotReferenceSubscriber(props) {
       urls={urls}
       theme={theme}
       isReady={isReady}
+      extraClassName={"supporting-reference-container"}
       options={(
         <ScatterplotOptions
           observationsLabel={observationsLabel}

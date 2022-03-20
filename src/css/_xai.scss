@@ -168,4 +168,12 @@
   .status-title {
     display: none;
   }
+
+  /* Supporting view borders */
+  .supporting-query-container {
+    border: 2px solid rgb(105, 105, 105);
+  }
+  .supporting-reference-container {
+    border: 2px solid rgb(211, 211, 211);
+  }
 }

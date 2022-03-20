@@ -213,6 +213,7 @@ export default function QRComparisonScatterplotSubscriber(props) {
     }
     return null;
   }, [anchors, refAnchorCluster, qryEmbedding, refEmbedding, qryCellsIndex]);
+  console.log(anchorLinks);
 
   // TODO(scXAI): determine if query and reference should use same cell sets tree
   const mergedQryCellSets = useMemo(() => mergeCellSets(
@@ -443,6 +444,7 @@ export default function QRComparisonScatterplotSubscriber(props) {
         refEmbedding={refEmbedding}
         qryMapping={qryValues.embeddingType}
         refMapping={refValues.embeddingType}
+        qryCellSets={qryCellSets}
         refCellSets={refCellSets}
         cellFilter={qryValues.cellFilter}
         cellSelection={qryCellSelection}
@@ -472,6 +474,9 @@ export default function QRComparisonScatterplotSubscriber(props) {
         qryCellEncoding={qryValues.embeddingEncoding}
         refCellsVisible={refValues.embeddingVisible}
         refCellEncoding={refValues.embeddingEncoding}
+
+        anchorLinks={anchorLinks}
+        anchorLinksVisible={qryValues.embeddingLinksVisible}
       />
       {!disableTooltip && (
       <ScatterplotTooltipSubscriber
