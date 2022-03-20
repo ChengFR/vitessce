@@ -49,12 +49,12 @@ function SignificanceIcon(props) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    if(outerRef && outerRef.current) {
+    if (outerRef && outerRef.current) {
       const containerRect = outerRef.current.getBoundingClientRect();
       setX(containerRect.left);
       setY(containerRect.top);
     }
-    if(iconRef && iconRef.current) {
+    if (iconRef && iconRef.current) {
       const handleMouseEnter = () => {
         setOpen(true);
       };
@@ -69,10 +69,10 @@ function SignificanceIcon(props) {
         container.removeEventListener('mouseleave', handleMouseLeave);
       };
     }
-    return () => {};
+    return () => { };
   }, [iconRef, outerRef, x, y]);
 
-  return (<div ref={outerRef} style={{position: 'relative'}}>
+  return (<div ref={outerRef} style={{ position: 'relative' }}>
 
     <span ref={iconRef}>{
       (inRef && inQry ? (
@@ -85,11 +85,11 @@ function SignificanceIcon(props) {
     </span>
     {true ?
       <div className="signifIconTooltip" style={{ top: `30px`, left: `0px`, display: (open ? 'inline-block' : 'none') }}>
-        {geneName}<br/>
-        Score in Query: {inQry ? (<b>{scoreQryStr}</b>) : (<span>{scoreQryStr}</span>)}<br/>
+        {geneName}<br />
+        Score in Query: {inQry ? (<b>{scoreQryStr}</b>) : (<span>{scoreQryStr}</span>)}<br />
         Score in Reference: {inRef ? (<b>{scoreRefStr}</b>) : (<span>{scoreRefStr}</span>)}
       </div>
-     : null}
+      : null}
   </div>);
 }
 
@@ -147,21 +147,29 @@ function TableRowLeft(props) {
         </IconButton>
       </div>
       <div className="qrCellSetsTableHead colName" title={`${clusterIndex} (${anchorType})`}>
-        <button onClick={handleClickName} style={{ fontWeight: (anchorType !== 'unjustified' ? 'bold' : 'normal')}}>
+        <button onClick={handleClickName} style={{ fontWeight: (anchorType !== 'unjustified' ? 'bold' : 'normal') }}>
           {clusterIndex}
         </button>
       </div>
       <div className="qrCellSetsTableHead colPrediction">
         {clusterResults.predictionProportions.map((predictionObj) => (
-          <div className="predictionBar" key={predictionObj.name} title={`${predictionObj.name} (${Number(predictionObj.proportion).toFixed(2)})`} style={{ marginTop: '4px', height: '22px', width: `${barWidth*predictionObj.proportion}px`, backgroundColor: `rgb(${predictionObj.color[0]}, ${predictionObj.color[1]}, ${predictionObj.color[2]})`}}>
-
+          <div className="predictionBar" key={predictionObj.name}
+            title={`${predictionObj.name} (${Number(predictionObj.proportion).toFixed(2)})`}
+            style={{
+              marginTop: '4px', height: '22px', width: `${barWidth * predictionObj.proportion}px`,
+              backgroundColor: `rgb(${predictionObj.color[0]}, ${predictionObj.color[1]}, ${predictionObj.color[2]})`
+            }}>
           </div>
         ))}
-        
+
       </div>
       <div className="qrCellSetsTableHead colSimilarity">
-        <div className="predictionBar" title={`Median Anchor Distance (${Number(clusterResults.latentDist).toFixed(2)})`} style={{ marginTop: '4px', marginLeft: '4px', height: '22px', width: `${(barWidth-4)*clusterResults.latentDist}px`, backgroundColor: `rgb(110, 110, 110)`}}>
-
+        <div className="predictionBar"
+          title={`Median Anchor Distance (${Number(clusterResults.latentDist).toFixed(2)})`}
+          style={{
+            marginTop: '4px', marginLeft: '4px', height: '22px',
+            width: `${(barWidth - 4) * clusterResults.latentDist}px`, backgroundColor: `rgb(110, 110, 110)`
+          }}>
         </div>
       </div>
       <div className="qrCellSetsTableHead colEdit">
@@ -271,10 +279,6 @@ export default function QRCellSetsManager(props) {
           </div>
         </div>
       </div>
-
-      
-     
-      
     </div>
   );
 }
