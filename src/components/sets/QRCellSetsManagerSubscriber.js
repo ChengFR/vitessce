@@ -196,7 +196,7 @@ export default function QRCellSetsManagerSubscriber(props) {
   }, [anchorApiState]);
 
   const onEditAnchors = useCallback((anchorId) => {
-    onHighlightAnchors(anchorId);
+    qrySetters.setAnchorSetFocus(anchorId);
     qrySetters.setAnchorEditMode({ mode: 'lasso', anchorId: anchorId });
     qrySetters.setAnchorEditTool('lasso');
   }, [onHighlightAnchors]);

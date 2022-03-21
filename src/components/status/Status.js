@@ -140,6 +140,7 @@ export default function Status(props) {
       setAnchorEditMode(null);
     }
     if(newValue === 1) {
+      clearAnchorSetFocus();
       setAnchorEditTool('lasso');
       setAnchorEditMode(null);
     }
