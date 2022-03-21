@@ -5,9 +5,6 @@ import React, {
   useCallback,
   useMemo,
 } from 'react';
-import {
-  useMutation,
-} from 'react-query';
 import isEqual from 'lodash/isEqual';
 import {
   useMultiDatasetCoordination,
@@ -63,13 +60,6 @@ export default function QRCellSetsManagerSubscriber(props) {
   const loaders = useLoaders();
   const setWarning = useSetWarning();
 
-  // Reference: https://react-query.tanstack.com/guides/mutations
-  const mutation = useMutation(newTodo => {
-    
-    // return axios.post('/todos', newTodo);
-
-  });
-
   // Use multi-dataset coordination.
   const datasetUids = useDatasetUids(coordinationScopes);
   const refScope = "REFERENCE";
@@ -114,6 +104,20 @@ export default function QRCellSetsManagerSubscriber(props) {
   const refOptions = refLoader?.options;
 
   const [anchors, anchorsStatus] = useAnchors(qryLoader, anchorIteration, setItemIsReady);
+  const nextUserSetName = useMemo(() => {
+    if(anchors && anchors.user_selection.length > 0) {
+      let nextIndex = 0;
+      let nextExists;
+      let potentialNext;
+      do {
+        potentialNext = `user-${nextIndex}`;
+        nextExists = anchors.user_selection.find(o => o.id === potentialNext) !== undefined;
+        nextIndex += 1;
+      } while(nextExists);
+      return potentialNext;
+    }
+    return 'user-0';
+  }, [anchors]);
 
   // Load the data.
   // Cell IDs
@@ -238,11 +242,11 @@ export default function QRCellSetsManagerSubscriber(props) {
         qrySetters.setAnchorSetFocus(null);
         setTimeout(() => {
           qrySetters.setAnchorSetFocus(prevAnchorId);
-        }, 200);
+        }, 500);
       });
     } else if(qryValues.anchorEditMode === null) {
       const cellIds = qryValues.additionalCellSets.tree[0].children[0].set.map(c => ({ cell_id: c[0] }));
-      const anchorId = `user-${anchorApiState.iteration}`; // TODO(scXAI)
+      const anchorId = nextUserSetName;
       qrySetters.setAnchorApiState({ ...anchorApiState, status: 'loading' });
       qryLoader.anchorAdd(anchorId, cellIds).then(result => {
         qrySetters.setAnchorApiState({ ...anchorApiState, iteration: anchorApiState.iteration+1, status: 'success' });

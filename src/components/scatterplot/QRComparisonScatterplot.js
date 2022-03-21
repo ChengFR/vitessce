@@ -166,7 +166,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
           [217, 217, 217, 128],
           [217, 217, 217, 128],
         ],
-        getPolygonOffset: () => ([0, 100]),
+        getPolygonOffset: () => ([0, 90]),
         //modelMatrix: new Matrix4().makeTranslation(0, 0, 1),
         // Our radius pixel setters measure in pixels.
         radiusUnits: 'pixels',
@@ -227,7 +227,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         pickable: false,
         autoHighlight: false,
         filled: true,
-        getPolygonOffset: () => ([0, 100]),
+        getPolygonOffset: () => ([0, 20]),
         cellSize: 0.3,
         contours: [
           { threshold: 3, color: strokeColor, strokeWidth: 2 },
@@ -287,7 +287,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       radiusMinPixels: 1,
       radiusMaxPixels: 30,
       // Reference: http://pessimistress.github.io/deck.gl/docs/api-reference/core/layer#getpolygonoffset
-      getPolygonOffset: () => ([0, 100]), // TODO: determine optimal value
+      getPolygonOffset: () => ([0, -90]), // TODO: determine optimal value
       // Our radius pixel setters measure in pixels.
       radiusUnits: 'pixels',
       lineWidthUnits: 'pixels',
@@ -320,11 +320,132 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
   }
 
   createQryHeatmapLayers() {
-    return []; // TODO(scXAI)
+    const {
+      qryCellsEntries: cellsEntries
+    } = this;
+    const {
+      qryCellsVisible,
+      qryCellEncoding,
+      theme,
+      cellRadius = 1.0,
+      cellOpacity = 1.0,
+      cellFilter,
+      cellSelection,
+      setCellHighlight,
+      setComponentHover,
+      getCellIsSelected,
+      cellColors,
+      qryCellsIndex,
+      getCellColor = makeDefaultGetCellColors(cellColors, qryCellsIndex, theme),
+      getExpressionValue,
+      onCellClick,
+      geneExpressionColormap,
+      geneExpressionColormapRange = [0.0, 1.0],
+      cellColorEncoding,
+    } = this.props;
+    const filteredCellsEntries = (cellFilter
+      ? cellsEntries.filter(cellEntry => cellFilter.includes(cellEntry[0]))
+      : cellsEntries);
+    return [
+      new HeatmapLayer({
+        id: `${QRY_LAYER_ID}-heatmap`,
+        coordinateSystem: COORDINATE_SYSTEM.CARTESIAN,
+        data: {
+          src: cellsEntries.data,
+          length: cellsEntries.shape[1]
+        },
+        visible: (qryCellsVisible && qryCellEncoding === 'heatmap'),
+        pickable: true,
+        autoHighlight: true,
+        filled: true,
+        radiusPixels: 40,
+        radiusScale: cellRadius,
+        radiusMinPixels: 1,
+        radiusMaxPixels: 30,
+        colorRange: [
+          [241, 241, 241, 128],
+          [217, 217, 217, 128],
+          [217, 217, 217, 128],
+          [217, 217, 217, 128],
+          [217, 217, 217, 128],
+        ],
+        getPolygonOffset: () => ([0, 80]),
+        //modelMatrix: new Matrix4().makeTranslation(0, 0, 1),
+        // Our radius pixel setters measure in pixels.
+        radiusUnits: 'pixels',
+        lineWidthUnits: 'pixels',
+        getPosition: (object, { index, data, target }) => {
+          target[0] = data.src[0][index];
+          target[1] = -data.src[1][index];
+          target[2] = 0;
+          return target;
+        },
+        getFillColor: getCellColor,
+        getLineColor: getCellColor,
+        getPointRadius: 1,
+        getExpressionValue,
+        getLineWidth: 0,
+        colorScaleLo: geneExpressionColormapRange[0],
+        colorScaleHi: geneExpressionColormapRange[1],
+        isExpressionMode: (cellColorEncoding === 'geneSelection'),
+        colormap: geneExpressionColormap,
+        updateTriggers: {
+          getExpressionValue,
+          getFillColor: [cellColorEncoding, cellSelection, cellColors],
+          getLineColor: [cellColorEncoding, cellSelection, cellColors],
+          getCellIsSelected,
+        },
+      }),
+    ];
   }
 
   createQryContourLayers() {
-    return []; // TODO(scXAI)
+    const {
+      qryCellAnchorSet
+    } = this;
+    const {
+      qryCellsVisible,
+      qryCellEncoding,
+      theme,
+      qryCellsIndex,
+      qryCellColors,
+      getCellColor = makeDefaultGetCellColors(qryCellColors, qryCellsIndex, theme),
+    } = this.props;
+
+    return qryCellAnchorSet.map(group => {
+      const color = getCellColor(null, { 'index': group.set[0] });
+      const strokeColor = [...color];
+      strokeColor[3] = 0.5 * 255;
+      const fillColor = [...color];
+      fillColor[3] = 0.2 * 255;
+
+      return new ContourLayer({
+        id: `${QRY_LAYER_ID}-contour-${group.name}`,
+        coordinateSystem: COORDINATE_SYSTEM.CARTESIAN,
+        data: {
+          src: group.entries,
+          length: group.set.length
+        },
+        visible: (qryCellsVisible && qryCellEncoding === 'contour'),
+        pickable: false,
+        autoHighlight: false,
+        filled: true,
+        getPolygonOffset: () => ([0, 10]),
+        cellSize: 0.3,
+        contours: [
+          { threshold: 3, color: strokeColor, strokeWidth: 2 },
+          { threshold: [3, 1000], color: fillColor },
+          // { threshold: [10, 1000], color: color },
+          // { threshold: [30, 1000], color: color }
+        ],
+        getPosition: (object, { index, data, target }) => {
+          target[0] = data.src[0][index];
+          target[1] = -data.src[1][index];
+          target[2] = 0;
+          return target;
+        },
+      })
+    });
   }
 
   createQryScatterplotLayer() {
@@ -429,6 +550,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
   createAnchorLinksLayers() {
     const { anchorLinks, anchorLinksVisible } = this.props;
     return [
+      // Lines
       new LineLayer({
         id: 'anchor-links',
         data: anchorLinks,
@@ -441,7 +563,31 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         getSourcePosition: d => [d.qry[0], -d.qry[1]],
         getTargetPosition: d => [d.ref[0], -d.ref[1]],
         getColor: d => [140, 140, 140],
-      })
+      }),
+      // Line endpoints
+      new ScatterplotLayer({
+        id: 'anchor-link-endpoints',
+        data: [
+          ...anchorLinks.map(d => ({ coordinate: d.qry, type: 'qry' })),
+          ...anchorLinks.map(d => ({ coordinate: d.ref, type: 'ref' })),
+        ],
+        visible: anchorLinksVisible,
+        pickable: false,
+        stroked: false,
+        filled: true,
+        getPolygonOffset: () => ([0, -300]), // TODO: determine optimal value
+        opacity: 1,
+        radiusScale: 5, // TODO: fix upstream
+        radiusMinPixels: 1,
+        radiusMaxPixels: 100,
+        // Our radius pixel setters measure in pixels.
+        radiusUnits: 'pixels',
+        lineWidthUnits: 'pixels',
+        getPosition: d => [d.coordinate[0], -d.coordinate[1], 0],
+        getFillColor: d => d.type === 'qry' ? [105, 105, 105] : [211, 211, 211],
+        getPointRadius: 50,
+        getLineWidth: 0,
+      }),
     ];
   }
 
@@ -515,7 +661,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       setCellSelection,
       qryCellsIndex,
     } = this.props;
-    const { tool } = this.state;
+    const tool = super.getTool();
     const { qryCellsQuadTree: cellsQuadTree } = this;
     const flipYTooltip = true;
     
@@ -548,12 +694,12 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
     return [
       anchorLinksLayers,
       supportingBoundsLayer,
-      ...qryHeatmapLayers,
-      ...qryContourLayers,
       qryScatterplotLayer,
-      ...refContourLayers,
-      ...refHeatmapLayers,
       refScatterplotLayer,
+      ...qryHeatmapLayers,
+      ...refHeatmapLayers,
+      ...qryContourLayers,
+      ...refContourLayers,
       //...cellSetsLayers,
       ...this.createQrySelectionLayers(),
     ];
@@ -787,6 +933,9 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
     }
     if (['anchorLinks', 'anchorLinksVisible'].some(shallowDiff)) {
       this.onUpdateAnchorLinksLayer();
+      this.forceUpdate();
+    }
+    if (shallowDiff('anchorEditTool')) {
       this.forceUpdate();
     }
   }

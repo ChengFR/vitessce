@@ -1,9 +1,11 @@
+/* eslint-disable */
 import React, { useEffect } from 'react';
 import { pluralize } from '../../utils';
 import { useReady, useUrls } from '../hooks';
 import { useExpressionAttrs } from '../data-hooks';
-import { useCoordination, useLoaders } from '../../app/state/hooks';
+import { useCoordination, useLoaders, useMultiDatasetCoordination, useDatasetUids } from '../../app/state/hooks';
 import { COMPONENT_COORDINATION_TYPES } from '../../app/state/coordination';
+import { Component } from '../../app/constants';
 
 import TitleInfo from '../TitleInfo';
 import Genes from './Genes';
@@ -31,23 +33,31 @@ export default function GenesSubscriber(props) {
     variablesLabelOverride: variablesLabel = 'gene',
     variablesPluralLabelOverride: variablesPluralLabel = `${variablesLabel}s`,
     theme,
-    title = 'Expression Levels',
+    title = 'Genes',
   } = props;
 
   const loaders = useLoaders();
 
+  // Use multi-dataset coordination.
+  const datasetUids = useDatasetUids(coordinationScopes);
+  const refScope = "REFERENCE";
+  const qryScope = "QUERY"
+  const refDataset = datasetUids[refScope];
+  const qryDataset = datasetUids[qryScope];
+
   // Get "props" from the coordination space.
-  const [{
-    dataset,
-    geneSelection,
-    geneFilter,
-    cellColorEncoding,
-  }, {
-    setGeneSelection,
-    setGeneFilter,
-    setGeneHighlight,
-    setCellColorEncoding,
-  }] = useCoordination(COMPONENT_COORDINATION_TYPES.genes, coordinationScopes);
+  const [cValues, cSetters] = useMultiDatasetCoordination(
+    COMPONENT_COORDINATION_TYPES[Component.GENES],
+    coordinationScopes,
+  );
+  const [qryValues, qrySetters] = [cValues[qryScope], cSetters[qryScope]];
+  const [refValues, refSetters] = [cValues[refScope], cSetters[refScope]];
+  
+  const anchorApiState = qryValues.anchorApiState;
+  const anchorIteration = anchorApiState.iteration;
+  const anchorStatus = anchorApiState.status;
+  const modelIteration = qryValues.modelApiState.iteration;
+  const modelStatus = qryValues.modelApiState.status;
 
   const [urls, addUrl, resetUrls] = useUrls();
   const [
@@ -55,20 +65,28 @@ export default function GenesSubscriber(props) {
     setItemIsReady,
     setItemIsNotReady, // eslint-disable-line no-unused-vars
     resetReadyItems,
-  ] = useReady(
-    GENES_DATA_TYPES,
-  );
+  ] = useReady([anchorStatus, modelStatus]);
+
+  const dataset = qryDataset;
+  const geneSelection = qryValues.geneSelection;
+  const geneFilter = qryValues.geneFilter;
+  const cellColorEncoding = qryValues.cellColorEncoding;
+
+  const setGeneSelection = qrySetters.setGeneSelection;
+  const setGeneFilter = qrySetters.setGeneFilter;
+  const setGeneHighlight = qrySetters.setGeneHighlight;
+  const setCellColorEncoding = qrySetters.setCellColorEncoding;
 
   // Reset file URLs and loader progress when the dataset has changed.
   useEffect(() => {
     resetUrls();
     resetReadyItems();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loaders, dataset]);
+  }, [loaders, qryDataset, refDataset]);
 
   // Get data from loaders using the data hooks.
   const [attrs] = useExpressionAttrs(
-    loaders, dataset, setItemIsReady, addUrl, true,
+    loaders, qryDataset, setItemIsReady, addUrl, true,
   );
   const geneList = attrs ? attrs.cols : [];
   const numGenes = geneList.length;
@@ -89,7 +107,6 @@ export default function GenesSubscriber(props) {
       isScroll
       removeGridComponent={removeGridComponent}
       isReady={isReady}
-      urls={urls}
     >
       <Genes
         hasColorEncoding={cellColorEncoding === 'geneSelection'}
