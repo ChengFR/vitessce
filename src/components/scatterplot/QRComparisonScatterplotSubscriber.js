@@ -4,6 +4,7 @@ import React, {
 } from 'react';
 import { LinearInterpolator, TRANSITION_EVENTS } from '@deck.gl/core';
 import { extent } from 'd3-array';
+import { rgb as d3_rgb, lch as d3_hsl } from 'd3-color';
 import isEqual from 'lodash/isEqual';
 import TitleInfo from '../TitleInfo';
 import { pluralize, capitalize } from '../../utils';
@@ -294,10 +295,19 @@ export default function QRComparisonScatterplotSubscriber(props) {
             indices.push(i);
           }
         });
+        const d3color = d3_hsl(d3_rgb(color[0], color[1], color[2]));
+        const colorRange = [
+          [d3color.brighter(1).rgb().r, d3color.brighter(1).rgb().g, d3color.brighter(1).rgb().b, 128],
+          [d3color.brighter(0.5).rgb().r, d3color.brighter(0.5).rgb().g, d3color.brighter(0.5).rgb().b, 128],
+          [d3color.brighter(0).rgb().r, d3color.brighter(0).rgb().g, d3color.brighter(0).rgb().b, 128],
+          [d3color.darker(0.5).rgb().r, d3color.darker(0.5).rgb().g, d3color.darker(0.5).rgb().b, 128],
+          [d3color.darker(1).rgb().r, d3color.darker(1).rgb().g, d3color.darker(1).rgb().b, 128],
+        ];
         return {
           name: group.name,
           indices,
           color,
+          colorRange,
         };
       });
       const refContourData = qryNode.children.map(group => {
@@ -309,10 +319,19 @@ export default function QRComparisonScatterplotSubscriber(props) {
             indices.push(i);
           }
         });
+        const d3color = d3_hsl(d3_rgb(color[0], color[1], color[2]));
+        const colorRange = [
+          [d3color.brighter(0.2).rgb().r, d3color.brighter(0.2).rgb().g, d3color.brighter(0.2).rgb().b, 128],
+          [d3color.brighter(0.1).rgb().r, d3color.brighter(0.1).rgb().g, d3color.brighter(0.1).rgb().b, 128],
+          [d3color.rgb().r, d3color.rgb().g, d3color.rgb().b, 128],
+          [d3color.darker(0.1).rgb().r, d3color.darker(0.1).rgb().g, d3color.darker(0.1).rgb().b, 128],
+          [d3color.darker(0.2).rgb().r, d3color.darker(0.2).rgb().g, d3color.darker(0.2).rgb().b, 128],
+        ];
         return {
           name: group.name,
           indices,
           color,
+          colorRange,
         };
       });
       return [qryContourData, refContourData];

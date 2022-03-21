@@ -144,13 +144,14 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
     const filteredCellsEntries = (cellFilter
       ? cellsEntries.filter(cellEntry => cellFilter.includes(cellEntry[0]))
       : cellsEntries);
-    return [
-      new HeatmapLayer({
-        id: `${REF_LAYER_ID}-heatmap`,
+    return refContour.map(group => {
+      const { name, colorRange, indices } = group;
+      return new HeatmapLayer({
+        id: `${REF_LAYER_ID}-heatmap-${name}`,
         coordinateSystem: COORDINATE_SYSTEM.CARTESIAN,
         data: {
-          src: cellsEntries.data,
-          length: cellsEntries.shape[1]
+          src: { indices, embedding: cellsEntries.data },
+          length: indices.length
         },
         visible: (refCellsVisible && refCellEncoding === 'heatmap'),
         pickable: true,
@@ -160,26 +161,18 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         radiusScale: cellRadius,
         radiusMinPixels: 1,
         radiusMaxPixels: 30,
-        colorRange: [
-          [241, 241, 241, 128],
-          [217, 217, 217, 128],
-          [217, 217, 217, 128],
-          [217, 217, 217, 128],
-          [217, 217, 217, 128],
-        ],
+        colorRange: colorRange,
         getPolygonOffset: () => ([0, 90]),
         //modelMatrix: new Matrix4().makeTranslation(0, 0, 1),
         // Our radius pixel setters measure in pixels.
         radiusUnits: 'pixels',
         lineWidthUnits: 'pixels',
         getPosition: (object, { index, data, target }) => {
-          target[0] = data.src[0][index];
-          target[1] = -data.src[1][index];
+          target[0] = data.src.embedding[0][data.src.indices[index]];
+          target[1] = -data.src.embedding[1][data.src.indices[index]];
           target[2] = 0;
           return target;
         },
-        getFillColor: getCellColor,
-        getLineColor: getCellColor,
         getPointRadius: 1,
         getExpressionValue,
         getLineWidth: 0,
@@ -193,8 +186,8 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
           getLineColor: [cellColorEncoding, cellSelection, cellColors],
           getCellIsSelected,
         },
-      }),
-    ];
+      });
+    });
   }
 
   createRefContourLayers() {
@@ -809,13 +802,13 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       anchorLinksLayers,
       supportingBoundsLayer,
       qryScatterplotLayer,
-      refScatterplotLayer,
-      ...qryHeatmapLayers,
+      //refScatterplotLayer,
+      //...qryHeatmapLayers,
       ...refHeatmapLayers,
       ...qryContourFocusLayers,
-      ...qryContourLayers,
+      //...qryContourLayers,
       ...refContourFocusLayers,
-      ...refContourLayers,
+      //...refContourLayers,
       //...cellSetsLayers,
       ...this.createQrySelectionLayers(),
     ];
@@ -842,24 +835,24 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
   }
 
   onUpdateQryHeatmapLayer() {
-    if(this.qryCellsEntries.data) {
+    if(this.qryCellsEntries.data && this.props.qryContour) {
       this.qryHeatmapLayers = this.createQryHeatmapLayers();
     }
   }
 
   onUpdateQryContourLayer() {
-    if (this.props.qryContour) {
+    if (this.qryCellsEntries.data && this.props.qryContour) {
       this.qryContourLayers = this.createQryContourLayers();
     }
   }
   
   onUpdateQryContourFocusLayer() {
-    if (this.props.qryAnchorSetFocusContour) {
+    if (this.qryCellsEntries.data && this.props.qryAnchorSetFocusContour) {
       this.qryContourFocusLayers = this.createQryContourFocusLayers();
     }
   }
   onUpdateRefContourFocusLayer() {
-    if (this.props.refAnchorSetFocusContour) {
+    if (this.refCellsEntries.data && this.props.refAnchorSetFocusContour) {
       this.refContourFocusLayers = this.createRefContourFocusLayers();
     }
   }
@@ -871,13 +864,13 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
   }
 
   onUpdateRefHeatmapLayer() {
-    if(this.refCellsEntries.data) {
+    if(this.refCellsEntries.data && this.props.refContour) {
       this.refHeatmapLayers = this.createRefHeatmapLayers();
     }
   }
 
   onUpdateRefContourLayer() {
-    if (this.props.refContour) {
+    if (this.refCellsEntries.data && this.props.refContour) {
       this.refContourLayers = this.createRefContourLayers();
     }
   }
@@ -976,12 +969,14 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
     if (['qryEmbedding', 'qryContour'].some(shallowDiff)) {
       // Cells data changed.
       this.onUpdateQryCellsData();
+      this.onUpdateQryHeatmapLayer();
       this.onUpdateQryContourLayer();
       this.forceUpdate();
     }
     if (['refEmbedding', 'refContour'].some(shallowDiff)) {
       // Cells data changed.
       this.onUpdateRefCellsData();
+      this.onUpdateRefHeatmapLayer();
       this.onUpdateRefContourLayer();
       this.forceUpdate();
     }
