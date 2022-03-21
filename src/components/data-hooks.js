@@ -814,7 +814,7 @@ export function useAnnDataDynamic(
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loaders, dataset, path]);
+  }, [loaders, dataset, path, iteration]);
 
   return [dynamicData, status];
 }
