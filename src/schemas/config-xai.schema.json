@@ -1142,7 +1142,7 @@
                     "type": "null",
                     "description": ""
                   },
-                  { "type": "array" }
+                  { "type": "string" }
                 ]
               }
             }

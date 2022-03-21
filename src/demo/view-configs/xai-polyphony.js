@@ -197,7 +197,7 @@ export const polyphonyConfig = {
             qry: true,
           },
           embeddingEncoding: {
-            ref: 'contour',
+            ref: 'heatmap',
             qry: 'scatterplot',
           },
           embeddingLinksVisible: {
@@ -272,7 +272,7 @@ export const polyphonyConfig = {
               geneSelection: { REFERENCE: 'ref', QUERY: 'qry' },
             },
             props: {
-              qrySupportingUuid: 3,
+              /* qrySupportingUuid: 3, */
               /* refSupportingUuid: 4, */
             },
             x: 0,
@@ -280,7 +280,7 @@ export const polyphonyConfig = {
             w: 6,
             h: 11,
           },
-          {
+          /*{
             component: 'qrSupportingScatterplotQuery',
             coordinationScopes: {
               dataset: 'QUERY',
@@ -305,7 +305,7 @@ export const polyphonyConfig = {
             y: 7,
             w: 3,
             h: 5,
-          },
+          },*/
           {
             component: 'genes',
             coordinationScopes: {

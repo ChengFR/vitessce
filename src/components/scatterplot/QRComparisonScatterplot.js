@@ -79,18 +79,18 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
     // All instance variables used in this class:
     this.qryCellsEntries = {};
     this.qryCellsQuadTree = null;
-    this.qryCellAnchorSet = [];
     this.refCellsEntries = {};
     this.refCellsQuadTree = null;
-    this.refCellAnchorSet = [];
 
     // Layer storage
     this.refHeatmapLayers = [];
     this.refContourLayers = [];
     this.refScatterplotLayer = null;
+    this.refContourFocusLayers = [];
     this.qryHeatmapLayers = [];
     this.qryContourLayers = [];
     this.qryScatterplotLayer = null;
+    this.qryContourFocusLayers = [];
 
     this.supportingBoundsLayer = null;
     this.anchorLinksLayers = [];
@@ -121,6 +121,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       refCellsEntries: cellsEntries
     } = this;
     const {
+      refContour,
       refCellsVisible,
       refCellEncoding,
       theme,
@@ -198,30 +199,27 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
 
   createRefContourLayers() {
     const {
-      refCellAnchorSet
+      refCellsEntries: cellsEntries
     } = this;
     const {
+      refContour,
       refCellsVisible,
       refCellEncoding,
-      theme,
-      refCellsIndex,
-      refCellColors,
-      getCellColor = makeDefaultGetCellColors(refCellColors, refCellsIndex, theme),
     } = this.props;
 
-    return refCellAnchorSet.map(group => {
-      const color = getCellColor(null, { 'index': group.set[0] });
+    return refContour.map(group => {
+      const { name, color, indices } = group;
       const strokeColor = [...color];
       strokeColor[3] = 0.5 * 255;
       const fillColor = [...color];
       fillColor[3] = 0.2 * 255;
 
       return new ContourLayer({
-        id: `${REF_LAYER_ID}-contour-${group.name}`,
+        id: `${REF_LAYER_ID}-contour-${name}`,
         coordinateSystem: COORDINATE_SYSTEM.CARTESIAN,
         data: {
-          src: group.entries,
-          length: group.set.length
+          src: { indices, embedding: cellsEntries.data },
+          length: indices.length
         },
         visible: (refCellsVisible && refCellEncoding === 'contour'),
         pickable: false,
@@ -236,14 +234,15 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
           // { threshold: [30, 1000], color: color }
         ],
         getPosition: (object, { index, data, target }) => {
-          target[0] = data.src[0][index];
-          target[1] = -data.src[1][index];
+          target[0] = data.src.embedding[0][data.src.indices[index]];
+          target[1] = -data.src.embedding[1][data.src.indices[index]];
           target[2] = 0;
           return target;
         },
       })
     });
   }
+
 
   createRefScatterplotLayer() {
     const { refCellsEntries: cellsEntries } = this;
@@ -401,30 +400,27 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
 
   createQryContourLayers() {
     const {
-      qryCellAnchorSet
+      qryCellsEntries: cellsEntries
     } = this;
     const {
+      qryContour,
       qryCellsVisible,
       qryCellEncoding,
-      theme,
-      qryCellsIndex,
-      qryCellColors,
-      getCellColor = makeDefaultGetCellColors(qryCellColors, qryCellsIndex, theme),
     } = this.props;
 
-    return qryCellAnchorSet.map(group => {
-      const color = getCellColor(null, { 'index': group.set[0] });
+    return qryContour.map(group => {
+      const { name, color, indices } = group;
       const strokeColor = [...color];
       strokeColor[3] = 0.5 * 255;
       const fillColor = [...color];
       fillColor[3] = 0.2 * 255;
 
       return new ContourLayer({
-        id: `${QRY_LAYER_ID}-contour-${group.name}`,
+        id: `${QRY_LAYER_ID}-contour-${name}`,
         coordinateSystem: COORDINATE_SYSTEM.CARTESIAN,
         data: {
-          src: group.entries,
-          length: group.set.length
+          src: { indices, embedding: cellsEntries.data },
+          length: indices.length
         },
         visible: (qryCellsVisible && qryCellEncoding === 'contour'),
         pickable: false,
@@ -439,8 +435,96 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
           // { threshold: [30, 1000], color: color }
         ],
         getPosition: (object, { index, data, target }) => {
-          target[0] = data.src[0][index];
-          target[1] = -data.src[1][index];
+          target[0] = data.src.embedding[0][data.src.indices[index]];
+          target[1] = -data.src.embedding[1][data.src.indices[index]];
+          target[2] = 0;
+          return target;
+        },
+      })
+    });
+  }
+
+  createQryContourFocusLayers() {
+    const {
+      qryCellsEntries: cellsEntries
+    } = this;
+    const {
+      qryAnchorSetFocusContour,
+    } = this.props;
+
+    return qryAnchorSetFocusContour.map(group => {
+      const { name, color, indices } = group;
+      const strokeColor = [...color];
+      strokeColor[3] = 0.5 * 255;
+      const fillColor = [...color];
+      fillColor[3] = 0.2 * 255;
+
+      return new ContourLayer({
+        id: `${QRY_LAYER_ID}-contour-focus-${name}`,
+        coordinateSystem: COORDINATE_SYSTEM.CARTESIAN,
+        data: {
+          src: { indices, embedding: cellsEntries.data },
+          length: indices.length
+        },
+        visible: true,
+        pickable: false,
+        autoHighlight: false,
+        filled: true,
+        getPolygonOffset: () => ([0, 8]),
+        cellSize: 0.3,
+        contours: [
+          { threshold: 3, color: strokeColor, strokeWidth: 2 },
+          { threshold: [3, 1000], color: fillColor },
+          // { threshold: [10, 1000], color: color },
+          // { threshold: [30, 1000], color: color }
+        ],
+        getPosition: (object, { index, data, target }) => {
+          target[0] = data.src.embedding[0][data.src.indices[index]];
+          target[1] = -data.src.embedding[1][data.src.indices[index]];
+          target[2] = 0;
+          return target;
+        },
+      })
+    });
+  }
+
+  createRefContourFocusLayers() {
+    const {
+      refCellsEntries: cellsEntries
+    } = this;
+    const {
+      refAnchorSetFocusContour,
+    } = this.props;
+
+    return refAnchorSetFocusContour.map(group => {
+      const { name, color, indices } = group;
+      const strokeColor = [...color];
+      strokeColor[3] = 0.5 * 255;
+      const fillColor = [...color];
+      fillColor[3] = 0.2 * 255;
+
+      return new ContourLayer({
+        id: `${REF_LAYER_ID}-contour-focus-${name}`,
+        coordinateSystem: COORDINATE_SYSTEM.CARTESIAN,
+        data: {
+          src: { indices, embedding: cellsEntries.data },
+          length: indices.length
+        },
+        visible: true,
+        pickable: false,
+        autoHighlight: false,
+        filled: true,
+        getPolygonOffset: () => ([0, 9]),
+        cellSize: 0.3,
+        contours: [
+          { threshold: 3, color: strokeColor, strokeWidth: 2 },
+          { threshold: [3, 1000], color: fillColor },
+          // { threshold: [10, 1000], color: color },
+          // { threshold: [30, 1000], color: color }
+        ],
+        getPosition: (object, { index, data, target }) => {
+          target[0] = data.src.embedding[0][data.src.indices[index]];
+          target[1] = -data.src.embedding[1][data.src.indices[index]];
           target[2] = 0;
           return target;
         },
@@ -548,7 +632,13 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
   }
 
   createAnchorLinksLayers() {
-    const { anchorLinks, anchorLinksVisible } = this.props;
+    const {
+      anchorLinks,
+      anchorLinksVisible,
+      qryAnchorSetFocus,
+      refAnchorSetFocus,
+      cellRadius,
+    } = this.props;
     return [
       // Lines
       new LineLayer({
@@ -558,11 +648,19 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         pickable: false,
         widthUnits: 'pixels',
         widthScale: 1,
-        getWidth: 2,
+        getWidth: d => {
+          if(d.qryId === qryAnchorSetFocus && d.refId === refAnchorSetFocus) {
+            return 5;
+          }
+          return 2;
+        },
         getPolygonOffset: () => ([0, -200]), // TODO: determine optimal value
         getSourcePosition: d => [d.qry[0], -d.qry[1]],
         getTargetPosition: d => [d.ref[0], -d.ref[1]],
         getColor: d => [140, 140, 140],
+        updateTriggers: {
+          getWidth: [qryAnchorSetFocus, refAnchorSetFocus],
+        },
       }),
       // Line endpoints
       new ScatterplotLayer({
@@ -573,20 +671,34 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         ],
         visible: anchorLinksVisible,
         pickable: false,
-        stroked: false,
+        stroked: true,
         filled: true,
         getPolygonOffset: () => ([0, -300]), // TODO: determine optimal value
         opacity: 1,
-        radiusScale: 5, // TODO: fix upstream
+        radiusScale: 1,
         radiusMinPixels: 1,
-        radiusMaxPixels: 100,
-        // Our radius pixel setters measure in pixels.
+        radiusMaxPixels: 30,
         radiusUnits: 'pixels',
         lineWidthUnits: 'pixels',
         getPosition: d => [d.coordinate[0], -d.coordinate[1], 0],
         getFillColor: d => d.type === 'qry' ? [105, 105, 105] : [211, 211, 211],
-        getPointRadius: 50,
-        getLineWidth: 0,
+        getLineColor: [60, 60, 60],
+        getRadius: d => {
+          if(d.qryId === qryAnchorSetFocus && d.refId === refAnchorSetFocus) {
+            return 10;
+          }
+          return 5;
+        },
+        getLineWidth: d => {
+          if(d.qryId === qryAnchorSetFocus && d.refId === refAnchorSetFocus) {
+            return 2;
+          }
+          return 0;
+        },
+        updateTriggers: {
+          getLineWidth: [qryAnchorSetFocus, refAnchorSetFocus],
+          getRadius: [qryAnchorSetFocus, refAnchorSetFocus],
+        },
       }),
     ];
   }
@@ -684,9 +796,11 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       refHeatmapLayers,
       refContourLayers,
       refScatterplotLayer,
+      refContourFocusLayers,
       qryHeatmapLayers,
       qryContourLayers,
       qryScatterplotLayer,
+      qryContourFocusLayers,
       //cellSetsLayers,
       supportingBoundsLayer,
       anchorLinksLayers,
@@ -698,7 +812,9 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       refScatterplotLayer,
       ...qryHeatmapLayers,
       ...refHeatmapLayers,
+      ...qryContourFocusLayers,
       ...qryContourLayers,
+      ...refContourFocusLayers,
       ...refContourLayers,
       //...cellSetsLayers,
       ...this.createQrySelectionLayers(),
@@ -708,52 +824,20 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
   onUpdateQryCellsData() {
     const {
       qryEmbedding,
-      qryCellsIndex, // TODO(scXAI)
-      qryCellSets // TODO(scXAI)
     } = this.props;
     if(qryEmbedding && qryEmbedding.data) {
       this.qryCellsEntries = qryEmbedding;
       this.qryCellsQuadTree = createCellsQuadTree(qryEmbedding);
-      if (qryCellSets?.tree && qryCellSets.tree.length > 0) {
-        this.qryCellAnchorSet = qryCellSets.tree[0].children.map(group => ({
-          name: group.name,
-          set: group.set.map(d => qryCellsIndex.indexOf(d[0]))
-        }));
-        this.qryCellAnchorSet = this.qryCellAnchorSet.map(group => ({
-          ...group,
-          entries: [
-            group.set.map(idx => qryEmbedding.data[0][idx]),
-            group.set.map(idx => qryEmbedding.data[1][idx])
-          ]
-        })
-        )
-      }
     }
   }
 
   onUpdateRefCellsData() {
     const {
       refEmbedding,
-      refCellsIndex,
-      refCellSets
     } = this.props;
     if (refEmbedding && refEmbedding.data) {
       this.refCellsEntries = refEmbedding;
       this.refCellsQuadTree = createCellsQuadTree(refEmbedding);
-      if (refCellSets?.tree && refCellSets.tree.length > 0) {
-        this.refCellAnchorSet = refCellSets.tree[0].children.map(group => ({
-          name: group.name,
-          set: group.set.map(d => refCellsIndex.indexOf(d[0]))
-        }));
-        this.refCellAnchorSet = this.refCellAnchorSet.map(group => ({
-          ...group,
-          entries: [
-            group.set.map(idx => refEmbedding.data[0][idx]),
-            group.set.map(idx => refEmbedding.data[1][idx])
-          ]
-        })
-        )
-      }
     }
   }
 
@@ -764,9 +848,19 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
   }
 
   onUpdateQryContourLayer() {
-    // TODO(scXAI): qryCellAnchorSet prop
-    if (this.qryCellAnchorSet.length > 0) {
+    if (this.props.qryContour) {
       this.qryContourLayers = this.createQryContourLayers();
+    }
+  }
+  
+  onUpdateQryContourFocusLayer() {
+    if (this.props.qryAnchorSetFocusContour) {
+      this.qryContourFocusLayers = this.createQryContourFocusLayers();
+    }
+  }
+  onUpdateRefContourFocusLayer() {
+    if (this.props.refAnchorSetFocusContour) {
+      this.refContourFocusLayers = this.createRefContourFocusLayers();
     }
   }
 
@@ -783,7 +877,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
   }
 
   onUpdateRefContourLayer() {
-    if (this.refCellAnchorSet.length > 0) {
+    if (this.props.refContour) {
       this.refContourLayers = this.createRefContourLayers();
     }
   }
@@ -879,13 +973,13 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
     this.viewInfoDidUpdate();
 
     const shallowDiff = propName => (prevProps[propName] !== this.props[propName]);
-    if (['qryEmbedding', 'qryCellSets'].some(shallowDiff)) {
+    if (['qryEmbedding', 'qryContour'].some(shallowDiff)) {
       // Cells data changed.
       this.onUpdateQryCellsData();
       this.onUpdateQryContourLayer();
       this.forceUpdate();
     }
-    if (['refEmbedding', 'refCellSets'].some(shallowDiff)) {
+    if (['refEmbedding', 'refContour'].some(shallowDiff)) {
       // Cells data changed.
       this.onUpdateRefCellsData();
       this.onUpdateRefContourLayer();
@@ -931,8 +1025,16 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       this.onUpdateSupportingBoundsLayer();
       this.forceUpdate();
     }
-    if (['anchorLinks', 'anchorLinksVisible'].some(shallowDiff)) {
+    if (['anchorLinks', 'anchorLinksVisible', 'qryAnchorSetFocus', 'refAnchorSetFocus'].some(shallowDiff)) {
       this.onUpdateAnchorLinksLayer();
+      this.forceUpdate();
+    }
+    if (['qryAnchorSetFocusContour'].some(shallowDiff)) {
+      this.onUpdateQryContourFocusLayer();
+      this.forceUpdate();
+    }
+    if (['refAnchorSetFocusContour'].some(shallowDiff)) {
+      this.onUpdateRefContourFocusLayer();
       this.forceUpdate();
     }
     if (shallowDiff('anchorEditTool')) {

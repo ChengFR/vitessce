@@ -218,7 +218,7 @@ export default function QRSupportingScatterplotQuerySubscriber(props) {
       // Graphics rendering has the y-axis going south so we need to multiply by negative one.
       setTargetY(newTargetY);
       setZoom(newZoom);
-      setAnchorSetHighlight(cellIndices);
+      // (cellIndices);
     }
   }, [anchorSetFocus]);
   
