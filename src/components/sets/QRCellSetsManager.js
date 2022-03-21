@@ -103,6 +103,7 @@ function TableRowLeft(props) {
     onDeleteAnchors,
     onConfirmAnchors,
     onEditAnchors,
+    onFocusAnchors,
     onHighlightAnchors,
   } = props;
 
@@ -110,8 +111,15 @@ function TableRowLeft(props) {
 
   const [anchorEl, setAnchorEl] = useState(null);
 
-  const handleClickName = () => {
+  const handleMouseOver = () => {
     onHighlightAnchors(clusterIndex);
+  };
+  const handleMouseOut = () => {
+    onHighlightAnchors(null);
+  };
+
+  const handleClickName = () => {
+    onFocusAnchors(clusterIndex);
   };
 
   const handleClickMore = (event) => {
@@ -147,7 +155,7 @@ function TableRowLeft(props) {
         </IconButton>
       </div>
       <div className="qrCellSetsTableHead colName" title={`${clusterIndex} (${anchorType})`}>
-        <button onClick={handleClickName} style={{ fontWeight: (anchorType !== 'unjustified' ? 'bold' : 'normal')}}>
+        <button onClick={handleClickName} onMouseOver={handleMouseOver} onMouseOut={handleMouseOut} style={{ fontWeight: (anchorType !== 'unjustified' ? 'bold' : 'normal')}}>
           {clusterIndex}
         </button>
       </div>
@@ -225,6 +233,7 @@ export default function QRCellSetsManager(props) {
 
     qryTopGenesLists,
 
+    onFocusAnchors,
     onHighlightAnchors,
     onDeleteAnchors,
     onConfirmAnchors,
@@ -253,6 +262,7 @@ export default function QRCellSetsManager(props) {
                 onDeleteAnchors={onDeleteAnchors}
                 onConfirmAnchors={onConfirmAnchors}
                 onEditAnchors={onEditAnchors}
+                onFocusAnchors={onFocusAnchors}
                 onHighlightAnchors={onHighlightAnchors}
               />
             ))

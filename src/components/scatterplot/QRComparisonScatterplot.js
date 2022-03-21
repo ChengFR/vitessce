@@ -121,7 +121,6 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       refCellsEntries: cellsEntries
     } = this;
     const {
-      refContour,
       refCellsVisible,
       refCellEncoding,
       theme,
@@ -144,14 +143,13 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
     const filteredCellsEntries = (cellFilter
       ? cellsEntries.filter(cellEntry => cellFilter.includes(cellEntry[0]))
       : cellsEntries);
-    return refContour.map(group => {
-      const { name, colorRange, indices } = group;
-      return new HeatmapLayer({
-        id: `${REF_LAYER_ID}-heatmap-${name}`,
+    return [
+      new HeatmapLayer({
+        id: `${REF_LAYER_ID}-heatmap`,
         coordinateSystem: COORDINATE_SYSTEM.CARTESIAN,
         data: {
-          src: { indices, embedding: cellsEntries.data },
-          length: indices.length
+          src: cellsEntries.data,
+          length: cellsEntries.shape[1]
         },
         visible: (refCellsVisible && refCellEncoding === 'heatmap'),
         pickable: true,
@@ -161,18 +159,26 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         radiusScale: cellRadius,
         radiusMinPixels: 1,
         radiusMaxPixels: 30,
-        colorRange: colorRange,
+        colorRange: [
+          [241, 241, 241, 128],
+          [217, 217, 217, 128],
+          [217, 217, 217, 128],
+          [217, 217, 217, 128],
+          [217, 217, 217, 128],
+        ],
         getPolygonOffset: () => ([0, 90]),
         //modelMatrix: new Matrix4().makeTranslation(0, 0, 1),
         // Our radius pixel setters measure in pixels.
         radiusUnits: 'pixels',
         lineWidthUnits: 'pixels',
         getPosition: (object, { index, data, target }) => {
-          target[0] = data.src.embedding[0][data.src.indices[index]];
-          target[1] = -data.src.embedding[1][data.src.indices[index]];
+          target[0] = data.src[0][index];
+          target[1] = -data.src[1][index];
           target[2] = 0;
           return target;
         },
+        getFillColor: getCellColor,
+        getLineColor: getCellColor,
         getPointRadius: 1,
         getExpressionValue,
         getLineWidth: 0,
@@ -186,8 +192,8 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
           getLineColor: [cellColorEncoding, cellSelection, cellColors],
           getCellIsSelected,
         },
-      });
-    });
+      }),
+    ];
   }
 
   createRefContourLayers() {
@@ -528,6 +534,8 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
   createQryScatterplotLayer() {
     const { qryCellsEntries: cellsEntries } = this;
     const {
+      qryAnchorHighlightIndices,
+      qryAnchorFocusIndices,
       qryCellsVisible,
       qryCellEncoding,
       theme,
@@ -560,7 +568,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       visible: (qryCellsVisible && qryCellEncoding === 'scatterplot'),
       pickable: true,
       autoHighlight: true,
-      stroked: false,
+      stroked: true,
       filled: true,
       opacity: cellOpacity,
       radiusScale: cellRadius, // TODO: fix upstream
@@ -578,9 +586,26 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         return target;
       },
       getFillColor: getCellColor,
-      getPointRadius: 1,
+      getLineColor: [60, 60, 60],
+      getRadius: (object, { index }) => {
+        if(qryAnchorHighlightIndices && qryAnchorHighlightIndices.includes(index)) {
+          return 3;
+        }
+        if(qryAnchorFocusIndices && qryAnchorFocusIndices.includes(index)) {
+          return 2;
+        }
+        return 1;
+      },
+      getLineWidth: (object, { index }) => {
+        if(qryAnchorHighlightIndices && qryAnchorHighlightIndices.includes(index)) {
+          return 1;
+        }
+        if(qryAnchorFocusIndices && qryAnchorFocusIndices.includes(index)) {
+          return 1;
+        }
+        return 0;
+      },
       getExpressionValue,
-      getLineWidth: 0,
       colorScaleLo: geneExpressionColormapRange[0],
       colorScaleHi: geneExpressionColormapRange[1],
       isExpressionMode: (cellColorEncoding === 'geneSelection'),
@@ -594,6 +619,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         getExpressionValue,
         getFillColor: [cellColorEncoding, cellSelection, qryCellColors],
         getLineColor: [cellColorEncoding, cellSelection, qryCellColors],
+        getRadius: [qryAnchorFocusIndices, qryAnchorHighlightIndices],
         getCellIsSelected,
       },
     });
@@ -630,6 +656,8 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       anchorLinksVisible,
       qryAnchorSetFocus,
       refAnchorSetFocus,
+      qryAnchorSetHighlight,
+      refAnchorSetHighlight,
       cellRadius,
     } = this.props;
     return [
@@ -642,6 +670,9 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         widthUnits: 'pixels',
         widthScale: 1,
         getWidth: d => {
+          if(d.qryId === qryAnchorSetHighlight && d.refId === refAnchorSetHighlight) {
+            return 8;
+          }
           if(d.qryId === qryAnchorSetFocus && d.refId === refAnchorSetFocus) {
             return 5;
           }
@@ -652,7 +683,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         getTargetPosition: d => [d.ref[0], -d.ref[1]],
         getColor: d => [140, 140, 140],
         updateTriggers: {
-          getWidth: [qryAnchorSetFocus, refAnchorSetFocus],
+          getWidth: [qryAnchorSetFocus, refAnchorSetFocus, qryAnchorSetHighlight, refAnchorSetHighlight],
         },
       }),
       // Line endpoints
@@ -802,7 +833,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       anchorLinksLayers,
       supportingBoundsLayer,
       qryScatterplotLayer,
-      //refScatterplotLayer,
+      refScatterplotLayer,
       //...qryHeatmapLayers,
       ...refHeatmapLayers,
       ...qryContourFocusLayers,
@@ -966,35 +997,41 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
     this.viewInfoDidUpdate();
 
     const shallowDiff = propName => (prevProps[propName] !== this.props[propName]);
-    if (['qryEmbedding', 'qryContour'].some(shallowDiff)) {
+    if (['qryEmbedding'].some(shallowDiff)) {
       // Cells data changed.
       this.onUpdateQryCellsData();
-      this.onUpdateQryHeatmapLayer();
-      this.onUpdateQryContourLayer();
       this.forceUpdate();
     }
-    if (['refEmbedding', 'refContour'].some(shallowDiff)) {
+    if (['refEmbedding'].some(shallowDiff)) {
       // Cells data changed.
       this.onUpdateRefCellsData();
-      this.onUpdateRefHeatmapLayer();
-      this.onUpdateRefContourLayer();
       this.forceUpdate();
     }
     if (['refCellsVisible', 'refCellEncoding'].some(shallowDiff)) {
       this.onUpdateRefHeatmapLayer();
-      this.onUpdateRefContourLayer();
+      //this.onUpdateRefContourLayer();
       this.onUpdateRefScatterplotLayer();
       this.forceUpdate();
     }
     if (['qryCellsVisible', 'qryCellEncoding'].some(shallowDiff)) {
-      this.onUpdateQryHeatmapLayer();
-      this.onUpdateQryContourLayer();
+      //this.onUpdateQryHeatmapLayer();
+      //this.onUpdateQryContourLayer();
       this.onUpdateQryScatterplotLayer();
       this.forceUpdate();
     }
 
     if ([
-      'qryEmbedding', 'refEmbedding', 'cellFilter', 'cellSelection', 'cellColors',
+      'qryAnchorFocusIndices', 'qryAnchorHighlightIndices',
+    ].some(shallowDiff)) {
+      // Cells layer props changed.
+      this.onUpdateQryScatterplotLayer();
+      this.forceUpdate();
+    }
+
+    if ([
+      'qryContour', 'refContour',
+      'qryEmbedding', 'refEmbedding',
+      'cellFilter', 'cellSelection', 'cellColors',
       'cellRadius', 'cellOpacity', 'cellRadiusMode', 'geneExpressionColormap',
       'geneExpressionColormapRange', 'geneSelection', 'cellColorEncoding',
     ].some(shallowDiff)) {
@@ -1020,7 +1057,11 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       this.onUpdateSupportingBoundsLayer();
       this.forceUpdate();
     }
-    if (['anchorLinks', 'anchorLinksVisible', 'qryAnchorSetFocus', 'refAnchorSetFocus'].some(shallowDiff)) {
+    if ([
+      'anchorLinks', 'anchorLinksVisible',
+      'qryAnchorSetFocus', 'refAnchorSetFocus',
+      'qryAnchorSetHighlight', 'refAnchorSetHighlight',
+    ].some(shallowDiff)) {
       this.onUpdateAnchorLinksLayer();
       this.forceUpdate();
     }

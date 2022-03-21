@@ -165,13 +165,16 @@ export default function QRCellSetsManagerSubscriber(props) {
   );
 
   const onHighlightAnchors = useCallback((anchorId) => {
-    qrySetters.setAnchorSetFocus(anchorId);
-    
-    // Highlight corresponding reference anchor set.
-    const anchorGroup = Object.values(anchors).find(anchorSets => anchorSets.map(o => o.id).includes(anchorId));
-    const anchorObj = anchorGroup.find(o => o.id === anchorId);
-    refSetters.setAnchorSetFocus(anchorObj.anchor_ref_id);
+    qrySetters.setAnchorSetHighlight(anchorId);
   }, [anchors, qrySetters, refSetters]);
+
+  const onFocusAnchors = useCallback((anchorId) => {
+    if(qryValues.anchorSetFocus === anchorId) {
+      qrySetters.setAnchorSetFocus(null);
+      return;
+    }
+    qrySetters.setAnchorSetFocus(anchorId);
+  }, [anchors, qryValues.anchorSetFocus, qrySetters, refSetters]);
 
 
   const onDeleteAnchors = useCallback((anchorId) => {
@@ -271,10 +274,11 @@ export default function QRCellSetsManagerSubscriber(props) {
         onDeleteAnchors={onDeleteAnchors}
         onConfirmAnchors={onConfirmAnchors}
         onEditAnchors={onEditAnchors}
+        onFocusAnchors={onFocusAnchors}
         onHighlightAnchors={onHighlightAnchors}
       />
     );
-  }, [qryTopGenesLists]); 
+  }, [qryTopGenesLists, onFocusAnchors, onHighlightAnchors]); 
 
   return (
     <TitleInfo

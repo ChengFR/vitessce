@@ -1014,7 +1014,7 @@ export function useProcessedAnchorSets(
 }
 
 export function useAnchorSetOfInterest(
-  qryAnchorId, anchors, qryCellsIndex, qryEmbedding, refAnchorCluster, width, height,
+  qryAnchorId, anchors, qryCellsIndex, qryEmbedding, refAnchorCluster, width, height, returnViewState,
 ) {
   const [qryAnchorSetFocus, refAnchorSetFocus, qryAnchorFocusIndices, refAnchorFocusIndices, qryAnchorFocusViewState] = useMemo(() => {
     // TODO(scXAI): debounce?
@@ -1026,16 +1026,20 @@ export function useAnchorSetOfInterest(
       const qryCellIds = anchorObj.cells.map(c => c.cell_id);
       const qryCellIndices = qryCellIds.map(cellId => qryCellsIndex.indexOf(cellId));
 
-      const qryX = qryCellIndices.map(i => qryEmbedding.data[0][i]);
-      const qryY = qryCellIndices.map(i => -qryEmbedding.data[1][i]);
-      const qryXE = extent(qryX);
-      const qryYE = extent(qryY);
-      const qryXR = qryXE[1] - qryXE[0];
-      const qryYR = qryYE[1] - qryYE[0];
+      let newViewState = null;
+      if(returnViewState) {
+        const qryX = qryCellIndices.map(i => qryEmbedding.data[0][i]);
+        const qryY = qryCellIndices.map(i => -qryEmbedding.data[1][i]);
+        const qryXE = extent(qryX);
+        const qryYE = extent(qryY);
+        const qryXR = qryXE[1] - qryXE[0];
+        const qryYR = qryYE[1] - qryYE[0];
 
-      const newTargetX = sum(qryX) / qryX.length;
-      const newTargetY = sum(qryY) / qryY.length;
-      const newZoom = Math.log2(Math.min(width / qryXR, height / qryYR)) - 2;
+        const newTargetX = sum(qryX) / qryX.length;
+        const newTargetY = sum(qryY) / qryY.length;
+        const newZoom = Math.log2(Math.min(width / qryXR, height / qryYR)) - 2;
+        newViewState = { zoom: newZoom, target: [newTargetX, newTargetY] };
+      }
 
       const refCellIndices = []
       refAnchorCluster.forEach((clusterId, i) => {
@@ -1043,7 +1047,7 @@ export function useAnchorSetOfInterest(
           refCellIndices.push(i);
         }
       });
-      return [qryAnchorId, refAnchorId, qryCellIndices, refCellIndices, { zoom: newZoom, target: [newTargetX, newTargetY] }];
+      return [qryAnchorId, refAnchorId, qryCellIndices, refCellIndices, newViewState];
     }
     return [null, null, null, null, null];
   }, [qryAnchorId, anchors, qryCellsIndex, qryEmbedding, refAnchorCluster, width, height]);
