@@ -178,7 +178,7 @@ export default function QRSupportingScatterplotReferenceSubscriber(props) {
   const cellSets = useCellSetsTree(cellsIndex, [refCellType], ["Cell Type"]);
 
   // Embeddings
-  const [embedding, embeddingStatus] = useAnnDataStatic(loaders, dataset, options?.embeddings[mapping]?.path, 'embeddingNumeric', setItemIsReady, false);
+  const [embedding, embeddingStatus] = useAnnDataDynamic(loaders, dataset, options?.embeddings[mapping]?.path, 'embeddingNumeric', modelIteration, setItemIsReady, false);
 
   const [expressionData] = useGeneSelection(
     loaders, dataset, setItemIsReady, false, geneSelection, setItemIsNotReady,
@@ -221,7 +221,7 @@ export default function QRSupportingScatterplotReferenceSubscriber(props) {
       // Graphics rendering has the y-axis going south so we need to multiply by negative one.
       setTargetY(newTargetY);
       setZoom(newZoom);
-      setAnchorSetHighlight(cellIndices);
+      // setAnchorSetHighlight(cellIndices);
     }
   }, [anchorSetFocus]);
 
@@ -361,6 +361,7 @@ export default function QRSupportingScatterplotReferenceSubscriber(props) {
       urls={urls}
       theme={theme}
       isReady={isReady}
+      extraClassName={"supporting-reference-container"}
       options={(
         <ScatterplotOptions
           observationsLabel={observationsLabel}

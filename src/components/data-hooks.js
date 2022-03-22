@@ -2,6 +2,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import equal from 'fast-deep-equal';
 import isEqual from 'lodash/isEqual';
+import { extent } from 'd3-array';
+import sum from 'lodash/sum';
 import { capitalize } from '../utils';
 import { useSetWarning } from '../app/state/hooks';
 import {
@@ -814,7 +816,7 @@ export function useAnnDataDynamic(
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loaders, dataset, path]);
+  }, [loaders, dataset, path, iteration]);
 
   return [dynamicData, status];
 }
@@ -1009,4 +1011,46 @@ export function useProcessedAnchorSets(
     return null;
   }, [anchors, refDiffGeneNames, refDiffGeneScores, refDiffClusters, qryPrediction, qryCellsIndex, anchors, qryCellSets, cellSetColor, parentKey]);
   return qryTopGenesLists;
+}
+
+export function useAnchorSetOfInterest(
+  qryAnchorId, anchors, qryCellsIndex, qryEmbedding, refAnchorCluster, width, height, returnViewState,
+) {
+  const [qryAnchorSetFocus, refAnchorSetFocus, qryAnchorFocusIndices, refAnchorFocusIndices, qryAnchorFocusViewState] = useMemo(() => {
+    // TODO(scXAI): debounce?
+    if(qryAnchorId && anchors && qryCellsIndex && qryEmbedding && refAnchorCluster) {
+      const anchorGroup = Object.values(anchors).find(anchorSets => anchorSets.map(o => o.id).includes(qryAnchorId));
+      const anchorObj = anchorGroup.find(o => o.id === qryAnchorId);
+      const refAnchorId = `${anchorObj.anchor_ref_id}`; // convert to string
+
+      const qryCellIds = anchorObj.cells.map(c => c.cell_id);
+      const qryCellIndices = qryCellIds.map(cellId => qryCellsIndex.indexOf(cellId));
+
+      let newViewState = null;
+      if(returnViewState) {
+        const qryX = qryCellIndices.map(i => qryEmbedding.data[0][i]);
+        const qryY = qryCellIndices.map(i => -qryEmbedding.data[1][i]);
+        const qryXE = extent(qryX);
+        const qryYE = extent(qryY);
+        const qryXR = qryXE[1] - qryXE[0];
+        const qryYR = qryYE[1] - qryYE[0];
+
+        const newTargetX = sum(qryX) / qryX.length;
+        const newTargetY = sum(qryY) / qryY.length;
+        const newZoom = Math.log2(Math.min(width / qryXR, height / qryYR)) - 2;
+        newViewState = { zoom: newZoom, target: [newTargetX, newTargetY] };
+      }
+
+      const refCellIndices = []
+      refAnchorCluster.forEach((clusterId, i) => {
+        if(clusterId === refAnchorId) {
+          refCellIndices.push(i);
+        }
+      });
+      return [qryAnchorId, refAnchorId, qryCellIndices, refCellIndices, newViewState];
+    }
+    return [null, null, null, null, null];
+  }, [qryAnchorId, anchors, qryCellsIndex, qryEmbedding, refAnchorCluster, width, height]);
+
+  return [qryAnchorSetFocus, refAnchorSetFocus, qryAnchorFocusIndices, refAnchorFocusIndices, qryAnchorFocusViewState];
 }

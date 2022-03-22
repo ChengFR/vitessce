@@ -126,7 +126,6 @@ export default function StatusSubscriber(props) {
         onUpdateModel={onUpdateModel}
         modelStatus={modelStatus}
 
-
         anchorEditTool={qryValues.anchorEditTool}
         setAnchorEditTool={qrySetters.setAnchorEditTool}
 

@@ -179,10 +179,10 @@ export const polyphonyConfig = {
             refSupporting: null,
           },
           anchorEditTool: {
-            qrySupporting: null,
+            qry: null,
           },
           anchorEditMode: {
-            qrySupporting: null,
+            qry: null,
           },
           anchorSetFocus: {
             ref: null,
@@ -197,11 +197,15 @@ export const polyphonyConfig = {
             qry: true,
           },
           embeddingEncoding: {
-            ref: 'contour',
+            ref: 'heatmap',
             qry: 'scatterplot',
           },
           embeddingLinksVisible: {
-            comparison: false,
+            comparison: true,
+          },
+          geneSelection: {
+            ref: null,
+            qry: null,
           },
     },
     layout: [
@@ -215,8 +219,8 @@ export const polyphonyConfig = {
               embeddingType: { REFERENCE: 'ref', QUERY: 'qry' },
               anchorSetFocus: { REFERENCE: 'ref', QUERY: 'qry' },
               anchorSetHighlight: { REFERENCE: 'ref', QUERY: 'qry' },
-              anchorEditTool: 'qrySupporting',
-              anchorEditMode: 'qrySupporting',
+              anchorEditTool: 'qry',
+              anchorEditMode: 'qry',
             },
             x: 0,
             y: 0,
@@ -233,8 +237,9 @@ export const polyphonyConfig = {
               embeddingType: { REFERENCE: 'ref', QUERY: 'qry' },
               anchorSetFocus: { REFERENCE: 'ref', QUERY: 'qry' },
               anchorSetHighlight: { REFERENCE: 'ref', QUERY: 'qry' },
-              anchorEditTool: 'qrySupporting',
-              anchorEditMode: 'qrySupporting',
+              anchorEditTool: 'qry',
+              anchorEditMode: 'qry',
+              geneSelection: { REFERENCE: 'ref', QUERY: 'qry' },
             },
             x: 6,
             y: 1,
@@ -262,17 +267,20 @@ export const polyphonyConfig = {
               embeddingCellOpacityMode: 'comparison',
               embeddingCellSetLabelsVisible: 'comparison',
               embeddingLinksVisible: 'comparison',
+              anchorEditTool: 'qry',
+              anchorEditMode: 'qry',
+              geneSelection: { REFERENCE: 'ref', QUERY: 'qry' },
             },
             props: {
-              qrySupportingUuid: 3,
-              refSupportingUuid: 4,
+              /* qrySupportingUuid: 3, */
+              /* refSupportingUuid: 4, */
             },
             x: 0,
             y: 1,
             w: 6,
             h: 11,
           },
-          {
+          /*{
             component: 'qrSupportingScatterplotQuery',
             coordinationScopes: {
               dataset: 'QUERY',
@@ -290,15 +298,32 @@ export const polyphonyConfig = {
               embeddingCellSetLabelsVisible: 'qrySupporting',
               anchorSetFocus: 'qry',
               anchorSetHighlight: 'qry',
-              anchorEditTool: 'qrySupporting',
-              anchorEditMode: 'qrySupporting',
+              anchorEditTool: 'qry',
+              anchorEditMode: 'qry',
             },
             x: 6,
             y: 7,
             w: 3,
             h: 5,
-          },
+          },*/
           {
+            component: 'genes',
+            coordinationScopes: {
+              dataset: ['REFERENCE', 'QUERY'],
+              cellSetSelection: { REFERENCE: 'ref', QUERY: 'qry' },
+              cellSetColor: { REFERENCE: 'ref', QUERY: 'qry' },
+              cellColorEncoding: { REFERENCE: 'ref', QUERY: 'qry' },
+              embeddingType: { REFERENCE: 'ref', QUERY: 'qry' },
+              anchorSetFocus: { REFERENCE: 'ref', QUERY: 'qry' },
+              anchorSetHighlight: { REFERENCE: 'ref', QUERY: 'qry' },
+              geneSelection: { REFERENCE: 'ref', QUERY: 'qry' },
+            },
+            x: 9,
+            y: 7,
+            w: 3,
+            h: 5,
+          },
+          /*{
             component: 'qrSupportingScatterplotReference',
             coordinationScopes: {
               dataset: 'REFERENCE',
@@ -321,6 +346,6 @@ export const polyphonyConfig = {
             y: 7,
             w: 3,
             h: 5,
-          },
+          },*/
     ],
 };

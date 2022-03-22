@@ -124,8 +124,8 @@ export default function Status(props) {
 
   const valueToInstructions = [
     '',
-    'You are currently adding an anchor set. Use the lasso tool in the Supporting View (Query) to select cells.',
-    `You are currently editing anchor set ${anchorEditMode?.anchorId}. Use the lasso tool in the Supporting View (Query) to select cells.`,
+    'You are currently adding an anchor set. Use the lasso tool in the Comparison View or the Supporting View (Query) to select cells.',
+    `You are currently editing anchor set ${anchorEditMode?.anchorId}. Use the lasso tool in the Comparison View or the Supporting View (Query) to select cells.`,
   ];
 
   const messages = [];
@@ -140,6 +140,7 @@ export default function Status(props) {
       setAnchorEditMode(null);
     }
     if(newValue === 1) {
+      clearAnchorSetFocus();
       setAnchorEditTool('lasso');
       setAnchorEditMode(null);
     }

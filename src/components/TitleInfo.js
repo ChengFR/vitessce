@@ -120,7 +120,7 @@ function ClosePaneButton(props) {
 export default function TitleInfo(props) {
   const {
     title, info, children, isScroll, isSpatial, removeGridComponent, urls,
-    isReady, options,
+    isReady, options, extraClassName = '',
   } = props;
   // eslint-disable-next-line no-nested-ternary
   const childClassName = isScroll ? SCROLL_CARD : (isSpatial ? BLACK_CARD : SECONDARY_CARD);
@@ -150,7 +150,7 @@ export default function TitleInfo(props) {
           />*/}
         </div>
       </div>
-      <div className={childClassName}>
+      <div className={`${childClassName} ${extraClassName}`}>
         { !isReady && <LoadingIndicator /> }
         {children}
       </div>

@@ -2,6 +2,7 @@
 import React, {
   useState, useEffect, useCallback, useMemo,
 } from 'react';
+import { LinearInterpolator, TRANSITION_EVENTS } from '@deck.gl/core';
 import { extent } from 'd3-array';
 import isEqual from 'lodash/isEqual';
 import TitleInfo from '../TitleInfo';
@@ -23,6 +24,7 @@ import {
   useDiffGeneNames,
   useInitialCellSetSelection,
   useAnchors,
+  useAnchorSetOfInterest,
 } from '../data-hooks';
 import { getCellColors } from '../interpolate-colors';
 import QRComparisonScatterplot from './QRComparisonScatterplot';
@@ -162,7 +164,7 @@ export default function QRComparisonScatterplotSubscriber(props) {
 
   // Embeddings
   const [qryEmbedding, qryEmbeddingStatus] = useAnnDataDynamic(loaders, qryDataset, qryOptions?.embeddings[qryValues.embeddingType]?.path, 'embeddingNumeric', modelIteration, setItemIsReady, false);
-  const [refEmbedding, refEmbeddingStatus] = useAnnDataStatic(loaders, refDataset, refOptions?.embeddings[refValues.embeddingType]?.path, 'embeddingNumeric', setItemIsReady, false);
+  const [refEmbedding, refEmbeddingStatus] = useAnnDataDynamic(loaders, refDataset, refOptions?.embeddings[refValues.embeddingType]?.path, 'embeddingNumeric', modelIteration, setItemIsReady, false);
 
   const [qryExpressionData] = useGeneSelection(
     loaders, qryDataset, setItemIsReady, false, qryValues.geneSelection, setItemIsNotReady,
@@ -181,6 +183,12 @@ export default function QRComparisonScatterplotSubscriber(props) {
   const [dynamicCellRadius, setDynamicCellRadius] = useState(qryValues.embeddingCellRadius);
   const [dynamicCellOpacity, setDynamicCellOpacity] = useState(qryValues.embeddingCellOpacity);
 
+  const [transitionInterpolator, setTransitionInterpolator] = useState(undefined);
+  const [transitionDuration, setTransitionDuration] = useState(undefined);
+
+
+  
+  // Compute endpoints for lines ("links") between query and reference anchor sets.
   const anchorLinks = useMemo(() => {
     if(anchors && refAnchorCluster && qryEmbedding && refEmbedding && qryCellsIndex) {
       const result = [];
@@ -206,13 +214,132 @@ export default function QRComparisonScatterplotSubscriber(props) {
 
           const qryCentroid = [ sum(qryX) / qryX.length, sum(qryY) / qryY.length ];
           const refCentroid = [ sum(refX) / refX.length, sum(refY) / refY.length ];
-          result.push({ qry: qryCentroid, ref: refCentroid });
+          result.push({
+            qry: qryCentroid, ref: refCentroid,
+            qryId: qryAnchorId, refId: refAnchorId,
+          });
         });
       });
       return result;
     }
     return null;
   }, [anchors, refAnchorCluster, qryEmbedding, refEmbedding, qryCellsIndex]);
+
+  // Determine which cells to emphasize when anchor set is focused or highlighted.
+  const [qryAnchorSetFocus, refAnchorSetFocus, qryAnchorFocusIndices, refAnchorFocusIndices, qryAnchorFocusViewState] = useAnchorSetOfInterest(
+    qryValues.anchorSetFocus,
+    anchors,
+    qryCellsIndex,
+    qryEmbedding,
+    refAnchorCluster,
+    width, height,
+    true,
+  );
+  const [qryAnchorSetHighlight, refAnchorSetHighlight, qryAnchorHighlightIndices, refAnchorHighlightIndices, qryAnchorHighlightViewState] = useAnchorSetOfInterest(
+    qryValues.anchorSetHighlight,
+    anchors,
+    qryCellsIndex,
+    qryEmbedding,
+    refAnchorCluster,
+    width, height,
+    false,
+  );
+
+  // Based on the currently focused anchor set, get all of the necessary info to render contour layers for the focused set.
+  const [qryAnchorSetFocusContour, refAnchorSetFocusContour] = useMemo(() => {  
+    const qryParentKey = "Prediction";
+    const qryCol = qryPrediction;
+
+    const refParentKey = "Cell Type";
+    const refCol = refCellType;
+
+    if(qryAnchorSetFocus && refAnchorSetFocus && qryAnchorFocusIndices && refAnchorFocusIndices && refCol && refCellSets && qryCol && qryCellSets && qryValues.cellSetColor && refValues.cellSetColor) {
+      const qryNode = qryCellSets.tree.find(n => n.name === qryParentKey);
+      const qryContourData = qryNode.children.map(group => {
+        const nodePath = [qryParentKey, group.name];
+        const color = qryValues.cellSetColor?.find(d => isEqual(d.path, nodePath))?.color;
+        return {
+          name: group.name,
+          indices: qryAnchorFocusIndices.filter(i => qryCol[i] === group.name),
+          color,
+        };
+      });
+      const refContourData = qryNode.children.map(group => {
+        const nodePath = [refParentKey, group.name];
+        const color = refValues.cellSetColor?.find(d => isEqual(d.path, nodePath))?.color;
+        return {
+          name: group.name,
+          indices: refAnchorFocusIndices.filter(i => refCol[i] === group.name),
+          color,
+        };
+      });
+      return [qryContourData, refContourData];
+    }
+    return [null, null];
+  }, [qryAnchorSetFocus, refAnchorSetFocus, qryAnchorFocusIndices, refAnchorFocusIndices, refCellType, refCellSets, qryPrediction, qryCellSets, qryValues.cellSetColor, refValues.cellSetColor]);
+
+  const [qryContour, refContour] = useMemo(() => {
+    const qryParentKey = "Prediction";
+    const qryCol = qryPrediction;
+
+    const refParentKey = "Cell Type";
+    const refCol = refCellType;
+
+    if(refCol && refCellSets && qryCol && qryCellSets && qryValues.cellSetColor && refValues.cellSetColor) {
+      const qryNode = qryCellSets.tree.find(n => n.name === qryParentKey);
+      const qryContourData = qryNode.children.map(group => {
+        const nodePath = [qryParentKey, group.name];
+        const color = qryValues.cellSetColor?.find(d => isEqual(d.path, nodePath))?.color;
+        const indices = [];
+        qryCol.forEach((val, i) => {
+          if(val === group.name) {
+            indices.push(i);
+          }
+        });
+        return {
+          name: group.name,
+          indices,
+          color,
+        };
+      });
+      const refContourData = qryNode.children.map(group => {
+        const nodePath = [refParentKey, group.name];
+        const color = refValues.cellSetColor?.find(d => isEqual(d.path, nodePath))?.color;
+        const indices = [];
+        refCol.forEach((val, i) => {
+          if(val === group.name) {
+            indices.push(i);
+          }
+        });
+        return {
+          name: group.name,
+          indices,
+          color,
+        };
+      });
+      return [qryContourData, refContourData];
+    }
+    return [null, null];
+  }, [refCellType, refCellSets, qryPrediction, qryCellSets, qryValues.cellSetColor, refValues.cellSetColor]);
+
+  useEffect(() => {
+    if(!qryAnchorFocusViewState) {
+      return;
+    }
+    setTransitionDuration(1000);
+    setTransitionInterpolator(new LinearInterpolator({ transitionProps: ['target', 'zoom'] }));
+
+    const { zoom: newZoom, target: [newTargetX, newTargetY] } = qryAnchorFocusViewState;
+    qrySetters.setEmbeddingTargetX(newTargetX);
+    qrySetters.setEmbeddingTargetY(newTargetY);
+    qrySetters.setEmbeddingZoom(newZoom);
+  }, [qryAnchorFocusViewState]);
+
+  const onTransitionEnd = useCallback((val) => {
+    setTransitionDuration(undefined);
+    setTransitionInterpolator(undefined);
+  }, []);
+
 
   // TODO(scXAI): determine if query and reference should use same cell sets tree
   const mergedQryCellSets = useMemo(() => mergeCellSets(
@@ -319,7 +446,7 @@ export default function QRComparisonScatterplotSubscriber(props) {
   // compute the cell radius scale based on the
   // extents of the cell coordinates on the x/y axes.
   useEffect(() => {
-    if (xRange && yRange) {
+    if (xRange && yRange && modelIteration === 1) {
       const pointSizeDevicePixels = getPointSizeDevicePixels(
         window.devicePixelRatio, qryValues.embeddingZoom, xRange, yRange, width, height,
       );
@@ -342,7 +469,7 @@ export default function QRComparisonScatterplotSubscriber(props) {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [xRange, yRange, xExtent, yExtent, numCells, qryValues.embeddingType,
-    width, height, averageFillDensity]);
+    width, height, averageFillDensity, modelIteration]);
 
   const getQryCellInfo = useCallback((cellId) => {
     //const cellInfo = qryCells[cellId];
@@ -425,7 +552,11 @@ export default function QRComparisonScatterplotSubscriber(props) {
             qryValues.embeddingTargetX,
             qryValues.embeddingTargetY,
             qryValues.embeddingTargetZ
-          ]
+          ],
+          transitionDuration,
+          transitionInterpolator,
+          transitionInterruption: TRANSITION_EVENTS.IGNORE,
+          onTransitionEnd,
         }}
         setViewState={({ zoom: newZoom, target }) => {
           qrySetters.setEmbeddingZoom(newZoom);
@@ -433,6 +564,9 @@ export default function QRComparisonScatterplotSubscriber(props) {
           qrySetters.setEmbeddingTargetY(target[1]);
           qrySetters.setEmbeddingTargetZ(target[2] || 0);
         }}
+
+        anchorEditTool={qryValues.anchorEditTool}
+
         qrySupportingBounds={qrySupportingViewInfo?.bounds}
         refSupportingBounds={refSupportingViewInfo?.bounds}
         // qryCells={qryCells}
@@ -443,7 +577,8 @@ export default function QRComparisonScatterplotSubscriber(props) {
         refEmbedding={refEmbedding}
         qryMapping={qryValues.embeddingType}
         refMapping={refValues.embeddingType}
-        refCellSets={refCellSets}
+        qryContour={qryContour}
+        refContour={refContour}
         cellFilter={qryValues.cellFilter}
         cellSelection={qryCellSelection}
         cellHighlight={qryValues.cellHighlight}
@@ -472,6 +607,23 @@ export default function QRComparisonScatterplotSubscriber(props) {
         qryCellEncoding={qryValues.embeddingEncoding}
         refCellsVisible={refValues.embeddingVisible}
         refCellEncoding={refValues.embeddingEncoding}
+
+        anchorLinks={anchorLinks}
+        anchorLinksVisible={qryValues.embeddingLinksVisible}
+
+        qryAnchorSetFocus={qryAnchorSetFocus}
+        refAnchorSetFocus={refAnchorSetFocus}
+        qryAnchorFocusIndices={qryAnchorFocusIndices}
+        refAnchorFocusIndices={refAnchorFocusIndices}
+
+
+        qryAnchorSetHighlight={qryAnchorSetHighlight}
+        refAnchorSetHighlight={refAnchorSetHighlight}
+        qryAnchorHighlightIndices={qryAnchorHighlightIndices}
+        refAnchorHighlightIndices={refAnchorHighlightIndices}
+
+        qryAnchorSetFocusContour={qryAnchorSetFocusContour}
+        refAnchorSetFocusContour={refAnchorSetFocusContour}
       />
       {!disableTooltip && (
       <ScatterplotTooltipSubscriber
