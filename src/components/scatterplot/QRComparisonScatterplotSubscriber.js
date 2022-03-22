@@ -25,6 +25,7 @@ import {
   useInitialCellSetSelection,
   useAnchors,
   useAnchorSetOfInterest,
+  useAnchorContourOfInterest,
 } from '../data-hooks';
 import { getCellColors } from '../interpolate-colors';
 import QRComparisonScatterplot from './QRComparisonScatterplot';
@@ -246,37 +247,20 @@ export default function QRComparisonScatterplotSubscriber(props) {
   );
 
   // Based on the currently focused anchor set, get all of the necessary info to render contour layers for the focused set.
-  const [qryAnchorSetFocusContour, refAnchorSetFocusContour] = useMemo(() => {  
-    const qryParentKey = "Prediction";
-    const qryCol = qryPrediction;
-
-    const refParentKey = "Cell Type";
-    const refCol = refCellType;
-
-    if(qryAnchorSetFocus && refAnchorSetFocus && qryAnchorFocusIndices && refAnchorFocusIndices && refCol && refCellSets && qryCol && qryCellSets && qryValues.cellSetColor && refValues.cellSetColor) {
-      const qryNode = qryCellSets.tree.find(n => n.name === qryParentKey);
-      const qryContourData = qryNode.children.map(group => {
-        const nodePath = [qryParentKey, group.name];
-        const color = qryValues.cellSetColor?.find(d => isEqual(d.path, nodePath))?.color;
-        return {
-          name: group.name,
-          indices: qryAnchorFocusIndices.filter(i => qryCol[i] === group.name),
-          color,
-        };
-      });
-      const refContourData = qryNode.children.map(group => {
-        const nodePath = [refParentKey, group.name];
-        const color = refValues.cellSetColor?.find(d => isEqual(d.path, nodePath))?.color;
-        return {
-          name: group.name,
-          indices: refAnchorFocusIndices.filter(i => refCol[i] === group.name),
-          color,
-        };
-      });
-      return [qryContourData, refContourData];
-    }
-    return [null, null];
-  }, [qryAnchorSetFocus, refAnchorSetFocus, qryAnchorFocusIndices, refAnchorFocusIndices, refCellType, refCellSets, qryPrediction, qryCellSets, qryValues.cellSetColor, refValues.cellSetColor]);
+  const [qryAnchorSetFocusContour, refAnchorSetFocusContour] = useAnchorContourOfInterest(
+    qryAnchorSetFocus, refAnchorSetFocus,
+    qryAnchorFocusIndices, refAnchorFocusIndices,
+    refCellType, "Cell Type", refCellSets,
+    qryPrediction, "Prediction", qryCellSets,
+    qryValues.cellSetColor, refValues.cellSetColor,
+  );
+  const [qryAnchorSetHighlightContour, refAnchorSetHighlightContour] = useAnchorContourOfInterest(
+    qryAnchorSetHighlight, refAnchorSetHighlight,
+    qryAnchorHighlightIndices, refAnchorHighlightIndices,
+    refCellType, "Cell Type", refCellSets,
+    qryPrediction, "Prediction", qryCellSets,
+    qryValues.cellSetColor, refValues.cellSetColor,
+  );
 
   const [qryContour, refContour] = useMemo(() => {
     const qryParentKey = "Prediction";
@@ -624,6 +608,9 @@ export default function QRComparisonScatterplotSubscriber(props) {
 
         qryAnchorSetFocusContour={qryAnchorSetFocusContour}
         refAnchorSetFocusContour={refAnchorSetFocusContour}
+        
+        qryAnchorSetHighlightContour={qryAnchorSetHighlightContour}
+        refAnchorSetHighlightContour={refAnchorSetHighlightContour}
       />
       {!disableTooltip && (
       <ScatterplotTooltipSubscriber

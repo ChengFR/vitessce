@@ -1054,3 +1054,63 @@ export function useAnchorSetOfInterest(
 
   return [qryAnchorSetFocus, refAnchorSetFocus, qryAnchorFocusIndices, refAnchorFocusIndices, qryAnchorFocusViewState];
 }
+
+export function useAnchorContourOfInterest(
+  qryAnchorSetFocus, refAnchorSetFocus, qryAnchorFocusIndices, refAnchorFocusIndices, refCol, refParentKey, refCellSets, qryCol, qryParentKey, qryCellSets, qryCellSetColor, refCellSetColor
+) {
+  // Based on the currently focused anchor set, get all of the necessary info to render contour layers for the focused set.
+  const [qryAnchorSetFocusContour, refAnchorSetFocusContour] = useMemo(() => {
+    if(refCellSets && qryCellSets) {
+      const qryNode = qryCellSets.tree.find(n => n.name === qryParentKey);
+      const refNode = refCellSets.tree.find(n => n.name === refParentKey);
+      if(qryAnchorSetFocus && refAnchorSetFocus && qryAnchorFocusIndices && refAnchorFocusIndices && refCol && qryCol && qryCellSetColor && refCellSetColor) {
+        const qryContourData = qryNode.children.map(group => {
+          const nodePath = [qryParentKey, group.name];
+          const color = qryCellSetColor?.find(d => isEqual(d.path, nodePath))?.color;
+          return {
+            name: group.name,
+            indices: qryAnchorFocusIndices.filter(i => qryCol[i] === group.name),
+            color,
+            visible: true,
+          };
+        });
+        const refContourData = refNode.children.map(group => {
+          const nodePath = [refParentKey, group.name];
+          const color = refCellSetColor?.find(d => isEqual(d.path, nodePath))?.color;
+          return {
+            name: group.name,
+            indices: refAnchorFocusIndices.filter(i => refCol[i] === group.name),
+            color,
+            visible: true,
+          };
+        });
+        return [qryContourData, refContourData];
+      } else if(qryNode && refNode) {
+        return [
+          qryNode.children.map(group => {
+            const nodePath = [qryParentKey, group.name];
+            const color = qryCellSetColor?.find(d => isEqual(d.path, nodePath))?.color;
+            return {
+              name: group.name,
+              indices: [],
+              color,
+              visible: false,
+            };
+          }),
+          refNode.children.map(group => {
+            const nodePath = [refParentKey, group.name];
+            const color = refCellSetColor?.find(d => isEqual(d.path, nodePath))?.color;
+            return {
+              name: group.name,
+              indices: [],
+              color,
+              visible: false,
+            };
+          }),
+        ];
+      }
+    }
+    return [null, null];
+  }, [qryAnchorSetFocus, refAnchorSetFocus, qryAnchorFocusIndices, refAnchorFocusIndices, refCol, refCellSets, qryCol, qryCellSets, qryCellSetColor, refCellSetColor]);
+  return [qryAnchorSetFocusContour, refAnchorSetFocusContour];
+}
