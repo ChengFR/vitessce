@@ -197,7 +197,7 @@ export const polyphonyConfig = {
             qry: true,
           },
           embeddingEncoding: {
-            ref: 'heatmap',
+            ref: 'contour',
             qry: 'scatterplot',
           },
           embeddingLinksVisible: {
