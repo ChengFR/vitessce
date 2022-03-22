@@ -5,7 +5,6 @@ import React, {
   useCallback,
   useMemo,
 } from 'react';
-import isEqual from 'lodash/isEqual';
 import {
   useMultiDatasetCoordination,
   useLoaders,
@@ -13,7 +12,7 @@ import {
   useDatasetUids,
 } from '../../app/state/hooks';
 import { COMPONENT_COORDINATION_TYPES } from '../../app/state/coordination';
-import QRCellSetsManager from './QRCellSetsManager';
+import QRScores from './QRScores';
 import TitleInfo from '../TitleInfo';
 import { useUrls, useReady } from '../hooks';
 import {
@@ -23,17 +22,7 @@ import {
   useProcessedAnchorSets,
 } from '../data-hooks';
 import { Component } from '../../app/constants';
-import { setCellSelection, mergeCellSets, PALETTE } from '../utils';
-import range from 'lodash/range';
-import sumBy from 'lodash/sumBy';
-
-
-const CELL_SETS_DATA_TYPES = ['cells', 'cell-sets', 'expression-matrix'];
-
-const QRY_PREDICTION_KEY = 'Prediction';
-const QRY_LABEL_KEY = 'Label';
-const REF_CELL_TYPE_KEY = 'Cell Type';
-
+import { mergeCellSets, PALETTE } from '../utils';
 
 
 /**
@@ -47,14 +36,12 @@ const REF_CELL_TYPE_KEY = 'Cell Type';
  * to call when the component has been removed from the grid.
  * @param {string} props.title The component title.
  */
-export default function QRCellSetsManagerSubscriber(props) {
+export default function QRScoresSubscriber(props) {
   const {
     coordinationScopes,
     removeGridComponent,
     theme,
-    title = 'Cell Sets',
-    refDiffGeneScoreThreshold = 15,
-    qryDiffGeneScoreThreshold = 15,
+    title = 'Scores',
   } = props;
 
   const loaders = useLoaders();
@@ -104,20 +91,6 @@ export default function QRCellSetsManagerSubscriber(props) {
   const refOptions = refLoader?.options;
 
   const [anchors, anchorsStatus] = useAnchors(qryLoader, anchorIteration, setItemIsReady);
-  const nextUserSetName = useMemo(() => {
-    if(anchors && anchors.user_selection.length > 0) {
-      let nextIndex = 0;
-      let nextExists;
-      let potentialNext;
-      do {
-        potentialNext = `user-${nextIndex}`;
-        nextExists = anchors.user_selection.find(o => o.id === potentialNext) !== undefined;
-        nextIndex += 1;
-      } while(nextExists);
-      return potentialNext;
-    }
-    return 'user-0';
-  }, [anchors]);
 
   // Load the data.
   // Cell IDs
@@ -164,121 +137,15 @@ export default function QRCellSetsManagerSubscriber(props) {
     anchors, refDiffGeneNames, refDiffGeneScores, refDiffClusters, qryPrediction, qryCellsIndex, qryCellSets, qryValues.cellSetColor, "Prediction"
   );
 
-  const onHighlightAnchors = useCallback((anchorId) => {
-    qrySetters.setAnchorSetHighlight(anchorId);
-  }, [anchors, qrySetters, refSetters]);
-
-  const onFocusAnchors = useCallback((anchorId) => {
-    if(qryValues.anchorSetFocus === anchorId) {
-      qrySetters.setAnchorSetFocus(null);
-      return;
-    }
-    qrySetters.setAnchorSetFocus(anchorId);
-  }, [anchors, qryValues.anchorSetFocus, qrySetters, refSetters]);
-
-
-  const onDeleteAnchors = useCallback((anchorId) => {
-    if(anchorApiState.status === 'success') {
-      qrySetters.setAnchorApiState({ ...anchorApiState, status: 'loading' });
-      qryLoader.anchorDelete(anchorId).then(() => {
-        qrySetters.setAnchorApiState({ ...anchorApiState, iteration: anchorApiState.iteration+1, status: 'success' });
-      });
-    }
-  }, [anchorApiState]);
-
-  const onConfirmAnchors = useCallback((anchorId) => {
-    if(anchorApiState.status === 'success') {
-      qrySetters.setAnchorApiState({ ...anchorApiState, status: 'loading' });
-      qryLoader.anchorConfirm(anchorId).then(result => {
-        qrySetters.setAnchorApiState({ ...anchorApiState, iteration: anchorApiState.iteration+1, status: 'success' });
-      });
-    }
-  }, [anchorApiState]);
-
-  const onEditAnchors = useCallback((anchorId) => {
-    qrySetters.setAnchorSetFocus(anchorId);
-    qrySetters.setAnchorEditMode({ mode: 'lasso', anchorId: anchorId });
-    qrySetters.setAnchorEditTool('lasso');
-  }, [onHighlightAnchors]);
-
-  function resetCellSets(goodSelection) {
-    if(goodSelection) {
-      qrySetters.setAnchorEditMode(null);
-      qrySetters.setAnchorEditTool(null);
-    }
-    qrySetters.setAdditionalCellSets(null);
-    const parentKey = "Prediction";
-    const node = mergedQryCellSets.tree.find(n => n.name === parentKey);
-    if(node) {
-      const newSelection = node.children.map(n => ([parentKey, n.name]));
-      qrySetters.setCellSetSelection(newSelection);
-
-      const newColors = newSelection.map((path, i) => ({
-        color: PALETTE[i % PALETTE.length],
-        path: path,
-      }));
-      qrySetters.setCellSetColor(newColors);
-      qrySetters.setCellColorEncoding("cellSetSelection");
-    }
-  }
-
-  useEffect(() => {
-    if(anchorApiState.status !== 'success'){
-      // Still in loading mode or had a previous error.
-      return;
-    }
-    if(qryValues.additionalCellSets?.tree?.[0]?.children?.length !== 1 || qryValues.additionalCellSets.tree[0].children[0].set.length < 2) {
-      // Selected set does not exist or it contains 0 or 1 cells.
-      resetCellSets(false);
-      return;
-    }
-    // Set exists, now just determine whether it is an addition or an edit.
-    if(qryValues.anchorEditMode?.mode === 'lasso') {
-      const anchorId = qryValues.anchorEditMode.anchorId;
-      const cellIds = qryValues.additionalCellSets.tree[0].children[0].set.map(c => ({ cell_id: c[0] }));
-      qrySetters.setAnchorApiState({ ...anchorApiState, status: 'loading' });
-      qryLoader.anchorRefine(anchorId, cellIds).then(result => {
-        qrySetters.setAnchorApiState({ ...anchorApiState, iteration: anchorApiState.iteration+1, status: 'success' });
-        resetCellSets(true);
-
-        const prevAnchorId = qryValues.anchorSetFocus;
-        qrySetters.setAnchorSetFocus(null);
-        setTimeout(() => {
-          qrySetters.setAnchorSetFocus(prevAnchorId);
-        }, 500);
-      });
-    } else if(qryValues.anchorEditMode === null) {
-      const cellIds = qryValues.additionalCellSets.tree[0].children[0].set.map(c => ({ cell_id: c[0] }));
-      const anchorId = nextUserSetName;
-      qrySetters.setAnchorApiState({ ...anchorApiState, status: 'loading' });
-      qryLoader.anchorAdd(anchorId, cellIds).then(result => {
-        qrySetters.setAnchorApiState({ ...anchorApiState, iteration: anchorApiState.iteration+1, status: 'success' });
-        resetCellSets(true);
-        qrySetters.setAnchorSetFocus(null);
-      });
-    }
-  }, [qryValues.additionalCellSets]);
-
   const manager = useMemo(() => {
     return (
-      <QRCellSetsManager
-        qryCellSets={mergedQryCellSets}
-        refCellSets={mergedRefCellSets}
-
-        qryAnchorCluster={qryAnchorCluster}
-        refAnchorCluster={refAnchorCluster}
-        qryAnchorDist={qryAnchorDist}
-
+      <QRScores
         qryTopGenesLists={qryTopGenesLists}
-
-        onDeleteAnchors={onDeleteAnchors}
-        onConfirmAnchors={onConfirmAnchors}
-        onEditAnchors={onEditAnchors}
-        onFocusAnchors={onFocusAnchors}
-        onHighlightAnchors={onHighlightAnchors}
+        qryAnchorSetFocus={qryValues.anchorSetFocus}
+        refAnchorSetFocus={refValues.anchorSetFocus}
       />
     );
-  }, [qryTopGenesLists, onFocusAnchors, onHighlightAnchors]); 
+  }, [qryTopGenesLists, qryValues.anchorSetFocus, refValues.anchorSetFocus]); 
 
   return (
     <TitleInfo

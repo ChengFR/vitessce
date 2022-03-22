@@ -280,6 +280,25 @@ export const polyphonyConfig = {
             w: 6,
             h: 11,
           },
+          {
+            component: 'qrScores',
+            coordinationScopes: {
+              dataset: ['REFERENCE', 'QUERY'],
+              cellSetSelection: { REFERENCE: 'ref', QUERY: 'qry' },
+              cellSetColor: { REFERENCE: 'ref', QUERY: 'qry' },
+              cellColorEncoding: { REFERENCE: 'ref', QUERY: 'qry' },
+              embeddingType: { REFERENCE: 'ref', QUERY: 'qry' },
+              anchorSetFocus: { REFERENCE: 'ref', QUERY: 'qry' },
+              anchorSetHighlight: { REFERENCE: 'ref', QUERY: 'qry' },
+              anchorEditTool: 'qry',
+              anchorEditMode: 'qry',
+              geneSelection: { REFERENCE: 'ref', QUERY: 'qry' },
+            },
+            x: 6,
+            y: 7,
+            w: 3,
+            h: 5,
+          },
           /*{
             component: 'qrSupportingScatterplotQuery',
             coordinationScopes: {

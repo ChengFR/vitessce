@@ -144,8 +144,8 @@ export default function QRComparisonScatterplotSubscriber(props) {
   const refCellSets = useCellSetsTree(refCellsIndex, [refCellType], ["Cell Type"]);
 
   // Anchor matrix
-  const [qryAnchorMatrix, qryAnchorMatrixStatus] = useAnnDataDynamic(loaders, qryDataset, qryOptions?.anchorMatrix?.path, 'columnNumeric', modelIteration, setItemIsReady, false);
-  const [refAnchorMatrix, refAnchorMatrixStatus] = useAnnDataDynamic(loaders, refDataset, refOptions?.anchorMatrix?.path, 'columnNumeric', modelIteration, setItemIsReady, false);
+  //const [qryAnchorMatrix, qryAnchorMatrixStatus] = useAnnDataDynamic(loaders, qryDataset, qryOptions?.anchorMatrix?.path, 'columnNumeric', modelIteration, setItemIsReady, false);
+  //const [refAnchorMatrix, refAnchorMatrixStatus] = useAnnDataDynamic(loaders, refDataset, refOptions?.anchorMatrix?.path, 'columnNumeric', modelIteration, setItemIsReady, false);
 
   // Anchor cluster
   // TODO(scXAI): should this depend on the anchor iteration (instead of the model iteration)?

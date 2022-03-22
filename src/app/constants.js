@@ -15,6 +15,7 @@ export const Component = {
   QR_SUPPORTING_SCATTERPLOT_QUERY: 'qrSupportingScatterplotQuery',
   QR_SUPPORTING_SCATTERPLOT_REFERENCE: 'qrSupportingScatterplotReference',
   QR_CELL_SETS: 'qrCellSets',
+  QR_SCORES: 'qrScores',
 };
 
 export const MULTI_DATASET_COMPONENTS = [
