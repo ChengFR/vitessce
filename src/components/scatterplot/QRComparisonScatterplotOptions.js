@@ -142,8 +142,9 @@ export default function QRComparisonScatterplotOptions(props) {
             }}
           >
             <option value="scatterplot">Scatterplot</option>
-            <option value="heatmap">Heatmap</option>
             <option value="contour">Contour</option>
+            {/*<option value="heatmap">Heatmap</option>*/}
+            <option value="scatterplot-and-contour">Scatterplot and Contour</option>
           </OptionSelect>
         </TableCell>
       </TableRow>
@@ -175,8 +176,9 @@ export default function QRComparisonScatterplotOptions(props) {
             }}
           >
             <option value="scatterplot">Scatterplot</option>
-            <option value="heatmap">Heatmap</option>
             <option value="contour">Contour</option>
+            {/*<option value="heatmap">Heatmap</option>*/}
+            <option value="scatterplot-and-contour">Scatterplot and Contour</option>
           </OptionSelect>
         </TableCell>
       </TableRow>

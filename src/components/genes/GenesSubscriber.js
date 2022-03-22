@@ -67,15 +67,12 @@ export default function GenesSubscriber(props) {
     resetReadyItems,
   ] = useReady([anchorStatus, modelStatus]);
 
-  const dataset = qryDataset;
   const geneSelection = qryValues.geneSelection;
   const geneFilter = qryValues.geneFilter;
   const cellColorEncoding = qryValues.cellColorEncoding;
 
-  const setGeneSelection = qrySetters.setGeneSelection;
   const setGeneFilter = qrySetters.setGeneFilter;
   const setGeneHighlight = qrySetters.setGeneHighlight;
-  const setCellColorEncoding = qrySetters.setCellColorEncoding;
 
   // Reset file URLs and loader progress when the dataset has changed.
   useEffect(() => {
@@ -92,8 +89,11 @@ export default function GenesSubscriber(props) {
   const numGenes = geneList.length;
 
   function setGeneSelectionAndColorEncoding(newSelection) {
-    setGeneSelection(newSelection);
-    setCellColorEncoding('geneSelection');
+    qrySetters.setGeneSelection(newSelection);
+    qrySetters.setCellColorEncoding('geneSelection');
+
+    refSetters.setGeneSelection(newSelection);
+    refSetters.setCellColorEncoding('geneSelection');
   }
 
   return (

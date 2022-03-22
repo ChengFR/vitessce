@@ -46,18 +46,6 @@ const defaultProps = {
   getFillPatternScale: { type: 'accessor', compare: false },
 };
 
-const POSITION_ATTRIBUTE_NAME = 'positions';
-
-const DIMENSIONS = {
-  data: {
-    props: ['cellSize']
-  },
-  weights: {
-    props: ['aggregation'],
-    accessors: ['getWeight']
-  }
-};
-
 export default class ContourPatternLayer extends ContourLayer {
   
   renderLayers() {

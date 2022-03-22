@@ -69,6 +69,7 @@ export default function QRComparisonScatterplotSubscriber(props) {
     coordinationScopes,
     removeGridComponent,
     theme,
+    isMainComparisonView = false,
     disableTooltip = false,
     observationsLabelOverride: observationsLabel = 'cell',
     observationsPluralLabelOverride: observationsPluralLabel = `${observationsLabel}s`,
@@ -310,13 +311,16 @@ export default function QRComparisonScatterplotSubscriber(props) {
     if(!qryAnchorFocusViewState) {
       return;
     }
-    setTransitionDuration(1000);
-    setTransitionInterpolator(new LinearInterpolator({ transitionProps: ['target', 'zoom'] }));
+    if(isMainComparisonView) {
+      setTransitionDuration(1000);
+      setTransitionInterpolator(new LinearInterpolator({ transitionProps: ['target', 'zoom'] }));
 
-    const { zoom: newZoom, target: [newTargetX, newTargetY] } = qryAnchorFocusViewState;
-    qrySetters.setEmbeddingTargetX(newTargetX);
-    qrySetters.setEmbeddingTargetY(newTargetY);
-    qrySetters.setEmbeddingZoom(newZoom);
+      const { zoom: newZoom, target: [newTargetX, newTargetY] } = qryAnchorFocusViewState;
+      qrySetters.setEmbeddingTargetX(newTargetX);
+      qrySetters.setEmbeddingTargetY(newTargetY);
+      qrySetters.setEmbeddingZoom(newZoom);
+    }
+    
   }, [qryAnchorFocusViewState]);
 
   const onTransitionEnd = useCallback((val) => {
@@ -474,6 +478,7 @@ export default function QRComparisonScatterplotSubscriber(props) {
   // Set up a getter function for gene expression values, to be used
   // by the DeckGL layer to obtain values for instanced attributes.
   const getQryExpressionValue = useExpressionValueGetter({ attrs: qryAttrs, expressionData: qryExpressionData });
+  const getRefExpressionValue = useExpressionValueGetter({ attrs: refAttrs, expressionData: refExpressionData });
 
   // TODO(scXAI): do we need to get expression values for the reference dataset?
 
@@ -584,7 +589,8 @@ export default function QRComparisonScatterplotSubscriber(props) {
           setComponentHover(uuid);
         }}
         updateViewInfo={setComponentViewInfo}
-        getExpressionValue={getQryExpressionValue}
+        getQryExpressionValue={getQryExpressionValue}
+        getRefExpressionValue={getRefExpressionValue}
         getCellIsSelected={getCellIsSelected}
         
         qryCellsVisible={qryValues.embeddingVisible}

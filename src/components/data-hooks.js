@@ -908,7 +908,7 @@ export function useInitialCellSetSelection(mergedQryCellSets, qryValues, qrySett
         path: path,
       }));
       qrySetters.setCellSetColor(newColors);
-      qrySetters.setCellColorEncoding("cellSetSelection");
+      qrySetters.setCellColorEncoding('cellSetSelection');
     }
   }, [mergedQryCellSets, parentKey, qryValues.cellSetColor, qryValues.cellSetSelection, qryValues.cellColorEncoding]);
 }
@@ -994,7 +994,7 @@ export function useProcessedAnchorSets(
             numCells: anchorObj.cells.length,
             predictionProportions: predictionPaths.map(path => {
               const [prefix, setName] = path;
-              const color = cellSetColor.find(o => isEqual(path, o.path))?.color;
+              const color = cellSetColor.find(o => isEqual(path, o.path))?.color || [60, 60, 60];
               const numCellsInCluster = anchorObj.cells.length;
               const numCellsInClusterAndSet = anchorObj.cells.filter(cellObj => setName === qryPrediction[qryCellsIndex.indexOf(cellObj.cell_id)]).length;
               const proportion = numCellsInClusterAndSet / numCellsInCluster;
@@ -1067,7 +1067,7 @@ export function useAnchorContourOfInterest(
       if(qryAnchorSetFocus && refAnchorSetFocus && qryAnchorFocusIndices && refAnchorFocusIndices && refCol && qryCol && qryCellSetColor && refCellSetColor) {
         const qryContourData = qryNode.children.map(group => {
           const nodePath = [qryParentKey, group.name];
-          const color = qryCellSetColor?.find(d => isEqual(d.path, nodePath))?.color;
+          const color = qryCellSetColor?.find(d => isEqual(d.path, nodePath))?.color || [60, 60, 60];
           const indices = qryAnchorFocusIndices.filter(i => qryCol[i] === group.name);
           return {
             name: group.name,
@@ -1078,7 +1078,7 @@ export function useAnchorContourOfInterest(
         });
         const refContourData = refNode.children.map(group => {
           const nodePath = [refParentKey, group.name];
-          const color = refCellSetColor?.find(d => isEqual(d.path, nodePath))?.color;
+          const color = refCellSetColor?.find(d => isEqual(d.path, nodePath))?.color || [60, 60, 60];
           const indices = refAnchorFocusIndices.filter(i => refCol[i] === group.name);
           return {
             name: group.name,
@@ -1092,7 +1092,7 @@ export function useAnchorContourOfInterest(
         return [
           qryNode.children.map(group => {
             const nodePath = [qryParentKey, group.name];
-            const color = qryCellSetColor?.find(d => isEqual(d.path, nodePath))?.color;
+            const color = qryCellSetColor?.find(d => isEqual(d.path, nodePath))?.color || [60, 60, 60];
             return {
               name: group.name,
               indices: [],
@@ -1102,7 +1102,7 @@ export function useAnchorContourOfInterest(
           }),
           refNode.children.map(group => {
             const nodePath = [refParentKey, group.name];
-            const color = refCellSetColor?.find(d => isEqual(d.path, nodePath))?.color;
+            const color = refCellSetColor?.find(d => isEqual(d.path, nodePath))?.color || [60, 60, 60];
             return {
               name: group.name,
               indices: [],

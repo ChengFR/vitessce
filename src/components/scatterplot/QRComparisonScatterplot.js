@@ -138,7 +138,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       cellColors,
       refCellsIndex,
       getCellColor = makeDefaultGetCellColors(cellColors, refCellsIndex, theme),
-      getExpressionValue,
+      getRefExpressionValue: getExpressionValue,
       onCellClick,
       geneExpressionColormap,
       geneExpressionColormapRange = [0.0, 1.0],
@@ -225,7 +225,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
           src: { indices, embedding: cellsEntries.data },
           length: indices.length
         },
-        visible: (refCellsVisible && refCellEncoding === 'contour'),
+        visible: (refCellsVisible && (refCellEncoding === 'contour' || refCellEncoding === 'scatterplot-and-contour')),
         pickable: false,
         autoHighlight: false,
         filled: true,
@@ -269,7 +269,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       refCellsIndex,
       refCellColors,
       getCellColor = makeDefaultGetCellColors(refCellColors, refCellsIndex, theme),
-      getExpressionValue,
+      getRefExpressionValue: getExpressionValue,
       onCellClick,
       geneExpressionColormap,
       geneExpressionColormapRange = [0.0, 1.0],
@@ -285,7 +285,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         src: cellsEntries.data,
         length: cellsEntries.shape[1]
       },
-      visible: (refCellsVisible && refCellEncoding === 'scatterplot'),
+      visible: (refCellsVisible && (refCellEncoding === 'scatterplot' || refCellEncoding === 'scatterplot-and-contour')),
       pickable: false,
       autoHighlight: false,
       stroked: true,
@@ -364,7 +364,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       cellColors,
       qryCellsIndex,
       getCellColor = makeDefaultGetCellColors(cellColors, qryCellsIndex, theme),
-      getExpressionValue,
+      getQryExpressionValue: getExpressionValue,
       onCellClick,
       geneExpressionColormap,
       geneExpressionColormapRange = [0.0, 1.0],
@@ -450,7 +450,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
           src: { indices, embedding: cellsEntries.data },
           length: indices.length
         },
-        visible: qryCellsVisible, //(qryCellsVisible && qryCellEncoding === 'contour'),
+        visible: (qryCellsVisible && (qryCellEncoding === 'contour' || qryCellEncoding === 'scatterplot-and-contour')),
         pickable: false,
         autoHighlight: false,
         filled: true,
@@ -667,7 +667,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       qryCellsIndex,
       qryCellColors,
       getCellColor = makeDefaultGetCellColors(qryCellColors, qryCellsIndex, theme),
-      getExpressionValue,
+      getQryExpressionValue: getExpressionValue,
       onCellClick,
       geneExpressionColormap,
       geneExpressionColormapRange = [0.0, 1.0],
@@ -683,7 +683,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         src: cellsEntries.data,
         length: cellsEntries.shape[1]
       },
-      visible: (qryCellsVisible && qryCellEncoding === 'scatterplot'),
+      visible: (qryCellsVisible && (qryCellEncoding === 'scatterplot' || qryCellEncoding === 'scatterplot-and-contour')),
       pickable: true,
       autoHighlight: true,
       stroked: true,
@@ -1181,7 +1181,8 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
     ].some(shallowDiff)) {
       // Cells layer props changed.
       this.onUpdateQryScatterplotLayer();
-      this.onUpdateRefHeatmapLayer();
+      this.onUpdateRefScatterplotLayer();
+      //this.onUpdateRefHeatmapLayer();
       this.forceUpdate();
     }
     if ([
