@@ -991,6 +991,7 @@ export function useProcessedAnchorSets(
               ref: refClusterTopGeneNames.includes(name),
             })),
             latentDist: anchorObj.anchor_dist_median,
+            numCells: anchorObj.cells.length,
             predictionProportions: predictionPaths.map(path => {
               const [prefix, setName] = path;
               const color = cellSetColor.find(o => isEqual(path, o.path))?.color;
@@ -1067,21 +1068,23 @@ export function useAnchorContourOfInterest(
         const qryContourData = qryNode.children.map(group => {
           const nodePath = [qryParentKey, group.name];
           const color = qryCellSetColor?.find(d => isEqual(d.path, nodePath))?.color;
+          const indices = qryAnchorFocusIndices.filter(i => qryCol[i] === group.name);
           return {
             name: group.name,
-            indices: qryAnchorFocusIndices.filter(i => qryCol[i] === group.name),
+            indices: indices,
             color,
-            visible: true,
+            visible: indices.length > 0,
           };
         });
         const refContourData = refNode.children.map(group => {
           const nodePath = [refParentKey, group.name];
           const color = refCellSetColor?.find(d => isEqual(d.path, nodePath))?.color;
+          const indices = refAnchorFocusIndices.filter(i => refCol[i] === group.name);
           return {
             name: group.name,
-            indices: refAnchorFocusIndices.filter(i => refCol[i] === group.name),
+            indices: indices,
             color,
-            visible: true,
+            visible: indices.length > 0,
           };
         });
         return [qryContourData, refContourData];

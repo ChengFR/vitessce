@@ -63,6 +63,7 @@ export const DEFAULT_COORDINATION_VALUES = {
   [CoordinationType.EMBEDDING_VISIBLE]: true,
   [CoordinationType.EMBEDDING_ENCODING]: 'scatterplot',
   [CoordinationType.EMBEDDING_LINKS_VISIBLE]: false,
+  [CoordinationType.ANCHOR_SET_FILTER]: null,
 };
 
 // The following coordination types should be
@@ -200,6 +201,7 @@ export const COMPONENT_COORDINATION_TYPES = {
     CoordinationType.ANCHOR_EDIT_MODE,
     CoordinationType.ANCHOR_SET_FOCUS,
     CoordinationType.ANCHOR_SET_HIGHLIGHT,
+    CoordinationType.ANCHOR_SET_FILTER,
   ],
   [Component.GENES]: [
     CoordinationType.DATASET,
@@ -415,5 +417,6 @@ export const COMPONENT_COORDINATION_TYPES = {
     CoordinationType.ANCHOR_SET_FOCUS,
     CoordinationType.ANCHOR_SET_HIGHLIGHT,
     CoordinationType.EMBEDDING_LINKS_VISIBLE,
+    CoordinationType.ANCHOR_SET_FILTER,
   ],
 };

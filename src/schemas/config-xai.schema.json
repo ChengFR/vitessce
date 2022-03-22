@@ -105,7 +105,8 @@
                 "anchorSetHighlight": { "$ref": "#/definitions/componentCoordinationScopeValue" },
                 "embeddingVisible": { "$ref": "#/definitions/componentCoordinationScopeValue" },
                 "embeddingEncoding": { "$ref": "#/definitions/componentCoordinationScopeValue" },
-                "embeddingLinksVisible": { "$ref": "#/definitions/componentCoordinationScopeValue" }
+                "embeddingLinksVisible": { "$ref": "#/definitions/componentCoordinationScopeValue" },
+                "anchorSetFilter": { "$ref": "#/definitions/componentCoordinationScopeValue" }
               }
             }
           }
@@ -847,7 +848,8 @@
                     "type": "null",
                     "description": "If null is provided, no cells will be filtered out initially."
                   },
-                  { "type": "array", "items": { "type": "string" } }
+                  { "type": "array" },
+                  { "type": "object" }
                 ]
               }
             }
@@ -1185,6 +1187,21 @@
                     "description": ""
                   },
                   { "type": "boolean" }
+                ]
+              }
+            }
+          },
+          "anchorSetFilter": {
+            "type": "object",
+            "patternProperties": {
+              ".": {
+                "oneOf": [
+                  {
+                    "type": "null",
+                    "description": ""
+                  },
+                  { "type": "array" },
+                  { "type": "object" }
                 ]
               }
             }
