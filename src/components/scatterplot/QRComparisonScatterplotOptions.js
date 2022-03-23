@@ -28,6 +28,11 @@ export default function QRComparisonScatterplotOptions(props) {
     linksVisible,
     setLinksVisible,
 
+    refCellColorEncoding,
+    setRefCellColorEncoding,
+    qryCellColorEncoding,
+    setQryCellColorEncoding,
+
     cellRadius,
     setCellRadius,
     cellRadiusMode,
@@ -42,8 +47,7 @@ export default function QRComparisonScatterplotOptions(props) {
     setCellSetLabelSize,
     cellSetPolygonsVisible,
     setCellSetPolygonsVisible,
-    cellColorEncoding,
-    setCellColorEncoding,
+    
     geneExpressionColormap,
     setGeneExpressionColormap,
     geneExpressionColormapRange,
@@ -197,9 +201,14 @@ export default function QRComparisonScatterplotOptions(props) {
         </TableCell>
       </TableRow>
       <CellColorEncodingOption
-        observationsLabel={observationsLabel}
-        cellColorEncoding={cellColorEncoding}
-        setCellColorEncoding={setCellColorEncoding}
+        observationsLabel="Reference Cell"
+        cellColorEncoding={refCellColorEncoding}
+        setCellColorEncoding={setRefCellColorEncoding}
+      />
+      <CellColorEncodingOption
+        observationsLabel="Query Cell"
+        cellColorEncoding={qryCellColorEncoding}
+        setCellColorEncoding={setQryCellColorEncoding}
       />
       <TableRow>
         <TableCell className={classes.labelCell}>

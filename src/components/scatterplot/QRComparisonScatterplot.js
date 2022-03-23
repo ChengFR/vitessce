@@ -41,6 +41,11 @@ const makeDefaultGetCellColors = (cellColors, qryCellsIndex, theme) => (cellEntr
   return [r, g, b, 255 * (a || 1)];
 };
 
+const QR_COLORS = {
+  qryScatterplotByDataset: [120, 120, 120],
+  refScatterplotByDataset: [201, 201, 201],
+};
+
 /**
  * React component which renders a scatterplot from cell data, typically tSNE or PCA.
  * @param {object} props
@@ -142,7 +147,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       onCellClick,
       geneExpressionColormap,
       geneExpressionColormapRange = [0.0, 1.0],
-      cellColorEncoding,
+      refCellColorEncoding: cellColorEncoding,
     } = this.props;
     const filteredCellsEntries = (cellFilter
       ? cellsEntries.filter(cellEntry => cellFilter.includes(cellEntry[0]))
@@ -208,11 +213,14 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       refContour,
       refCellsVisible,
       refCellEncoding,
+      refCellColorEncoding,
     } = this.props;
 
 
     return refContour.map(group => {
-      const { name, color, indices } = group;
+      const { name, color: groupColor, indices } = group;
+
+      const color = (refCellColorEncoding === 'cellSetSelection' ? groupColor : [180, 180, 180]);
       const strokeColor = [...color];
       strokeColor[3] = 0.5 * 255;
       const fillColor = [...color];
@@ -273,7 +281,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       onCellClick,
       geneExpressionColormap,
       geneExpressionColormapRange = [0.0, 1.0],
-      cellColorEncoding,
+      refCellColorEncoding: cellColorEncoding,
     } = this.props;
     const filteredCellsEntries = (cellFilter
       ? cellsEntries.filter(cellEntry => cellFilter.includes(cellEntry[0]))
@@ -324,7 +332,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         }
         return 0;
       },
-      getFillColor: getCellColor,
+      getFillColor: (cellColorEncoding === 'dataset' ? QR_COLORS.refScatterplotByDataset : getCellColor),
       getExpressionValue,
       colorScaleLo: geneExpressionColormapRange[0],
       colorScaleHi: geneExpressionColormapRange[1],
@@ -368,7 +376,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       onCellClick,
       geneExpressionColormap,
       geneExpressionColormapRange = [0.0, 1.0],
-      cellColorEncoding,
+      qryCellColorEncoding: cellColorEncoding,
     } = this.props;
     const filteredCellsEntries = (cellFilter
       ? cellsEntries.filter(cellEntry => cellFilter.includes(cellEntry[0]))
@@ -434,10 +442,13 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       qryContour,
       qryCellsVisible,
       qryCellEncoding,
+      qryCellColorEncoding,
     } = this.props;
 
     return qryContour.map(group => {
-      const { name, color, indices } = group;
+      const { name, color: groupColor, indices } = group;
+
+      const color = (qryCellColorEncoding === 'cellSetSelection' ? groupColor : [180, 180, 180]);
       const strokeColor = [...color];
       strokeColor[3] = 0.5 * 255;
       const fillColor = [...color];
@@ -671,7 +682,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       onCellClick,
       geneExpressionColormap,
       geneExpressionColormapRange = [0.0, 1.0],
-      cellColorEncoding,
+      qryCellColorEncoding: cellColorEncoding,
     } = this.props;
     const filteredCellsEntries = (cellFilter
       ? cellsEntries.filter(cellEntry => cellFilter.includes(cellEntry[0]))
@@ -703,7 +714,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         target[2] = 0;
         return target;
       },
-      getFillColor: getCellColor,
+      getFillColor: (cellColorEncoding === 'dataset' ? QR_COLORS.qryScatterplotByDataset : getCellColor),
       getLineColor: [105, 105, 105],
       getRadius: (object, { index }) => {
         if (qryAnchorHighlightIndices && qryAnchorHighlightIndices.includes(index)) {
@@ -1171,13 +1182,13 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       this.onUpdateRefCellsData();
       this.forceUpdate();
     }
-    if (['refCellsVisible', 'refCellEncoding', 'refContour'].some(shallowDiff)) {
+    if (['refCellsVisible', 'refCellEncoding', 'refContour', 'refCellColorEncoding'].some(shallowDiff)) {
       //this.onUpdateRefHeatmapLayer();
       this.onUpdateRefContourLayer();
       this.onUpdateRefScatterplotLayer();
       this.forceUpdate();
     }
-    if (['qryCellsVisible', 'qryCellEncoding', 'qryContour'].some(shallowDiff)) {
+    if (['qryCellsVisible', 'qryCellEncoding', 'qryContour', 'qryCellColorEncoding'].some(shallowDiff)) {
       //this.onUpdateQryHeatmapLayer();
       this.onUpdateQryContourLayer();
       this.onUpdateQryScatterplotLayer();
@@ -1204,7 +1215,9 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       'qryEmbedding', 'refEmbedding',
       'cellFilter', 'cellSelection', 'cellColors',
       'cellRadius', 'cellOpacity', 'cellRadiusMode', 'geneExpressionColormap',
-      'geneExpressionColormapRange', 'geneSelection', 'cellColorEncoding',
+      'geneExpressionColormapRange', 'geneSelection',
+      'refCellColors', 'qryCellColors',
+      'qryCellColorEncoding', 'refCellColorEncoding',
     ].some(shallowDiff)) {
       // Cells layer props changed.
       this.onUpdateQryScatterplotLayer();
