@@ -18,7 +18,7 @@ import {
   QRSupportingScatterplotQuerySubscriber,
   QRSupportingScatterplotReferenceSubscriber,
 } from '../components/scatterplot';
-import { QRCellSetsManagerSubscriber } from '../components/sets';
+import { QRCellSetsManagerSubscriber, QRScoresSubscriber } from '../components/sets';
 
 const registry = {
   [Component.DESCRIPTION]: DescriptionSubscriber,
@@ -37,6 +37,7 @@ const registry = {
   [Component.QR_SUPPORTING_SCATTERPLOT_QUERY]: QRSupportingScatterplotQuerySubscriber,
   [Component.QR_SUPPORTING_SCATTERPLOT_REFERENCE]: QRSupportingScatterplotReferenceSubscriber,
   [Component.QR_CELL_SETS]: QRCellSetsManagerSubscriber,
+  [Component.QR_SCORES]: QRScoresSubscriber,
   // The plain higlass component does not abstract away the HiGlass view config,
   // so we probably want to avoid documenting it, only use it for development purposes.
   higlass: HiGlassSubscriber,

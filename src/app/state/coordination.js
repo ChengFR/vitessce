@@ -63,6 +63,7 @@ export const DEFAULT_COORDINATION_VALUES = {
   [CoordinationType.EMBEDDING_VISIBLE]: true,
   [CoordinationType.EMBEDDING_ENCODING]: 'scatterplot',
   [CoordinationType.EMBEDDING_LINKS_VISIBLE]: false,
+  [CoordinationType.ANCHOR_SET_FILTER]: null,
 };
 
 // The following coordination types should be
@@ -200,6 +201,7 @@ export const COMPONENT_COORDINATION_TYPES = {
     CoordinationType.ANCHOR_EDIT_MODE,
     CoordinationType.ANCHOR_SET_FOCUS,
     CoordinationType.ANCHOR_SET_HIGHLIGHT,
+    CoordinationType.ANCHOR_SET_FILTER,
   ],
   [Component.GENES]: [
     CoordinationType.DATASET,
@@ -415,5 +417,26 @@ export const COMPONENT_COORDINATION_TYPES = {
     CoordinationType.ANCHOR_SET_FOCUS,
     CoordinationType.ANCHOR_SET_HIGHLIGHT,
     CoordinationType.EMBEDDING_LINKS_VISIBLE,
+    CoordinationType.ANCHOR_SET_FILTER,
+  ],
+  [Component.QR_SCORES]: [
+    CoordinationType.DATASET,
+    CoordinationType.CELL_SET_SELECTION,
+    CoordinationType.CELL_SET_HIGHLIGHT,
+    CoordinationType.CELL_SET_COLOR,
+    CoordinationType.CELL_COLOR_ENCODING,
+    CoordinationType.ADDITIONAL_CELL_SETS,
+    CoordinationType.GENE_SELECTION,
+    CoordinationType.GENE_FILTER,
+    CoordinationType.GENE_HIGHLIGHT,
+    CoordinationType.EMBEDDING_TYPE,
+    CoordinationType.ANCHOR_API_STATE,
+    CoordinationType.MODEL_API_STATE,
+    CoordinationType.ANCHOR_EDIT_TOOL,
+    CoordinationType.ANCHOR_EDIT_MODE,
+    CoordinationType.ANCHOR_SET_FOCUS,
+    CoordinationType.ANCHOR_SET_HIGHLIGHT,
+    CoordinationType.EMBEDDING_LINKS_VISIBLE,
+    CoordinationType.ANCHOR_SET_FILTER,
   ],
 };

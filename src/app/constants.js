@@ -15,6 +15,7 @@ export const Component = {
   QR_SUPPORTING_SCATTERPLOT_QUERY: 'qrSupportingScatterplotQuery',
   QR_SUPPORTING_SCATTERPLOT_REFERENCE: 'qrSupportingScatterplotReference',
   QR_CELL_SETS: 'qrCellSets',
+  QR_SCORES: 'qrScores',
 };
 
 export const MULTI_DATASET_COMPONENTS = [
@@ -112,4 +113,5 @@ export const CoordinationType = {
   EMBEDDING_VISIBLE: 'embeddingVisible', // Whether the embedding is visible (boolean). Intended to be used by the comparison view to determine whether to show the reference or query only.
   EMBEDDING_ENCODING: 'embeddingEncoding', // scatterplot, heatmap, or contour.
   EMBEDDING_LINKS_VISIBLE: 'embeddingLinksVisible', // Whether the lines linking between corresponding query and reference anchor sets are visible (boolean).
+  ANCHOR_SET_FILTER: 'anchorSetFilter', // How to sort and filter the list of anchor sets in the Cell Sets view.
 };

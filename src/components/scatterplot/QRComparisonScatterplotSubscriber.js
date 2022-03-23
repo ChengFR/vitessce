@@ -25,6 +25,7 @@ import {
   useInitialCellSetSelection,
   useAnchors,
   useAnchorSetOfInterest,
+  useAnchorContourOfInterest,
 } from '../data-hooks';
 import { getCellColors } from '../interpolate-colors';
 import QRComparisonScatterplot from './QRComparisonScatterplot';
@@ -68,6 +69,7 @@ export default function QRComparisonScatterplotSubscriber(props) {
     coordinationScopes,
     removeGridComponent,
     theme,
+    isMainComparisonView = false,
     disableTooltip = false,
     observationsLabelOverride: observationsLabel = 'cell',
     observationsPluralLabelOverride: observationsPluralLabel = `${observationsLabel}s`,
@@ -143,8 +145,8 @@ export default function QRComparisonScatterplotSubscriber(props) {
   const refCellSets = useCellSetsTree(refCellsIndex, [refCellType], ["Cell Type"]);
 
   // Anchor matrix
-  const [qryAnchorMatrix, qryAnchorMatrixStatus] = useAnnDataDynamic(loaders, qryDataset, qryOptions?.anchorMatrix?.path, 'columnNumeric', modelIteration, setItemIsReady, false);
-  const [refAnchorMatrix, refAnchorMatrixStatus] = useAnnDataDynamic(loaders, refDataset, refOptions?.anchorMatrix?.path, 'columnNumeric', modelIteration, setItemIsReady, false);
+  //const [qryAnchorMatrix, qryAnchorMatrixStatus] = useAnnDataDynamic(loaders, qryDataset, qryOptions?.anchorMatrix?.path, 'columnNumeric', modelIteration, setItemIsReady, false);
+  //const [refAnchorMatrix, refAnchorMatrixStatus] = useAnnDataDynamic(loaders, refDataset, refOptions?.anchorMatrix?.path, 'columnNumeric', modelIteration, setItemIsReady, false);
 
   // Anchor cluster
   // TODO(scXAI): should this depend on the anchor iteration (instead of the model iteration)?
@@ -246,37 +248,20 @@ export default function QRComparisonScatterplotSubscriber(props) {
   );
 
   // Based on the currently focused anchor set, get all of the necessary info to render contour layers for the focused set.
-  const [qryAnchorSetFocusContour, refAnchorSetFocusContour] = useMemo(() => {  
-    const qryParentKey = "Prediction";
-    const qryCol = qryPrediction;
-
-    const refParentKey = "Cell Type";
-    const refCol = refCellType;
-
-    if(qryAnchorSetFocus && refAnchorSetFocus && qryAnchorFocusIndices && refAnchorFocusIndices && refCol && refCellSets && qryCol && qryCellSets && qryValues.cellSetColor && refValues.cellSetColor) {
-      const qryNode = qryCellSets.tree.find(n => n.name === qryParentKey);
-      const qryContourData = qryNode.children.map(group => {
-        const nodePath = [qryParentKey, group.name];
-        const color = qryValues.cellSetColor?.find(d => isEqual(d.path, nodePath))?.color;
-        return {
-          name: group.name,
-          indices: qryAnchorFocusIndices.filter(i => qryCol[i] === group.name),
-          color,
-        };
-      });
-      const refContourData = qryNode.children.map(group => {
-        const nodePath = [refParentKey, group.name];
-        const color = refValues.cellSetColor?.find(d => isEqual(d.path, nodePath))?.color;
-        return {
-          name: group.name,
-          indices: refAnchorFocusIndices.filter(i => refCol[i] === group.name),
-          color,
-        };
-      });
-      return [qryContourData, refContourData];
-    }
-    return [null, null];
-  }, [qryAnchorSetFocus, refAnchorSetFocus, qryAnchorFocusIndices, refAnchorFocusIndices, refCellType, refCellSets, qryPrediction, qryCellSets, qryValues.cellSetColor, refValues.cellSetColor]);
+  const [qryAnchorSetFocusContour, refAnchorSetFocusContour] = useAnchorContourOfInterest(
+    qryAnchorSetFocus, refAnchorSetFocus,
+    qryAnchorFocusIndices, refAnchorFocusIndices,
+    refCellType, "Cell Type", refCellSets,
+    qryPrediction, "Prediction", qryCellSets,
+    qryValues.cellSetColor, refValues.cellSetColor,
+  );
+  const [qryAnchorSetHighlightContour, refAnchorSetHighlightContour] = useAnchorContourOfInterest(
+    qryAnchorSetHighlight, refAnchorSetHighlight,
+    qryAnchorHighlightIndices, refAnchorHighlightIndices,
+    refCellType, "Cell Type", refCellSets,
+    qryPrediction, "Prediction", qryCellSets,
+    qryValues.cellSetColor, refValues.cellSetColor,
+  );
 
   const [qryContour, refContour] = useMemo(() => {
     const qryParentKey = "Prediction";
@@ -326,13 +311,16 @@ export default function QRComparisonScatterplotSubscriber(props) {
     if(!qryAnchorFocusViewState) {
       return;
     }
-    setTransitionDuration(1000);
-    setTransitionInterpolator(new LinearInterpolator({ transitionProps: ['target', 'zoom'] }));
+    if(isMainComparisonView) {
+      setTransitionDuration(1000);
+      setTransitionInterpolator(new LinearInterpolator({ transitionProps: ['target', 'zoom'] }));
 
-    const { zoom: newZoom, target: [newTargetX, newTargetY] } = qryAnchorFocusViewState;
-    qrySetters.setEmbeddingTargetX(newTargetX);
-    qrySetters.setEmbeddingTargetY(newTargetY);
-    qrySetters.setEmbeddingZoom(newZoom);
+      const { zoom: newZoom, target: [newTargetX, newTargetY] } = qryAnchorFocusViewState;
+      qrySetters.setEmbeddingTargetX(newTargetX);
+      qrySetters.setEmbeddingTargetY(newTargetY);
+      qrySetters.setEmbeddingZoom(newZoom);
+    }
+    
   }, [qryAnchorFocusViewState]);
 
   const onTransitionEnd = useCallback((val) => {
@@ -490,6 +478,7 @@ export default function QRComparisonScatterplotSubscriber(props) {
   // Set up a getter function for gene expression values, to be used
   // by the DeckGL layer to obtain values for instanced attributes.
   const getQryExpressionValue = useExpressionValueGetter({ attrs: qryAttrs, expressionData: qryExpressionData });
+  const getRefExpressionValue = useExpressionValueGetter({ attrs: refAttrs, expressionData: refExpressionData });
 
   // TODO(scXAI): do we need to get expression values for the reference dataset?
 
@@ -600,7 +589,8 @@ export default function QRComparisonScatterplotSubscriber(props) {
           setComponentHover(uuid);
         }}
         updateViewInfo={setComponentViewInfo}
-        getExpressionValue={getQryExpressionValue}
+        getQryExpressionValue={getQryExpressionValue}
+        getRefExpressionValue={getRefExpressionValue}
         getCellIsSelected={getCellIsSelected}
         
         qryCellsVisible={qryValues.embeddingVisible}
@@ -624,6 +614,9 @@ export default function QRComparisonScatterplotSubscriber(props) {
 
         qryAnchorSetFocusContour={qryAnchorSetFocusContour}
         refAnchorSetFocusContour={refAnchorSetFocusContour}
+        
+        qryAnchorSetHighlightContour={qryAnchorSetHighlightContour}
+        refAnchorSetHighlightContour={refAnchorSetHighlightContour}
       />
       {!disableTooltip && (
       <ScatterplotTooltipSubscriber
