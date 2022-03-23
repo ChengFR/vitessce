@@ -246,9 +246,9 @@ export const polyphonyConfig = {
               anchorEditMode: 'qry',
               geneSelection: 'all',
             },
-            x: 6,
+            x: 8,
             y: 1,
-            w: 6,
+            w: 4,
             h: 6,
           },
           {
@@ -281,10 +281,10 @@ export const polyphonyConfig = {
               /* qrySupportingUuid: 3, */
               /* refSupportingUuid: 4, */
             },
-            x: 0,
+            x: 2,
             y: 1,
             w: 6,
-            h: 8,
+            h: 11,
           },
           {
             // small left
@@ -364,9 +364,9 @@ export const polyphonyConfig = {
               anchorEditMode: 'qry',
               geneSelection: 'all',
             },
-            x: 6,
+            x: 8,
             y: 7,
-            w: 3,
+            w: 4,
             h: 5,
           },
           /*{
@@ -407,10 +407,10 @@ export const polyphonyConfig = {
               anchorSetHighlight: { REFERENCE: 'ref', QUERY: 'qry' },
               geneSelection: 'all',
             },
-            x: 9,
-            y: 7,
-            w: 3,
-            h: 5,
+            x: 0,
+            y: 0,
+            w: 2,
+            h: 11,
           },
           /*{
             component: 'qrSupportingScatterplotReference',

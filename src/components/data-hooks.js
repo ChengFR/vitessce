@@ -81,7 +81,7 @@ export function useDescription(loaders, dataset) {
     } else {
       setDescription(null);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loaders, dataset]);
 
   return [description];
@@ -155,7 +155,7 @@ export function useCellsData(
         setItemIsReady('cells');
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loaders, dataset]);
 
   return [cells, cellsCount];
@@ -219,7 +219,7 @@ export function useCellSetsData(
         setItemIsReady('cell-sets');
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loaders, dataset]);
 
   return [cellSets];
@@ -291,7 +291,7 @@ export function useExpressionMatrixData(
         setItemIsReady('expression-matrix');
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loaders, dataset]);
 
   return [expressionMatrix];
@@ -374,7 +374,7 @@ export function useGeneSelection(
         setItemIsReady('expression-matrix');
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loaders, dataset, selection]);
 
   return [geneData];
@@ -435,7 +435,7 @@ export function useExpressionAttrs(loaders, dataset, setItemIsReady, addUrl, isR
         setItemIsReady('expression-matrix');
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loaders, dataset]);
 
   return [attrs];
@@ -513,7 +513,7 @@ export function useMoleculesData(
         setItemIsReady('molecules');
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loaders, dataset]);
 
   return [molecules, moleculesCount, locationsCount];
@@ -582,7 +582,7 @@ export function useNeighborhoodsData(
         setItemIsReady('neighborhoods');
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loaders, dataset]);
 
   return [neighborhoods];
@@ -662,7 +662,7 @@ export function useRasterData(
         setItemIsReady('raster');
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loaders, dataset]);
   return [raster, imageLayerLoaders, imageLayerMeta];
 }
@@ -726,7 +726,7 @@ export function useGenomicProfilesData(
         setItemIsReady('genomic-profiles');
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loaders, dataset]);
 
   return [genomicProfilesAttrs];
@@ -780,7 +780,7 @@ export function useAnnDataStatic(
         setItemIsReady(path);
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loaders, dataset, path]);
 
   return [staticData];
@@ -815,7 +815,7 @@ export function useAnnDataDynamic(
         setItemIsReady(path);
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loaders, dataset, path, iteration]);
 
   return [dynamicData, status];
@@ -852,7 +852,7 @@ export function useAnnDataIndices(
         setItemIsReady('cells');
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loaders, dataset]);
 
   return [obsIndex, varIndex];
@@ -866,7 +866,7 @@ export function useAnnDataIndices(
  */
 export function useDiffGeneNames(qryGenesIndex, qryDiffGeneNameIndices) {
   const qryDiffGeneNames = useMemo(() => {
-    if(qryDiffGeneNameIndices && qryGenesIndex) {
+    if (qryDiffGeneNameIndices && qryGenesIndex) {
       const result = [];
       qryDiffGeneNameIndices.data.forEach(row => {
         const rowResult = [];
@@ -882,7 +882,7 @@ export function useDiffGeneNames(qryGenesIndex, qryDiffGeneNameIndices) {
 
 export function useCellSetsTree(qryCellsIndex, qryFeatureColumns, qryFeatureColumnNames) {
   const tree = useMemo(() => {
-    if(qryCellsIndex && qryFeatureColumns && qryFeatureColumnNames) {
+    if (qryCellsIndex && qryFeatureColumns && qryFeatureColumnNames) {
       // TODO(scXAI): support multiple qryFeatureColumns and corresponding names.
       const result = dataToCellSetsTree([qryCellsIndex, qryFeatureColumns.filter(col => Array.isArray(col)), []], qryFeatureColumnNames.map(colname => ({ groupName: colname })).filter((col, i) => Array.isArray(qryFeatureColumns[i])));
       return result;
@@ -894,12 +894,12 @@ export function useCellSetsTree(qryCellsIndex, qryFeatureColumns, qryFeatureColu
 
 export function useInitialCellSetSelection(mergedQryCellSets, qryValues, qrySetters, parentKey) {
   useEffect(() => {
-    if(qryValues.cellSetColor !== null || qryValues.cellSetSelection !== null || qryValues.cellColorEncoding !== null) {
+    if (qryValues.cellSetColor !== null || qryValues.cellSetSelection !== null || qryValues.cellColorEncoding !== null) {
       return;
     }
 
     const node = mergedQryCellSets.tree.find(n => n.name === parentKey);
-    if(node) {
+    if (node) {
       const newSelection = node.children.map(n => ([parentKey, n.name]));
       qrySetters.setCellSetSelection(newSelection);
 
@@ -939,7 +939,7 @@ export function useAnchors(
         setItemIsReady('anchors');
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loader, iteration]);
 
   return [result];
@@ -949,7 +949,7 @@ export function useProcessedAnchorSets(
   anchors, refDiffGeneNames, refDiffGeneScores, refDiffClusters, qryPrediction, qryCellsIndex, qryCellSets, cellSetColor, parentKey
 ) {
   const qryTopGenesLists = useMemo(() => {
-    if(anchors && refDiffGeneNames && refDiffGeneScores && refDiffClusters && qryPrediction && qryCellsIndex && qryCellSets && cellSetColor) {
+    if (anchors && refDiffGeneNames && refDiffGeneScores && refDiffClusters && qryPrediction && qryCellsIndex && qryCellSets && cellSetColor) {
       const predictionNode = qryCellSets.tree.find(n => n.name === parentKey);
       const predictionPaths = predictionNode.children.map(n => ([parentKey, n.name]));
 
@@ -965,10 +965,10 @@ export function useProcessedAnchorSets(
           const refClusterTopGeneNames = refDiffGeneNames[refClusterIndex].slice(0, NUM_GENES);
           const refClusterAllGeneNames = refDiffGeneNames[refClusterIndex];
           const refClusterAllGeneScores = refDiffGeneScores.data[refClusterIndex];
-          
+
           let qryClusterAllGeneNames = [];
           let qryClusterAllGeneScores = [];
-          if(!Array.isArray(anchorObj.rank_genes_groups)) {
+          if (!Array.isArray(anchorObj.rank_genes_groups)) {
             qryClusterAllGeneNames = anchorObj.rank_genes_groups.name_indice;
             qryClusterAllGeneScores = anchorObj.rank_genes_groups.score;
           } else {
@@ -976,9 +976,9 @@ export function useProcessedAnchorSets(
             qryClusterAllGeneScores = anchorObj.rank_genes_groups.map(v => v.score);
           }
           const qryClusterTopGeneNames = qryClusterAllGeneNames.slice(0, NUM_GENES);
-  
+
           const topGeneNames = Array.from(new Set([...qryClusterTopGeneNames, ...refClusterTopGeneNames]));
-  
+
           result[anchorType][anchorObj.id] = {
             id: anchorObj.id,
             names: topGeneNames,
@@ -1019,7 +1019,7 @@ export function useAnchorSetOfInterest(
 ) {
   const [qryAnchorSetFocus, refAnchorSetFocus, qryAnchorFocusIndices, refAnchorFocusIndices, qryAnchorFocusViewState] = useMemo(() => {
     // TODO(scXAI): debounce?
-    if(qryAnchorId && anchors && qryCellsIndex && qryEmbedding && refAnchorCluster) {
+    if (qryAnchorId && anchors && qryCellsIndex && qryEmbedding && refAnchorCluster) {
       const anchorGroup = Object.values(anchors).find(anchorSets => anchorSets.map(o => o.id).includes(qryAnchorId));
       const anchorObj = anchorGroup.find(o => o.id === qryAnchorId);
       const refAnchorId = `${anchorObj.anchor_ref_id}`; // convert to string
@@ -1028,7 +1028,7 @@ export function useAnchorSetOfInterest(
       const qryCellIndices = qryCellIds.map(cellId => qryCellsIndex.indexOf(cellId));
 
       let newViewState = null;
-      if(returnViewState) {
+      if (returnViewState) {
         const qryX = qryCellIndices.map(i => qryEmbedding.data[0][i]);
         const qryY = qryCellIndices.map(i => -qryEmbedding.data[1][i]);
         const qryXE = extent(qryX);
@@ -1044,7 +1044,7 @@ export function useAnchorSetOfInterest(
 
       const refCellIndices = []
       refAnchorCluster.forEach((clusterId, i) => {
-        if(clusterId === refAnchorId) {
+        if (clusterId === refAnchorId) {
           refCellIndices.push(i);
         }
       });
@@ -1061,10 +1061,10 @@ export function useAnchorContourOfInterest(
 ) {
   // Based on the currently focused anchor set, get all of the necessary info to render contour layers for the focused set.
   const [qryAnchorSetFocusContour, refAnchorSetFocusContour] = useMemo(() => {
-    if(refCellSets && qryCellSets) {
+    if (refCellSets && qryCellSets) {
       const qryNode = qryCellSets.tree.find(n => n.name === qryParentKey);
       const refNode = refCellSets.tree.find(n => n.name === refParentKey);
-      if(qryAnchorSetFocus && refAnchorSetFocus && qryAnchorFocusIndices && refAnchorFocusIndices && refCol && qryCol && qryCellSetColor && refCellSetColor) {
+      if (qryAnchorSetFocus && refAnchorSetFocus && qryAnchorFocusIndices && refAnchorFocusIndices && refCol && qryCol && qryCellSetColor && refCellSetColor) {
         const qryContourData = qryNode.children.map(group => {
           const nodePath = [qryParentKey, group.name];
           const color = qryCellSetColor?.find(d => isEqual(d.path, nodePath))?.color || [60, 60, 60];
@@ -1088,7 +1088,7 @@ export function useAnchorContourOfInterest(
           };
         });
         return [qryContourData, refContourData];
-      } else if(qryNode && refNode) {
+      } else if (qryNode && refNode) {
         return [
           qryNode.children.map(group => {
             const nodePath = [qryParentKey, group.name];
@@ -1116,4 +1116,51 @@ export function useAnchorContourOfInterest(
     return [null, null];
   }, [qryAnchorSetFocus, refAnchorSetFocus, qryAnchorFocusIndices, refAnchorFocusIndices, refCol, refCellSets, qryCol, qryCellSets, qryCellSetColor, refCellSetColor]);
   return [qryAnchorSetFocusContour, refAnchorSetFocusContour];
+}
+
+/**
+ * Compress three-folded anchor lists
+ */
+export function useCompressedAnchors(anchors) {
+  const compressedAnchors = useMemo(() => {
+    const compressedAnchors = {};
+    anchors && Object.keys(anchors).forEach(groupId =>
+      Object.entries(anchors[groupId]).
+        forEach(([anchorId, anchorInfo]) =>
+          compressedAnchors[anchorId] = anchorInfo
+        )
+    )
+    return compressedAnchors;
+  }, [anchors]);
+
+  return compressedAnchors;
+}
+
+/**
+ * Seperate genes according whether it belongs to the top list in ref and qry.
+ */
+export function useSeperatedGenes(anchor) {
+  const seperatedGenes = useMemo(() => {
+    const seperatedGenes = { shared: [], ref: [], qry: [] };
+    if (anchor) {
+      const { names, scores, significances } = anchor;
+      significances.forEach((sig, i) => {
+        const geneInfo = {
+          name: names[i],
+          score: scores[i]
+        };
+        if (sig.qry && sig.ref) {
+          seperatedGenes.shared.push(geneInfo)
+        }
+        else if (sig.qry && !sig.ref) {
+          seperatedGenes.qry.push(geneInfo)
+        }
+        else if (!sig.qry && sig.ref) {
+          seperatedGenes.ref.push(geneInfo)
+        }
+      })
+    }
+    return seperatedGenes;
+  }, [anchor]);
+  return seperatedGenes;
 }

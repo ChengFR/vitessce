@@ -706,19 +706,19 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       getFillColor: getCellColor,
       getLineColor: [105, 105, 105],
       getRadius: (object, { index }) => {
-        if(qryAnchorHighlightIndices && qryAnchorHighlightIndices.includes(index)) {
+        if (qryAnchorHighlightIndices && qryAnchorHighlightIndices.includes(index)) {
           return 3;
         }
-        if(qryAnchorFocusIndices && qryAnchorFocusIndices.includes(index)) {
+        if (qryAnchorFocusIndices && qryAnchorFocusIndices.includes(index)) {
           return 2;
         }
         return 1;
       },
       getLineWidth: (object, { index }) => {
-        if(qryAnchorHighlightIndices && qryAnchorHighlightIndices.includes(index)) {
+        if (qryAnchorHighlightIndices && qryAnchorHighlightIndices.includes(index)) {
           return 1;
         }
-        if(qryAnchorFocusIndices && qryAnchorFocusIndices.includes(index)) {
+        if (qryAnchorFocusIndices && qryAnchorFocusIndices.includes(index)) {
           return 1;
         }
         return 0;
@@ -759,7 +759,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       lineWidthMaxPixels: 2,
       getPolygon: d => d,
       getLineColor: (object, { index }) => {
-        if(index === 0) {
+        if (index === 0) {
           return [105, 105, 105];
         } else {
           return [211, 211, 211];
@@ -782,25 +782,52 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
     return [
       // Lines
       new LineLayer({
-        id: 'anchor-links',
+        id: 'anchor-links-outer',
         data: anchorLinks,
         visible: anchorLinksVisible,
         pickable: false,
         widthUnits: 'pixels',
         widthScale: 1,
         getWidth: d => {
-          if(d.qryId === qryAnchorSetHighlight && d.refId === refAnchorSetHighlight) {
-            return 8;
-          }
-          if(d.qryId === qryAnchorSetFocus && d.refId === refAnchorSetFocus) {
-            return 5;
-          }
+          // if(d.qryId === qryAnchorSetHighlight && d.refId === refAnchorSetHighlight) {
+          //   return 8;
+          // }
+          // if(d.qryId === qryAnchorSetFocus && d.refId === refAnchorSetFocus) {
+          //   return 5;
+          // }
+          // return 2;
+          return 4;
+        },
+        getPolygonOffset: () => ([0, -200]), // TODO: determine optimal value
+        getSourcePosition: d => [d.qry[0], -d.qry[1]],
+        getTargetPosition: d => [d.ref[0], -d.ref[1]],
+        // getColor: d => [234, 234, 132],
+        getColor: d => [140, 140, 140],
+        updateTriggers: {
+          getWidth: [qryAnchorSetFocus, refAnchorSetFocus, qryAnchorSetHighlight, refAnchorSetHighlight],
+        },
+      }),
+      new LineLayer({
+        id: 'anchor-links-inner',
+        data: anchorLinks,
+        visible: anchorLinksVisible,
+        pickable: false,
+        widthUnits: 'pixels',
+        widthScale: 1,
+        getWidth: d => {
           return 2;
         },
         getPolygonOffset: () => ([0, -200]), // TODO: determine optimal value
         getSourcePosition: d => [d.qry[0], -d.qry[1]],
         getTargetPosition: d => [d.ref[0], -d.ref[1]],
-        getColor: d => [140, 140, 140],
+        // getColor: d => [140, 140, 140],
+        getColor: d => {
+          if ((d.qryId === qryAnchorSetHighlight && d.refId === refAnchorSetHighlight)
+            || (d.qryId === qryAnchorSetFocus && d.refId === refAnchorSetFocus))
+            return [234, 234, 132]
+          else
+            return [217, 217, 217, 128]
+        },
         updateTriggers: {
           getWidth: [qryAnchorSetFocus, refAnchorSetFocus, qryAnchorSetHighlight, refAnchorSetHighlight],
         },
@@ -827,13 +854,13 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         getFillColor: d => d.type === 'qry' ? [105, 105, 105] : [211, 211, 211],
         getLineColor: [60, 60, 60],
         getRadius: d => {
-          if(d.qryId === qryAnchorSetFocus && d.refId === refAnchorSetFocus) {
+          if (d.qryId === qryAnchorSetFocus && d.refId === refAnchorSetFocus) {
             return 10;
           }
           return 5;
         },
         getLineWidth: d => {
-          if(d.qryId === qryAnchorSetFocus && d.refId === refAnchorSetFocus) {
+          if (d.qryId === qryAnchorSetFocus && d.refId === refAnchorSetFocus) {
             return 2;
           }
           return 0;
@@ -919,7 +946,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
     const tool = super.getTool();
     const { qryCellsQuadTree: cellsQuadTree } = this;
     const flipYTooltip = true;
-    
+
     const getCellCoords = (i) => ([cellsEntries.data[0][i], cellsEntries.data[1][i], 0]);
 
     return getSelectionLayers(
@@ -975,7 +1002,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
     const {
       qryEmbedding,
     } = this.props;
-    if(qryEmbedding && qryEmbedding.data) {
+    if (qryEmbedding && qryEmbedding.data) {
       this.qryCellsEntries = qryEmbedding;
       this.qryCellsQuadTree = createCellsQuadTree(qryEmbedding);
     }
@@ -992,7 +1019,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
   }
 
   onUpdateQryHeatmapLayer() {
-    if(this.qryCellsEntries.data && this.props.qryContour) {
+    if (this.qryCellsEntries.data && this.props.qryContour) {
       this.qryHeatmapLayers = this.createQryHeatmapLayers();
     }
   }
@@ -1002,7 +1029,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       this.qryContourLayers = this.createQryContourLayers();
     }
   }
-  
+
   onUpdateQryContourFocusLayer() {
     if (this.qryCellsEntries.data && this.props.qryAnchorSetFocusContour) {
       this.qryContourFocusLayers = this.createQryContourFocusLayers();
@@ -1026,13 +1053,13 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
   }
 
   onUpdateQryScatterplotLayer() {
-    if(this.qryCellsEntries.data) {
+    if (this.qryCellsEntries.data) {
       this.qryScatterplotLayer = this.createQryScatterplotLayer();
     }
   }
 
   onUpdateRefHeatmapLayer() {
-    if(this.refCellsEntries.data && this.props.refContour) {
+    if (this.refCellsEntries.data && this.props.refContour) {
       this.refHeatmapLayers = this.createRefHeatmapLayers();
     }
   }
@@ -1044,21 +1071,21 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
   }
 
   onUpdateRefScatterplotLayer() {
-    if(this.refCellsEntries.data) {
+    if (this.refCellsEntries.data) {
       this.refScatterplotLayer = this.createRefScatterplotLayer();
     }
   }
 
   onUpdateSupportingBoundsLayer() {
     const { qrySupportingBounds, refSupportingBounds } = this.props;
-    if(qrySupportingBounds || refSupportingBounds) {
+    if (qrySupportingBounds || refSupportingBounds) {
       this.supportingBoundsLayer = this.createSupportingBoundsLayer();
     }
   }
 
   onUpdateAnchorLinksLayer() {
     const { anchorLinksVisible, anchorLinks } = this.props;
-    if(anchorLinks) {
+    if (anchorLinks) {
       this.anchorLinksLayers = this.createAnchorLinksLayers();
     }
   }
@@ -1104,7 +1131,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
 
     // TODO(scXAI): update
     const getCellCoords = cell => getCellPosition([null, cell]);
-    
+
     if (updateViewInfo && viewport) {
       updateViewInfo({
         uuid,

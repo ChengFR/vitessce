@@ -2,27 +2,37 @@
   /* Cell Sets component */
   .qrCellSets {
     border: 0px solid blue;
+    margin-top: 10px;
   }
   .qrCellSetsTableContainer {
     width: 100%;
     display: flex;
   }
+  .qrCellSetsTableBlock {
+    // max-height: 390px;
+    overflow-y: scroll;
+    // border-bottom: 2px rgba(110, 110, 110, 0.5) solid;
+    // margin: 10px 0px;
+  }
+
   .qrCellSetsTableLeft {
-    // flex: 50%;
+    flex: 50%;
     .qrCellSetsTableRow {
       width: 100%;
       overflow-y: hidden;
-      margin-bottom: -6px;
+      // margin-bottom: -6px;
+      display: flex;
+      justify-content: space-between;
     }
   }
   .qrCellSetsTableRight {
-    // flex: 50%;
+    flex: 50%;
     overflow-x: auto;
     overflow-y: visible;
     .qrCellSetsTableRow {
       width: 100%;
       overflow-y: visible;
-      margin-bottom: 0.9px;
+      margin-bottom: 6px;
     }
   }
 
@@ -52,12 +62,27 @@
         height: 22px;
         margin-top: 4px;
       }
+      .predictionBarInner {
+        float: left;
+        height: 10px;
+        top: 10px;
+        position: absolute;
+        border-radius: 5px;
+      }
+      .predictionBarOutter {
+        background-color: #c0c0c0;
+        height: 10px;
+        position: absolute;
+        top: 10px;
+        border-radius: 5px;
+      }
     }
     .colEdit {
       width: 20px;
+      margin-right: 20px;
     }
     .colTopGenes {
-      width: 120px;
+      width: 60px;
     }
     .colGeneResult {
       height: 30px;
@@ -78,6 +103,10 @@
     position: relative;
     top: 0;
     left: 0;
+    margin-left: 10px;
+  }
+  .qrCellSetsTableHeadText {
+    vertical-align: inherit;
   }
   .signifIconTooltip {
     position: absolute;
@@ -96,6 +125,7 @@
   .iconContainer {
     overflow-y: visible;
     overflow-x: visible;
+    position: relative;
     display: flex;
     .signifIconTooltip {
       display: none;
@@ -109,16 +139,38 @@
 
   .geneIcon {
     height: 30px;
+    width: 90px;
     margin-right: 1px;
     margin-top: 2px;
+    margin-bottom: 5px;
     min-width: 12px;
     position: relative;
-    transition: all 0.3s ease;
+    overflow-x: visible;
+
     .geneIconOuter {
       position: absolute;
-      width: 70px;
+      width: 90px;
+      border: 2px solid rgb(161, 161, 161);
+      border-top: 6px solid rgb(226, 226, 226);
+      border-radius: 5px;
       left: 0px;
       top: 0px;
+    }
+    .geneIconRef {
+      height: 6px;
+      background: #d28282;
+      position: absolute;
+      top: 0px;
+      left: 45px;
+      border-radius: 2px;
+    }
+    .geneIconQry {
+      height: 6px;
+      background: #8383bc;
+      position: absolute;
+      top: 0px;
+      right: 45px;
+      border-radius: 2px;
     }
     .geneName {
       margin-left: 5px;
@@ -127,51 +179,16 @@
       font-size: 14px !important;
     }
   }
-
-  .geneIcon.withGeneName {
-    width: 80px;
+  .geneIcon:hover {
     .geneIconOuter {
-      position: absolute;
-      width: 70px;
-    }
-    .geneIconOuter.inBoth {
-      border: 2px solid rgb(161, 161, 161);
-      border-top: 8px solid rgb(161, 161, 161);
-    }
-
-    .geneIconOuter.inQry {
-      border: 2px solid #9796e0;
-      border-top: 8px solid #9796e0;
-    }
-
-    .geneIconOuter.inRef {
-      border: 2px solid rgb(218, 168, 211);
-      border-top: 8px solid rgb(218, 168, 211);
-    }
-    .geneName {
-      display: block;
+      background-color: #cecece;
+      opacity: 0.5;
     }
   }
 
-  .geneIcon.withoutGeneName {
-    width: 10px;
+  .geneIcon.selected {
     .geneIconOuter {
-      position: absolute;
-      width: 10px;
-    }
-    .geneIconOuter.inBoth {
-      background-color: rgb(161, 161, 161);
-    }
-
-    .geneIconOuter.inQry {
-      background-color: #9796e0;
-    }
-
-    .geneIconOuter.inRef {
-      background-color: rgb(218, 168, 211);
-    }
-    .geneName {
-      display: none;
+      background-color: #c0c0c0;
     }
   }
 
@@ -221,5 +238,23 @@
   }
   .supporting-reference-container {
     border: 2px solid rgb(211, 211, 211);
+  }
+}
+
+.qrTopGeneContainer {
+  margin: 10px;
+  width: 100%;
+  height: 100%;
+  display: flex;
+
+  .qrTopGeneColumn {
+    width: 90px;
+    margin-left: 10px;
+    height: 100%;
+    overflow-y: scroll;
+    overflow-x: visible;
+    .qrTopGeneHeader {
+      margin-bottom: 5px;
+    }
   }
 }

@@ -20,6 +20,10 @@ import {
   useDiffGeneNames, useCellSetsTree,
   useAnchors, useInitialCellSetSelection,
   useProcessedAnchorSets,
+  useCompressedAnchors,
+  useSeperatedGenes,
+  useGeneSelection,
+  useExpressionAttrs
 } from '../data-hooks';
 import { Component } from '../../app/constants';
 import { mergeCellSets, PALETTE } from '../utils';
@@ -41,7 +45,7 @@ export default function QRScoresSubscriber(props) {
     coordinationScopes,
     removeGridComponent,
     theme,
-    title = 'Scores',
+    title = 'Top Genes',
   } = props;
 
   const loaders = useLoaders();
@@ -61,7 +65,7 @@ export default function QRScoresSubscriber(props) {
   );
   const [qryValues, qrySetters] = [cValues[qryScope], cSetters[qryScope]];
   const [refValues, refSetters] = [cValues[refScope], cSetters[refScope]];
-  
+
   const anchorApiState = qryValues.anchorApiState;
   const anchorIteration = anchorApiState.iteration;
   const anchorStatus = anchorApiState.status;
@@ -80,7 +84,7 @@ export default function QRScoresSubscriber(props) {
   useEffect(() => {
     resetUrls();
     resetReadyItems();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loaders, qryDataset, refDataset]);
 
   // Get the cells data loader for the query and reference datasets.
@@ -119,6 +123,14 @@ export default function QRScoresSubscriber(props) {
   const [refDiffGeneScores, refDiffGeneScoresStatus] = useAnnDataDynamic(loaders, refDataset, refOptions?.differentialGenes?.scores?.path, 'columnNumeric', modelIteration, setItemIsReady, false);
   const [refDiffClusters, refDiffClustersStatus] = useAnnDataDynamic(loaders, refDataset, refOptions?.differentialGenes?.clusters?.path, 'columnString', modelIteration, setItemIsReady, false);
 
+  const [qryExpressionData] = useGeneSelection(
+    loaders, qryDataset, setItemIsReady, false, qryValues.geneSelection, setItemIsNotReady,
+  );
+  
+  const [refExpressionData] = useGeneSelection(
+    loaders, refDataset, setItemIsReady, false, refValues.geneSelection, setItemIsNotReady,
+  );
+
   const refDiffGeneNames = useDiffGeneNames(refGenesIndex, refDiffGeneNameIndices);
 
   const mergedQryCellSets = useMemo(() => mergeCellSets(
@@ -137,15 +149,27 @@ export default function QRScoresSubscriber(props) {
     anchors, refDiffGeneNames, refDiffGeneScores, refDiffClusters, qryPrediction, qryCellsIndex, qryCellSets, qryValues.cellSetColor, "Prediction"
   );
 
+  const CompressAnchors = useCompressedAnchors(qryTopGenesLists);
+  const anchorFocused = qryValues.anchorSetFocus && CompressAnchors && CompressAnchors[qryValues.anchorSetFocus];
+  const topGenes = useSeperatedGenes(anchorFocused);
+
+  function setGeneSelectionAndColorEncoding(newSelection) {
+    qrySetters.setGeneSelection(newSelection);
+    qrySetters.setCellColorEncoding('geneSelection');
+
+    refSetters.setGeneSelection(newSelection);
+    refSetters.setCellColorEncoding('geneSelection');
+  }
+
   const manager = useMemo(() => {
     return (
       <QRScores
-        qryTopGenesLists={qryTopGenesLists}
-        qryAnchorSetFocus={qryValues.anchorSetFocus}
-        refAnchorSetFocus={refValues.anchorSetFocus}
+        anchorId={anchorFocused && anchorFocused.id}
+        topGenes={topGenes}
+        setGeneSelection={setGeneSelectionAndColorEncoding}
       />
     );
-  }, [qryTopGenesLists, qryValues.anchorSetFocus, refValues.anchorSetFocus]); 
+  }, [anchorFocused]);
 
   return (
     <TitleInfo
