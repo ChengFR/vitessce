@@ -938,7 +938,7 @@
                   },
                   {
                     "type": "string",
-                    "enum": ["geneSelection", "cellSetSelection"],
+                    "enum": ["geneSelection", "cellSetSelection", "dataset"],
                     "description": "How should data points representing cells be colored?"
                   }
                 ]

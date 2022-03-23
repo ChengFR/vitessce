@@ -480,14 +480,13 @@ export default function QRComparisonScatterplotSubscriber(props) {
   const getQryExpressionValue = useExpressionValueGetter({ attrs: qryAttrs, expressionData: qryExpressionData });
   const getRefExpressionValue = useExpressionValueGetter({ attrs: refAttrs, expressionData: refExpressionData });
 
-  // TODO(scXAI): do we need to get expression values for the reference dataset?
-
   const qryCellsCount = qryCellsIndex?.length;
+  const refCellsCount = refCellsIndex?.length;
 
   return (
     <TitleInfo
       title={title}
-      info={`${qryCellsCount} ${pluralize(observationsLabel, observationsPluralLabel, qryCellsCount)}`}
+      info={isMainComparisonView ? `${qryCellsCount} ${pluralize('query cell', 'query cells', qryCellsCount)}, ${refCellsCount} ${pluralize('reference cell', 'reference cells', refCellsCount)}` : ''}
       removeGridComponent={removeGridComponent}
       urls={urls}
       theme={theme}
@@ -508,6 +507,11 @@ export default function QRComparisonScatterplotSubscriber(props) {
           linksVisible={qryValues.embeddingLinksVisible}
           setLinksVisible={qrySetters.setEmbeddingLinksVisible}
 
+          refCellColorEncoding={refValues.cellColorEncoding}
+          setRefCellColorEncoding={refSetters.setCellColorEncoding}
+          qryCellColorEncoding={qryValues.cellColorEncoding}
+          setQryCellColorEncoding={qrySetters.setCellColorEncoding}
+
           cellRadius={qryValues.embeddingCellRadius}
           setCellRadius={qrySetters.setEmbeddingCellRadius}
           cellRadiusMode={qryValues.embeddingCellRadiusMode}
@@ -522,8 +526,7 @@ export default function QRComparisonScatterplotSubscriber(props) {
           setCellSetLabelSize={qrySetters.setEmbeddingCellSetLabelSize}
           cellSetPolygonsVisible={qryValues.embeddingCellSetPolygonsVisible}
           setCellSetPolygonsVisible={qrySetters.setEmbeddingCellSetPolygonsVisible}
-          cellColorEncoding={qryValues.cellColorEncoding}
-          setCellColorEncoding={qrySetters.setCellColorEncoding}
+          
           geneExpressionColormap={qryValues.geneExpressionColormap}
           setGeneExpressionColormap={qrySetters.setGeneExpressionColormap}
           geneExpressionColormapRange={qryValues.geneExpressionColormapRange}
@@ -582,7 +585,8 @@ export default function QRComparisonScatterplotSubscriber(props) {
         setCellHighlight={qrySetters.setCellHighlight}
         cellRadius={cellRadius}
         cellOpacity={cellOpacity}
-        cellColorEncoding={qryValues.cellColorEncoding}
+        refCellColorEncoding={refValues.cellColorEncoding}
+        qryCellColorEncoding={qryValues.cellColorEncoding}
         geneExpressionColormap={qryValues.geneExpressionColormap}
         geneExpressionColormapRange={qryValues.geneExpressionColormapRange}
         setComponentHover={() => {
