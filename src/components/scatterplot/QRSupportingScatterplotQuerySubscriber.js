@@ -175,9 +175,9 @@ export default function QRSupportingScatterplotQuerySubscriber(props) {
 
   // Cell sets
   const [qryPrediction, qryPredictionStatus] = useAnnDataDynamic(loaders, dataset, options?.features?.prediction?.path, 'columnString', modelIteration, setItemIsReady, false);
-  const [qryLabel, qryLabelStatus] = useAnnDataDynamic(loaders, dataset, options?.features?.label?.path, 'columnString', modelIteration, setItemIsReady, false);
+  // const [qryLabel, qryLabelStatus] = useAnnDataDynamic(loaders, dataset, options?.features?.label?.path, 'columnString', modelIteration, setItemIsReady, false);
 
-  const cellSets = useCellSetsTree(cellsIndex, [qryPrediction, qryLabel], ["Prediction", "Label"]);
+  const cellSets = useCellSetsTree(cellsIndex, [qryPrediction], ["Prediction"]);
 
   // Embeddings
   const [embedding, embeddingStatus] = useAnnDataDynamic(loaders, dataset, options?.embeddings[mapping]?.path, 'embeddingNumeric', modelIteration, setItemIsReady, false);
