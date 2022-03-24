@@ -86,9 +86,10 @@ export default function StatusSubscriber(props) {
       qrySetters.setModelApiState({ ...modelApiState, status: 'loading' });
       qryLoader.modelGet(modelApiState.iteration+1).then(result => {
         qrySetters.setModelApiState({ ...modelApiState, iteration: modelApiState.iteration+1, status: 'success' });
+        qrySetters.setAnchorApiState({ ...anchorApiState, iteration: anchorApiState.iteration+1, status: 'success' });
       });
     }
-  }, [modelApiState]);
+  }, [modelApiState, anchorApiState]);
 
   const [numAnchorSetsConfirmed, numAnchorSetsTotal, numQueryCellsConfirmed, numQueryCellsTotal] = useMemo(() => {
     if(anchors && qryCellsIndex) {
