@@ -28,6 +28,10 @@ import {
 import { Component } from '../../app/constants';
 import { mergeCellSets, PALETTE } from '../utils';
 
+const setItemIsReady = () => {}; // no op
+const setItemIsNotReady = () => {}; // no op
+const resetReadyItems = () => {}; // no op
+
 
 /**
  * A subscriber wrapper around the SetsManager component
@@ -73,12 +77,6 @@ export default function QRScoresSubscriber(props) {
   const modelStatus = qryValues.modelApiState.status;
 
   const [urls, addUrl, resetUrls] = useUrls();
-  const [
-    isReady,
-    setItemIsReady,
-    setItemIsNotReady, // eslint-disable-line no-unused-vars
-    resetReadyItems,
-  ] = useReady([anchorStatus, modelStatus]);
 
   // Reset file URLs and loader progress when the dataset has changed.
   useEffect(() => {
@@ -98,38 +96,38 @@ export default function QRScoresSubscriber(props) {
 
   // Load the data.
   // Cell IDs
-  const [qryCellsIndex, qryGenesIndex] = useAnnDataIndices(loaders, qryDataset, setItemIsReady, true);
-  const [refCellsIndex, refGenesIndex] = useAnnDataIndices(loaders, refDataset, setItemIsReady, true);
+  const [qryCellsIndex, qryGenesIndex, qryIndicesStatus] = useAnnDataIndices(loaders, qryDataset, setItemIsReady, true);
+  const [refCellsIndex, refGenesIndex, refIndicesStatus] = useAnnDataIndices(loaders, refDataset, setItemIsReady, true);
 
   // Cell sets
-  const [refCellType] = useAnnDataStatic(loaders, refDataset, refOptions?.features?.cellType?.path, 'columnString', setItemIsReady, false);
+  const [refCellType, refCellTypeStatus] = useAnnDataStatic(loaders, refDataset, refOptions?.features?.cellType?.path, 'columnString', setItemIsReady, false);
   const [qryPrediction, qryPredictionStatus] = useAnnDataDynamic(loaders, qryDataset, qryOptions?.features?.prediction?.path, 'columnString', modelIteration, setItemIsReady, false);
   // const [qryLabel, qryLabelStatus] = useAnnDataDynamic(loaders, qryDataset, qryOptions?.features?.label?.path, 'columnString', modelIteration, setItemIsReady, false);
 
   const qryCellSets = useCellSetsTree(qryCellsIndex, [qryPrediction], ["Prediction"]);
   const refCellSets = useCellSetsTree(refCellsIndex, [refCellType], ["Cell Type"]);
 
-  // Anchor matrix
-  //const [qryAnchorMatrix, qryAnchorMatrixStatus] = useAnnDataDynamic(loaders, qryDataset, qryOptions?.anchorMatrix?.path, 'columnNumeric', modelIteration, setItemIsReady, false);
-  //const [refAnchorMatrix, refAnchorMatrixStatus] = useAnnDataDynamic(loaders, refDataset, refOptions?.anchorMatrix?.path, 'columnNumeric', modelIteration, setItemIsReady, false);
-
-  // Anchor cluster
-  const [qryAnchorCluster, qryAnchorClusterStatus] = useAnnDataDynamic(loaders, qryDataset, qryOptions?.features?.anchorCluster?.path, 'columnNumeric', modelIteration, setItemIsReady, false);
-  const [refAnchorCluster, refAnchorClusterStatus] = useAnnDataDynamic(loaders, refDataset, refOptions?.features?.anchorCluster?.path, 'columnString', modelIteration, setItemIsReady, false);
-  const [qryAnchorDist, qryAnchorDistStatus] = useAnnDataDynamic(loaders, qryDataset, qryOptions?.features?.anchorDist?.path, 'columnNumeric', modelIteration, setItemIsReady, false);
-
   // Differential expression
   const [refDiffGeneNameIndices, refDiffGeneNamesStatus] = useAnnDataDynamic(loaders, refDataset, refOptions?.differentialGenes?.names?.path, 'columnNumeric', modelIteration, setItemIsReady, false);
   const [refDiffGeneScores, refDiffGeneScoresStatus] = useAnnDataDynamic(loaders, refDataset, refOptions?.differentialGenes?.scores?.path, 'columnNumeric', modelIteration, setItemIsReady, false);
   const [refDiffClusters, refDiffClustersStatus] = useAnnDataDynamic(loaders, refDataset, refOptions?.differentialGenes?.clusters?.path, 'columnString', modelIteration, setItemIsReady, false);
 
-  const [qryExpressionData] = useGeneSelection(
+  const [qryExpressionData, qryLoadedGene, qryExpressionDataStatus] = useGeneSelection(
     loaders, qryDataset, setItemIsReady, false, qryValues.geneSelection, setItemIsNotReady,
   );
   
-  const [refExpressionData] = useGeneSelection(
+  const [refExpressionData, refLoadedGene, refExpressionDataStatus] = useGeneSelection(
     loaders, refDataset, setItemIsReady, false, refValues.geneSelection, setItemIsNotReady,
   );
+
+  const [isReady] = useReady([
+    anchorStatus, modelStatus,
+    anchorsStatus,
+    qryIndicesStatus, refIndicesStatus,
+    refCellTypeStatus, qryPredictionStatus,
+    refDiffGeneNamesStatus, refDiffGeneScoresStatus, refDiffClustersStatus,
+    qryExpressionDataStatus, refExpressionDataStatus,
+  ]);
 
   const refDiffGeneNames = useDiffGeneNames(refGenesIndex, refDiffGeneNameIndices);
 
@@ -154,6 +152,7 @@ export default function QRScoresSubscriber(props) {
   const topGenes = useSeperatedGenes(anchorFocused);
 
   function setGeneSelectionAndColorEncoding(newSelection) {
+    console.log(newSelection);
     qrySetters.setGeneSelection(newSelection);
     qrySetters.setCellColorEncoding('geneSelection');
 

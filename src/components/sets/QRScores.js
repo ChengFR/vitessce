@@ -35,7 +35,7 @@ function QRGeneList(props) {
       {geneList.map(gene =>
         SignificanceIcon({
           geneName: gene.name, score: gene.score, xScale,
-          onClick: () => setGeneSelection(gene.name)
+          onClick: () => setGeneSelection([gene.name])
         })
       )}
     </>

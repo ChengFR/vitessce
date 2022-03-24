@@ -31,6 +31,7 @@ import { getCellColors } from '../interpolate-colors';
 import QRComparisonScatterplot from './QRComparisonScatterplot';
 import ScatterplotTooltipSubscriber from './ScatterplotTooltipSubscriber';
 import QRComparisonScatterplotOptions from './QRComparisonScatterplotOptions';
+import FocusInfo from './FocusInfo';
 import {
   useMultiDatasetCoordination,
   useLoaders,
@@ -148,20 +149,9 @@ export default function QRComparisonScatterplotSubscriber(props) {
   //const [refAnchorMatrix, refAnchorMatrixStatus] = useAnnDataDynamic(loaders, refDataset, refOptions?.anchorMatrix?.path, 'columnNumeric', modelIteration, setItemIsReady, false);
 
   // Anchor cluster
-  // TODO(scXAI): should this depend on the anchor iteration (instead of the model iteration)?
   //const [qryAnchorCluster, qryAnchorClusterStatus] = useAnnDataDynamic(loaders, qryDataset, qryOptions?.features?.anchorCluster?.path, 'columnString', modelIteration, setItemIsReady, false);
   const [refAnchorCluster, refAnchorClusterStatus] = useAnnDataDynamic(loaders, refDataset, refOptions?.features?.anchorCluster?.path, 'columnString', modelIteration, setItemIsReady, false);
   //const [qryAnchorDist, qryAnchorDistStatus] = useAnnDataDynamic(loaders, qryDataset, qryOptions?.features?.anchorDist?.path, 'columnNumeric', modelIteration, setItemIsReady, false);
-
-  // Differential expression
-  //const [qryDiffGeneNameIndices, qryDiffGeneNamesStatus] = useAnnDataDynamic(loaders, qryDataset, qryOptions?.differentialGenes?.names?.path, 'columnNumeric', modelIteration, setItemIsReady, false);
-  //const [qryDiffGeneScores, qryDiffGeneScoresStatus] = useAnnDataDynamic(loaders, qryDataset, qryOptions?.differentialGenes?.scores?.path, 'columnNumeric', modelIteration, setItemIsReady, false);
-
-  //const [refDiffGeneNameIndices, refDiffGeneNamesStatus] = useAnnDataDynamic(loaders, refDataset, refOptions?.differentialGenes?.names?.path, 'columnNumeric', modelIteration, setItemIsReady, false);
-  //const [refDiffGeneScores, refDiffGeneScoresStatus] = useAnnDataDynamic(loaders, refDataset, refOptions?.differentialGenes?.scores?.path, 'columnNumeric', modelIteration, setItemIsReady, false);
-
-  //const qryDiffGeneNames = useDiffGeneNames(qryGenesIndex, qryDiffGeneNameIndices);
-  //const refDiffGeneNames = useDiffGeneNames(refGenesIndex,refDiffGeneNameIndices);
 
   // Embeddings
   const [qryEmbedding, qryEmbeddingStatus] = useAnnDataDynamic(loaders, qryDataset, qryOptions?.embeddings[qryValues.embeddingType]?.path, 'embeddingNumeric', modelIteration, setItemIsReady, false);
@@ -190,7 +180,7 @@ export default function QRComparisonScatterplotSubscriber(props) {
     qryEmbeddingStatus, refEmbeddingStatus,
     qryExpressionDataStatus, qryAttrsStatus,
     refExpressionDataStatus, refAttrsStatus,
-  ]); // TODO(scXAI): update to support query+reference anndata paths.
+  ]);
   
   const [dynamicCellRadius, setDynamicCellRadius] = useState(qryValues.embeddingCellRadius);
   const [dynamicCellOpacity, setDynamicCellOpacity] = useState(qryValues.embeddingCellOpacity);
@@ -641,6 +631,12 @@ export default function QRComparisonScatterplotSubscriber(props) {
         getCellInfo={getQryCellInfo}
       />
       )}
+      <FocusInfo
+        qryAnchorSetFocus={qryAnchorSetFocus}
+        qryGeneSelection={qryValues.geneSelection}
+        qryLoadedSelection={qryLoadedSelection}
+        qryExpressionDataStatus={qryExpressionDataStatus}
+      />
     </TitleInfo>
   );
 }

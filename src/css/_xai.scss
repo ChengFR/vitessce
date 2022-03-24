@@ -258,3 +258,16 @@
     }
   }
 }
+
+
+/* Info about the focus state and gene selection in the comparison view */
+.qrComparisonViewFocusInfo {
+  background-color: rgba(199, 199, 199, 0.5);
+  position: absolute;
+  bottom: 0;
+  z-index: 100;
+  border-radius: 4px;
+  padding: 2px;
+  font-size: 12px;
+  color: black;
+}
