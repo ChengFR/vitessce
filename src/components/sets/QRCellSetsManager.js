@@ -213,9 +213,6 @@ function TableRowRight(props) {
  */
 export default function QRCellSetsManager(props) {
   const {
-    qryCellSets,
-    refCellSets,
-
     qryTopGenesLists,
 
     showGeneName,

@@ -15,6 +15,10 @@ import Status from './Status';
 import { Component } from '../../app/constants';
 import sum from 'lodash/sum';
 
+const setItemIsReady = () => {}; // no op
+const setItemIsNotReady = () => {}; // no op
+const resetReadyItems = () => {}; // no op
+
 /**
  * A subscriber component for the status component,
  * which renders hovered cell/gene/molecule information
@@ -62,13 +66,6 @@ export default function StatusSubscriber(props) {
   const modelIteration = qryValues.modelApiState.iteration;
   const modelStatus = qryValues.modelApiState.status;
 
-  const [
-    isReady,
-    setItemIsReady,
-    setItemIsNotReady, // eslint-disable-line no-unused-vars
-    resetReadyItems,
-  ] = useReady([anchorStatus, modelStatus]);
-
   // Get the cells data loader for the query and reference datasets.
   const qryLoader = loaders[qryDataset].loaders.cells;
   const refLoader = loaders[refDataset].loaders.cells;
@@ -79,7 +76,13 @@ export default function StatusSubscriber(props) {
   const [anchors, anchorsStatus] = useAnchors(qryLoader, anchorIteration, setItemIsReady);
   // Load the data.
   // Cell IDs
-  const [qryCellsIndex, qryGenesIndex] = useAnnDataIndices(loaders, qryDataset, setItemIsReady, true);
+  const [qryCellsIndex, qryGenesIndex, qryIndicesStatus] = useAnnDataIndices(loaders, qryDataset, setItemIsReady, true);
+
+
+  const [isReady] = useReady([
+    anchorStatus, modelStatus,
+    anchorsStatus, qryIndicesStatus,
+  ]);
 
   const onUpdateModel = useCallback(() => {
     if(modelApiState.status === 'success') {
@@ -116,7 +119,7 @@ export default function StatusSubscriber(props) {
       title={title}
       theme={theme}
       removeGridComponent={removeGridComponent}
-      isReady
+      isReady={isReady}
     >
       <Status
         warn={warn}

@@ -27,6 +27,9 @@ import { setCellSelection, mergeCellSets, PALETTE } from '../utils';
 import range from 'lodash/range';
 import sumBy from 'lodash/sumBy';
 
+const setItemIsReady = () => {}; // no op
+const setItemIsNotReady = () => {}; // no op
+const resetReadyItems = () => {}; // no op
 
 const CELL_SETS_DATA_TYPES = ['cells', 'cell-sets', 'expression-matrix'];
 
@@ -82,12 +85,6 @@ export default function QRCellSetsManagerSubscriber(props) {
   const modelStatus = qryValues.modelApiState.status;
 
   const [urls, addUrl, resetUrls] = useUrls();
-  const [
-    isReady,
-    setItemIsReady,
-    setItemIsNotReady, // eslint-disable-line no-unused-vars
-    resetReadyItems,
-  ] = useReady([anchorStatus, modelStatus]);
 
   // Reset file URLs and loader progress when the dataset has changed.
   useEffect(() => {
@@ -121,11 +118,11 @@ export default function QRCellSetsManagerSubscriber(props) {
 
   // Load the data.
   // Cell IDs
-  const [qryCellsIndex, qryGenesIndex] = useAnnDataIndices(loaders, qryDataset, setItemIsReady, true);
-  const [refCellsIndex, refGenesIndex] = useAnnDataIndices(loaders, refDataset, setItemIsReady, true);
+  const [qryCellsIndex, qryGenesIndex, qryIndicesStatus] = useAnnDataIndices(loaders, qryDataset, setItemIsReady, true);
+  const [refCellsIndex, refGenesIndex, refIndicesStatus] = useAnnDataIndices(loaders, refDataset, setItemIsReady, true);
 
   // Cell sets
-  const [refCellType] = useAnnDataStatic(loaders, refDataset, refOptions?.features?.cellType?.path, 'columnString', setItemIsReady, false);
+  const [refCellType, refCellTypeStatus] = useAnnDataStatic(loaders, refDataset, refOptions?.features?.cellType?.path, 'columnString', setItemIsReady, false);
   const [qryPrediction, qryPredictionStatus] = useAnnDataDynamic(loaders, qryDataset, qryOptions?.features?.prediction?.path, 'columnString', modelIteration, setItemIsReady, false);
   // const [qryLabel, qryLabelStatus] = useAnnDataDynamic(loaders, qryDataset, qryOptions?.features?.label?.path, 'columnString', modelIteration, setItemIsReady, false);
 
@@ -137,9 +134,9 @@ export default function QRCellSetsManagerSubscriber(props) {
   //const [refAnchorMatrix, refAnchorMatrixStatus] = useAnnDataDynamic(loaders, refDataset, refOptions?.anchorMatrix?.path, 'columnNumeric', modelIteration, setItemIsReady, false);
 
   // Anchor cluster
-  const [qryAnchorCluster, qryAnchorClusterStatus] = useAnnDataDynamic(loaders, qryDataset, qryOptions?.features?.anchorCluster?.path, 'columnNumeric', modelIteration, setItemIsReady, false);
-  const [refAnchorCluster, refAnchorClusterStatus] = useAnnDataDynamic(loaders, refDataset, refOptions?.features?.anchorCluster?.path, 'columnString', modelIteration, setItemIsReady, false);
-  const [qryAnchorDist, qryAnchorDistStatus] = useAnnDataDynamic(loaders, qryDataset, qryOptions?.features?.anchorDist?.path, 'columnNumeric', modelIteration, setItemIsReady, false);
+  //const [qryAnchorCluster, qryAnchorClusterStatus] = useAnnDataDynamic(loaders, qryDataset, qryOptions?.features?.anchorCluster?.path, 'columnNumeric', modelIteration, setItemIsReady, false);
+  //const [refAnchorCluster, refAnchorClusterStatus] = useAnnDataDynamic(loaders, refDataset, refOptions?.features?.anchorCluster?.path, 'columnString', modelIteration, setItemIsReady, false);
+  //const [qryAnchorDist, qryAnchorDistStatus] = useAnnDataDynamic(loaders, qryDataset, qryOptions?.features?.anchorDist?.path, 'columnNumeric', modelIteration, setItemIsReady, false);
 
   // Differential expression
   const [refDiffGeneNameIndices, refDiffGeneNamesStatus] = useAnnDataDynamic(loaders, refDataset, refOptions?.differentialGenes?.names?.path, 'columnNumeric', modelIteration, setItemIsReady, false);
@@ -163,6 +160,15 @@ export default function QRCellSetsManagerSubscriber(props) {
   const qryTopGenesLists = useProcessedAnchorSets(
     anchors, refDiffGeneNames, refDiffGeneScores, refDiffClusters, qryPrediction, qryCellsIndex, qryCellSets, qryValues.cellSetColor, "Prediction"
   );
+
+  const [isReady] = useReady([
+    anchorStatus, modelStatus,
+    anchorsStatus,
+    qryIndicesStatus, refIndicesStatus,
+    refCellTypeStatus, qryPredictionStatus,
+    refDiffGeneNamesStatus, refDiffGeneScoresStatus, refDiffClustersStatus,
+  ]);
+
 
   const onHighlightAnchors = useCallback((anchorId) => {
     qrySetters.setAnchorSetHighlight(anchorId);
@@ -262,13 +268,6 @@ export default function QRCellSetsManagerSubscriber(props) {
   const manager = useMemo(() => {
     return (
       <QRCellSetsManager
-        qryCellSets={mergedQryCellSets}
-        refCellSets={mergedRefCellSets}
-
-        qryAnchorCluster={qryAnchorCluster}
-        refAnchorCluster={refAnchorCluster}
-        qryAnchorDist={qryAnchorDist}
-
         qryTopGenesLists={qryTopGenesLists}
 
         onDeleteAnchors={onDeleteAnchors}

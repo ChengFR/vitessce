@@ -47,6 +47,10 @@ import { COMPONENT_COORDINATION_TYPES } from '../../app/state/coordination';
 import { Component } from '../../app/constants';
 import sum from 'lodash/sum';
 
+const setItemIsReady = () => {}; // no op
+const setItemIsNotReady = () => {}; // no op
+const resetReadyItems = () => {}; // no op
+
 /**
  * A subscriber component for the scatterplot.
  * @param {object} props
@@ -106,12 +110,7 @@ export default function QRComparisonScatterplotSubscriber(props) {
 
   const [urls, addUrl, resetUrls] = useUrls();
   const [width, height, deckRef] = useDeckCanvasSize();
-  const [
-    isReady,
-    setItemIsReady,
-    setItemIsNotReady, // eslint-disable-line no-unused-vars
-    resetReadyItems,
-  ] = useReady([modelStatus]); // TODO(scXAI): update to support query+reference anndata paths.
+  
 
   const title = titleOverride || `Comparison View (${qryValues.embeddingType})`;
 
@@ -131,13 +130,13 @@ export default function QRComparisonScatterplotSubscriber(props) {
 
   // Load the data.
   // Cell IDs
-  const [qryCellsIndex, qryGenesIndex] = useAnnDataIndices(loaders, qryDataset, setItemIsReady, true);
-  const [refCellsIndex, refGenesIndex] = useAnnDataIndices(loaders, refDataset, setItemIsReady, true);
+  const [qryCellsIndex, qryGenesIndex, qryIndicesStatus] = useAnnDataIndices(loaders, qryDataset, setItemIsReady, true);
+  const [refCellsIndex, refGenesIndex, refIndicesStatus] = useAnnDataIndices(loaders, refDataset, setItemIsReady, true);
 
   const [anchors, anchorsStatus] = useAnchors(qryLoader, anchorIteration, setItemIsReady);
 
   // Cell sets
-  const [refCellType] = useAnnDataStatic(loaders, refDataset, refOptions?.features?.cellType?.path, 'columnString', setItemIsReady, false);
+  const [refCellType, refCellTypeStatus] = useAnnDataStatic(loaders, refDataset, refOptions?.features?.cellType?.path, 'columnString', setItemIsReady, false);
   const [qryPrediction, qryPredictionStatus] = useAnnDataDynamic(loaders, qryDataset, qryOptions?.features?.prediction?.path, 'columnString', modelIteration, setItemIsReady, false);
   // const [qryLabel, qryLabelStatus] = useAnnDataDynamic(loaders, qryDataset, qryOptions?.features?.label?.path, 'columnString', modelIteration, setItemIsReady, false);
 
@@ -168,19 +167,30 @@ export default function QRComparisonScatterplotSubscriber(props) {
   const [qryEmbedding, qryEmbeddingStatus] = useAnnDataDynamic(loaders, qryDataset, qryOptions?.embeddings[qryValues.embeddingType]?.path, 'embeddingNumeric', modelIteration, setItemIsReady, false);
   const [refEmbedding, refEmbeddingStatus] = useAnnDataDynamic(loaders, refDataset, refOptions?.embeddings[refValues.embeddingType]?.path, 'embeddingNumeric', modelIteration, setItemIsReady, false);
 
-  const [qryExpressionData] = useGeneSelection(
+  const [qryExpressionData, qryLoadedSelection, qryExpressionDataStatus] = useGeneSelection(
     loaders, qryDataset, setItemIsReady, false, qryValues.geneSelection, setItemIsNotReady,
   );
-  const [qryAttrs] = useExpressionAttrs(
+  const [qryAttrs, qryAttrsStatus] = useExpressionAttrs(
     loaders, qryDataset, setItemIsReady, addUrl, false,
   );
   
-  const [refExpressionData] = useGeneSelection(
+  const [refExpressionData, refLoadedSelection, refExpressionDataStatus] = useGeneSelection(
     loaders, refDataset, setItemIsReady, false, refValues.geneSelection, setItemIsNotReady,
   );
-  const [refAttrs] = useExpressionAttrs(
+  const [refAttrs, refAttrsStatus] = useExpressionAttrs(
     loaders, refDataset, setItemIsReady, addUrl, false,
   );
+
+  const [isReady] = useReady([
+    modelStatus, anchorStatus,
+    qryIndicesStatus, refIndicesStatus,
+    anchorsStatus,
+    refCellTypeStatus, qryPredictionStatus,
+    refAnchorClusterStatus,
+    qryEmbeddingStatus, refEmbeddingStatus,
+    qryExpressionDataStatus, qryAttrsStatus,
+    refExpressionDataStatus, refAttrsStatus,
+  ]); // TODO(scXAI): update to support query+reference anndata paths.
   
   const [dynamicCellRadius, setDynamicCellRadius] = useState(qryValues.embeddingCellRadius);
   const [dynamicCellOpacity, setDynamicCellOpacity] = useState(qryValues.embeddingCellOpacity);

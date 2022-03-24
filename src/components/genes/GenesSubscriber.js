@@ -10,6 +10,10 @@ import { Component } from '../../app/constants';
 import TitleInfo from '../TitleInfo';
 import Genes from './Genes';
 
+const setItemIsReady = () => {}; // no op
+const setItemIsNotReady = () => {}; // no op
+const resetReadyItems = () => {}; // no op
+
 const GENES_DATA_TYPES = ['expression-matrix'];
 
 /**
@@ -60,12 +64,6 @@ export default function GenesSubscriber(props) {
   const modelStatus = qryValues.modelApiState.status;
 
   const [urls, addUrl, resetUrls] = useUrls();
-  const [
-    isReady,
-    setItemIsReady,
-    setItemIsNotReady, // eslint-disable-line no-unused-vars
-    resetReadyItems,
-  ] = useReady([anchorStatus, modelStatus]);
 
   const geneSelection = qryValues.geneSelection;
   const geneFilter = qryValues.geneFilter;
@@ -82,9 +80,13 @@ export default function GenesSubscriber(props) {
   }, [loaders, qryDataset, refDataset]);
 
   // Get data from loaders using the data hooks.
-  const [attrs] = useExpressionAttrs(
+  const [attrs, attrsStatus] = useExpressionAttrs(
     loaders, qryDataset, setItemIsReady, addUrl, true,
   );
+
+  const [isReady] = useReady([anchorStatus, modelStatus, attrsStatus]);
+
+
   const geneList = attrs ? attrs.cols : [];
   const numGenes = geneList.length;
 
