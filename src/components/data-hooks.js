@@ -20,6 +20,10 @@ import { DEFAULT_COORDINATION_VALUES } from '../app/state/coordination';
 import { dataToCellSetsTree } from '../loaders/anndata-zarr-loaders/CellSetsZarrLoader';
 import { PALETTE } from './utils';
 
+const STATUS_LOADING = 'loading';
+const STATUS_SUCCESS = 'success';
+const STATUS_ERROR = 'error';
+
 /**
  * Warn via publishing to the console
  * and to the global warning store.
@@ -322,6 +326,8 @@ export function useGeneSelection(
   setItemIsNotReady,
 ) {
   const [geneData, setGeneData] = useState();
+  const [status, setStatus] = useState(STATUS_LOADING);
+  const [loadedGeneName, setLoadedGeneName] = useState(null);
 
   const setWarning = useSetWarning();
 
@@ -331,11 +337,15 @@ export function useGeneSelection(
     }
     if (!selection) {
       setItemIsReady('expression-matrix');
+      setStatus(STATUS_SUCCESS);
+      setLoadedGeneName(null);
       return;
     }
     const loader = loaders[dataset].loaders['expression-matrix'];
     if (loader) {
       setItemIsNotReady('expression-matrix');
+      setLoadedGeneName(null);
+      setStatus(STATUS_LOADING);
       const implementsGeneSelection = typeof loader.loadGeneSelection === 'function';
       if (implementsGeneSelection) {
         loaders[dataset].loaders['expression-matrix']
@@ -346,6 +356,8 @@ export function useGeneSelection(
             const { data } = payload;
             setGeneData(data);
             setItemIsReady('expression-matrix');
+            setStatus(STATUS_SUCCESS);
+            setLoadedGeneName(selection);
           });
       } else {
         loader.load().catch(e => warn(e, setWarning)).then((payload) => {
@@ -364,20 +376,26 @@ export function useGeneSelection(
           });
           setGeneData(expressionDataForSelection);
           setItemIsReady('expression-matrix');
+          setStatus(STATUS_SUCCESS);
+          setLoadedGeneName(selection);
         });
       }
     } else {
       setGeneData(null);
       if (isRequired) {
         warn(new LoaderNotFoundError(dataset, 'expression-matrix', null, null), setWarning);
+        setStatus(STATUS_ERROR);
+        setLoadedGeneName(null);
       } else {
         setItemIsReady('expression-matrix');
+        setStatus(STATUS_SUCCESS);
+        setLoadedGeneName(null);
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loaders, dataset, selection]);
 
-  return [geneData];
+  return [geneData, loadedGeneName, status];
 }
 
 /**
@@ -400,6 +418,7 @@ export function useGeneSelection(
  */
 export function useExpressionAttrs(loaders, dataset, setItemIsReady, addUrl, isRequired) {
   const [attrs, setAttrs] = useState();
+  const [status, setStatus] = useState(STATUS_LOADING);
 
   const setWarning = useSetWarning();
 
@@ -409,6 +428,7 @@ export function useExpressionAttrs(loaders, dataset, setItemIsReady, addUrl, isR
     }
     const loader = loaders[dataset].loaders['expression-matrix'];
     if (loader) {
+      setStatus(STATUS_LOADING);
       const implementsLoadAttrs = typeof loader.loadAttrs === 'function';
       if (implementsLoadAttrs) {
         loader.loadAttrs().catch(e => warn(e, setWarning)).then((payload) => {
@@ -417,6 +437,7 @@ export function useExpressionAttrs(loaders, dataset, setItemIsReady, addUrl, isR
           setAttrs(data);
           addUrl(url, 'Expression Matrix');
           setItemIsReady('expression-matrix');
+          setStatus(STATUS_SUCCESS);
         });
       } else {
         loader.load().catch(e => warn(e, setWarning)).then((payload) => {
@@ -425,20 +446,23 @@ export function useExpressionAttrs(loaders, dataset, setItemIsReady, addUrl, isR
           setAttrs(data[0]);
           addUrl(url, 'Expression Matrix');
           setItemIsReady('expression-matrix');
+          setStatus(STATUS_SUCCESS);
         });
       }
     } else {
       setAttrs(null);
       if (isRequired) {
         warn(new LoaderNotFoundError(dataset, 'expression-matrix', null, null), setWarning);
+        setStatus(STATUS_ERROR);
       } else {
         setItemIsReady('expression-matrix');
+        setStatus(STATUS_SUCCESS);
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loaders, dataset]);
 
-  return [attrs];
+  return [attrs, status];
 }
 
 /**
@@ -758,6 +782,7 @@ export function useAnnDataStatic(
   coordinationSetters, initialCoordinationValues,
 ) {
   const [staticData, setStaticData] = useState();
+  const [status, setStatus] = useState(STATUS_LOADING);
 
   const setWarning = useSetWarning();
 
@@ -767,23 +792,27 @@ export function useAnnDataStatic(
     }
 
     if (loaders[dataset].loaders['cells']) {
+      setStatus(STATUS_LOADING);
       loaders[dataset].loaders['cells'].loadStatic(path, dtype).catch(e => warn(e, setWarning)).then((payload) => {
         if (!payload) return;
         setStaticData(payload);
         setItemIsReady(path);
+        setStatus(STATUS_SUCCESS);
       });
     } else {
       setStaticData(null);
       if (isRequired) {
         warn(new LoaderNotFoundError(dataset, 'cells', path, null), setWarning);
+        setStatus(STATUS_ERROR);
       } else {
         setItemIsReady(path);
+        setStatus(STATUS_SUCCESS);
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loaders, dataset, path]);
 
-  return [staticData];
+  return [staticData, status];
 }
 
 export function useAnnDataDynamic(
@@ -791,7 +820,7 @@ export function useAnnDataDynamic(
   coordinationSetters, initialCoordinationValues,
 ) {
   const [dynamicData, setDynamicData] = useState();
-  const [status, setStatus] = useState();
+  const [status, setStatus] = useState(STATUS_LOADING);
 
   const setWarning = useSetWarning();
 
@@ -801,18 +830,21 @@ export function useAnnDataDynamic(
     }
 
     if (loaders[dataset].loaders['cells']) {
+      setStatus(STATUS_LOADING);
       loaders[dataset].loaders['cells'].loadDynamic(path, dtype, iteration).catch(e => warn(e, setWarning)).then((payload) => {
         if (!payload) return;
         setDynamicData(payload);
         setItemIsReady(path);
-        setStatus(200);
+        setStatus(STATUS_SUCCESS);
       });
     } else {
       setDynamicData(null);
       if (isRequired) {
         warn(new LoaderNotFoundError(dataset, 'cells', path, null), setWarning);
+        setStatus(STATUS_ERROR);
       } else {
         setItemIsReady(path);
+        setStatus(STATUS_SUCCESS);
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -827,6 +859,7 @@ export function useAnnDataIndices(
 ) {
   const [obsIndex, setObsIndex] = useState();
   const [varIndex, setVarIndex] = useState();
+  const [status, setStatus] = useState(STATUS_LOADING);
 
   const setWarning = useSetWarning();
 
@@ -836,26 +869,30 @@ export function useAnnDataIndices(
     }
 
     if (loaders[dataset].loaders['cells']) {
+      setStatus(STATUS_LOADING);
       loaders[dataset].loaders['cells'].loadIndices().catch(e => warn(e, setWarning)).then((payload) => {
         if (!payload) return;
         const { data } = payload;
         setObsIndex(data[0]);
         setVarIndex(data[1]);
         setItemIsReady('cells');
+        setStatus(STATUS_SUCCESS);
       });
     } else {
       setObsIndex(null);
       setVarIndex(null);
       if (isRequired) {
         warn(new LoaderNotFoundError(dataset, 'cells', null, null), setWarning);
+        setStatus(STATUS_ERROR);
       } else {
         setItemIsReady('cells');
+        setStatus(STATUS_SUCCESS);
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loaders, dataset]);
 
-  return [obsIndex, varIndex];
+  return [obsIndex, varIndex, status];
 }
 
 /**
@@ -917,6 +954,7 @@ export function useAnchors(
   loader, iteration, setItemIsReady, isRequired,
 ) {
   const [result, setResult] = useState();
+  const [status, setStatus] = useState(STATUS_LOADING);
 
   const setWarning = useSetWarning();
 
@@ -926,23 +964,27 @@ export function useAnchors(
     }
 
     if (loader) {
+      setStatus(STATUS_LOADING);
       loader.anchorGet(iteration).catch(e => warn(e, setWarning)).then((payload) => {
         if (!payload) return;
         setResult(payload)
         setItemIsReady('anchors');
+        setStatus(STATUS_SUCCESS);
       });
     } else {
       setResult(null);
       if (isRequired) {
         warn(new LoaderNotFoundError(dataset, 'anchors', null, null), setWarning);
+        setStatus(STATUS_ERROR);
       } else {
         setItemIsReady('anchors');
+        setStatus(STATUS_SUCCESS);
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loader, iteration]);
 
-  return [result];
+  return [result, status];
 }
 
 export function useProcessedAnchorSets(
