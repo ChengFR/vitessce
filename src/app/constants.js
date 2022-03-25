@@ -114,4 +114,6 @@ export const CoordinationType = {
   EMBEDDING_ENCODING: 'embeddingEncoding', // scatterplot, heatmap, or contour.
   EMBEDDING_LINKS_VISIBLE: 'embeddingLinksVisible', // Whether the lines linking between corresponding query and reference anchor sets are visible (boolean).
   ANCHOR_SET_FILTER: 'anchorSetFilter', // How to sort and filter the list of anchor sets in the Cell Sets view.
+  PRESET_BUTTONS_VISIBLE: 'presetButtonsVisible',
+  EMBEDDING_LEGENDS_VISIBLE: 'embeddingLegendsVisible',
 };

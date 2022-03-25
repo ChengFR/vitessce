@@ -64,6 +64,8 @@ export const DEFAULT_COORDINATION_VALUES = {
   [CoordinationType.EMBEDDING_ENCODING]: 'scatterplot',
   [CoordinationType.EMBEDDING_LINKS_VISIBLE]: false,
   [CoordinationType.ANCHOR_SET_FILTER]: null,
+  [CoordinationType.PRESET_BUTTONS_VISIBLE]: true,
+  [CoordinationType.EMBEDDING_LEGENDS_VISIBLE]: true,
 };
 
 // The following coordination types should be
@@ -332,6 +334,8 @@ export const COMPONENT_COORDINATION_TYPES = {
     CoordinationType.EMBEDDING_VISIBLE,
     CoordinationType.EMBEDDING_ENCODING,
     CoordinationType.EMBEDDING_LINKS_VISIBLE,
+    CoordinationType.PRESET_BUTTONS_VISIBLE,
+    CoordinationType.EMBEDDING_LEGENDS_VISIBLE,
   ],
   [Component.QR_SUPPORTING_SCATTERPLOT_QUERY]: [
     CoordinationType.DATASET,

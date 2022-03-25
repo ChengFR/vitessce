@@ -53,6 +53,7 @@ const colormapToFunc = {
 
 export default function Legend(props) {
   const {
+    visible,
     cellColorEncoding,
 
     geneSelection,
@@ -159,12 +160,12 @@ export default function Legend(props) {
     return null;
   }, [qryEmbeddingEncoding, refEmbeddingEncoding])
  
-  return (
+  return (visible ? (
     <div className="qrComparisonViewLegend">
       {geneExpressionLegend}
       {cellSetLegend}
       {datasetLegend}
       {contourLegend}
     </div>
-  );
+  ) : null);
 }

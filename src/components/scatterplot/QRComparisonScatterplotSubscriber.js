@@ -33,6 +33,7 @@ import ScatterplotTooltipSubscriber from './ScatterplotTooltipSubscriber';
 import QRComparisonScatterplotOptions from './QRComparisonScatterplotOptions';
 import FocusInfo from './FocusInfo';
 import Legend from './Legend';
+import PresetButtons from './PresetButtons';
 import {
   useMultiDatasetCoordination,
   useLoaders,
@@ -496,6 +497,12 @@ export default function QRComparisonScatterplotSubscriber(props) {
         <QRComparisonScatterplotOptions
           observationsLabel={observationsLabel}
 
+          legendsVisible={qryValues.embeddingLegendsVisible}
+          setLegendsVisible={qrySetters.setEmbeddingLegendsVisible}
+
+          presetButtonsVisible={qryValues.presetButtonsVisible}
+          setPresetButtonsVisible={qrySetters.setPresetButtonsVisible}
+
           qryCellsVisible={qryValues.embeddingVisible}
           setQryCellsVisible={qrySetters.setEmbeddingVisible}
           qryCellEncoding={qryValues.embeddingEncoding}
@@ -639,6 +646,7 @@ export default function QRComparisonScatterplotSubscriber(props) {
         qryExpressionDataStatus={qryExpressionDataStatus}
       />
       <Legend
+        visible={qryValues.embeddingLegendsVisible}
         cellColorEncoding={qryValues.cellColorEncoding}
         
         geneSelection={qryValues.geneSelection}
@@ -653,6 +661,11 @@ export default function QRComparisonScatterplotSubscriber(props) {
 
         qryEmbeddingEncoding={qryValues.embeddingEncoding}
         refEmbeddingEncoding={refValues.embeddingEncoding}
+      />
+      <PresetButtons
+        visible={qryValues.presetButtonsVisible}
+        qrySetters={qrySetters}
+        refSetters={refSetters}
       />
     </TitleInfo>
   );

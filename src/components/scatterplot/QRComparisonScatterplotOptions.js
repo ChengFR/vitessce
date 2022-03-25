@@ -16,6 +16,11 @@ export default function QRComparisonScatterplotOptions(props) {
   const {
     observationsLabel,
 
+    legendsVisible,
+    setLegendsVisible,
+    presetButtonsVisible,
+    setPresetButtonsVisible,
+
     qryCellsVisible,
     setQryCellsVisible,
     qryCellEncoding,
@@ -57,6 +62,13 @@ export default function QRComparisonScatterplotOptions(props) {
   const observationsLabelNice = capitalize(observationsLabel);
 
   const classes = useStyles();
+
+  function handleLegendsVisibilityChange(event) {
+    setLegendsVisible(event.target.checked);
+  }
+  function handlePresetButtonsVisibilityChange(event) {
+    setPresetButtonsVisible(event.target.checked);
+  }
 
   function handleQryCellsVisibilityChange(event) {
     setQryCellsVisible(event.target.checked);
@@ -147,7 +159,7 @@ export default function QRComparisonScatterplotOptions(props) {
           >
             <option value="scatterplot">Scatterplot</option>
             <option value="contour">Contour</option>
-            {/*<option value="heatmap">Heatmap</option>*/}
+            <option value="heatmap">Heatmap</option>
             <option value="scatterplot-and-contour">Scatterplot and Contour</option>
           </OptionSelect>
         </TableCell>
@@ -181,7 +193,7 @@ export default function QRComparisonScatterplotOptions(props) {
           >
             <option value="scatterplot">Scatterplot</option>
             <option value="contour">Contour</option>
-            {/*<option value="heatmap">Heatmap</option>*/}
+            <option value="heatmap">Heatmap</option>
             <option value="scatterplot-and-contour">Scatterplot and Contour</option>
           </OptionSelect>
         </TableCell>
@@ -196,6 +208,34 @@ export default function QRComparisonScatterplotOptions(props) {
             checked={linksVisible}
             onChange={handleLinksVisibilityChange}
             name="scatterplot-option-links-visible"
+            color="default"
+          />
+        </TableCell>
+      </TableRow>
+      <TableRow>
+        <TableCell className={classes.labelCell}>
+          Legends Visible
+        </TableCell>
+        <TableCell className={classes.inputCell}>
+          <Checkbox
+            className={classes.checkbox}
+            checked={legendsVisible}
+            onChange={handleLegendsVisibilityChange}
+            name="scatterplot-option-legends-visible"
+            color="default"
+          />
+        </TableCell>
+      </TableRow>
+      <TableRow>
+        <TableCell className={classes.labelCell}>
+          Preset Buttons Visible
+        </TableCell>
+        <TableCell className={classes.inputCell}>
+          <Checkbox
+            className={classes.checkbox}
+            checked={presetButtonsVisible}
+            onChange={handlePresetButtonsVisibilityChange}
+            name="scatterplot-option-preset-buttons-visible"
             color="default"
           />
         </TableCell>

@@ -106,7 +106,9 @@
                 "embeddingVisible": { "$ref": "#/definitions/componentCoordinationScopeValue" },
                 "embeddingEncoding": { "$ref": "#/definitions/componentCoordinationScopeValue" },
                 "embeddingLinksVisible": { "$ref": "#/definitions/componentCoordinationScopeValue" },
-                "anchorSetFilter": { "$ref": "#/definitions/componentCoordinationScopeValue" }
+                "anchorSetFilter": { "$ref": "#/definitions/componentCoordinationScopeValue" },
+                "presetButtonsVisible": { "$ref": "#/definitions/componentCoordinationScopeValue" },
+                "embeddingLegendsVisible": { "$ref": "#/definitions/componentCoordinationScopeValue" }
               }
             }
           }
@@ -1202,6 +1204,34 @@
                   },
                   { "type": "array" },
                   { "type": "object" }
+                ]
+              }
+            }
+          },
+          "presetButtonsVisible": {
+            "type": "object",
+            "patternProperties": {
+              ".": {
+                "oneOf": [
+                  {
+                    "type": "null",
+                    "description": ""
+                  },
+                  { "type": "boolean" }
+                ]
+              }
+            }
+          },
+          "embeddingLegendsVisible": {
+            "type": "object",
+            "patternProperties": {
+              ".": {
+                "oneOf": [
+                  {
+                    "type": "null",
+                    "description": ""
+                  },
+                  { "type": "boolean" }
                 ]
               }
             }

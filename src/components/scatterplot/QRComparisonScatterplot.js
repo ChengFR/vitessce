@@ -1003,8 +1003,8 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       
       qryScatterplotLayer,
       refScatterplotLayer,
-      //...qryHeatmapLayers,
-      //...refHeatmapLayers,
+      ...qryHeatmapLayers,
+      ...refHeatmapLayers,
 
       ...qryContourFocusLayers,
       ...qryContourLayers,
@@ -1189,13 +1189,13 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       this.forceUpdate();
     }
     if (['refCellsVisible', 'refCellEncoding', 'refContour', 'refCellColorEncoding'].some(shallowDiff)) {
-      //this.onUpdateRefHeatmapLayer();
+      this.onUpdateRefHeatmapLayer();
       this.onUpdateRefContourLayer();
       this.onUpdateRefScatterplotLayer();
       this.forceUpdate();
     }
     if (['qryCellsVisible', 'qryCellEncoding', 'qryContour', 'qryCellColorEncoding'].some(shallowDiff)) {
-      //this.onUpdateQryHeatmapLayer();
+      this.onUpdateQryHeatmapLayer();
       this.onUpdateQryContourLayer();
       this.onUpdateQryScatterplotLayer();
       this.forceUpdate();
