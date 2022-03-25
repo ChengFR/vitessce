@@ -236,9 +236,9 @@ export function useExpressionValueGetter({ attrs, expressionData }) {
 
   // Set up a getter function for gene expression values, to be used
   // by the DeckGL layer to obtain values for instanced attributes.
-  const getExpressionValue = useCallback((entry) => {
+  const getExpressionValue = useCallback((entry, { index }) => {
     if (cellIdMap && expressionData && expressionData[0]) {
-      const cellIndex = entry;
+      const cellIndex = index;
       const val = expressionData[0][cellIndex];
       return val;
     }

@@ -639,9 +639,17 @@ export default function QRComparisonScatterplotSubscriber(props) {
         qryExpressionDataStatus={qryExpressionDataStatus}
       />
       <Legend
-        anchorSetFocus={qryAnchorSetFocus}
-        geneSelection={qryValues.geneSelection}
         cellColorEncoding={qryValues.cellColorEncoding}
+        
+        geneSelection={qryValues.geneSelection}
+        geneExpressionColormap={qryValues.geneExpressionColormap}
+        geneExpressionColormapRange={qryValues.geneExpressionColormapRange}
+
+        anchorSetFocus={qryAnchorSetFocus}
+        qryCellSets={qryCellSets}
+        refCellSets={refCellSets}
+        qryCellSetColor={qryValues.cellSetColor}
+        refCellSetColor={refValues.cellSetColor}
       />
     </TitleInfo>
   );

@@ -343,6 +343,9 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
           onCellClick(info);
         }
       },
+      extensions: [
+        new ScaledExpressionExtension(),
+      ],
       updateTriggers: {
         getExpressionValue,
         getFillColor: [cellColorEncoding, cellSelection, refCellColors],
@@ -744,6 +747,9 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
           onCellClick(info);
         }
       },
+      extensions: [
+        new ScaledExpressionExtension(),
+      ],
       updateTriggers: {
         getExpressionValue,
         getFillColor: [cellColorEncoding, cellSelection, qryCellColors],
@@ -1214,8 +1220,8 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       'qryContour', 'refContour',
       'qryEmbedding', 'refEmbedding',
       'cellFilter', 'cellSelection', 'cellColors',
-      'cellRadius', 'cellOpacity', 'cellRadiusMode', 'geneExpressionColormap',
-      'geneExpressionColormapRange', 'geneSelection',
+      'cellRadius', 'cellOpacity', 'cellRadiusMode',
+      'geneExpressionColormap', 'geneExpressionColormapRange', 'geneSelection',
       'refCellColors', 'qryCellColors',
       'qryCellColorEncoding', 'refCellColorEncoding',
     ].some(shallowDiff)) {
