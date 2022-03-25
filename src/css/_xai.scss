@@ -287,7 +287,7 @@
 
 .qrComparisonViewLegend {
   position: absolute;
-  top: 0;
+  bottom: 0;
   right: 0;
   z-index: 100;
   font-size: 12px !important;
@@ -303,21 +303,43 @@
     height: 15px;
     width: 100px;
   }
+  .continuousTitle {
+    font-weight: bold;
+  }
   .continuousLabels {
     position: relative;
     display: inline-block;
     width: 100px;
     height: 15px;
     font-size: 10px !important;
+    .continuousStart {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+    }
+    .continuousEnd {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+    }
+
   }
-  .continuousStart {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-  }
-  .continuousEnd {
-    position: absolute;
-    bottom: 0;
-    right: 0;
+  .categoricalLabels {
+    display: flex;
+    flex-direction: column;
+    .categoricalTitle {
+      font-weight: bold;
+    }
+    .categoricalItem {
+      span {
+        display: inline-block;
+        vertical-align: middle;
+      }
+      span:first-child {
+        width: 10px;
+        height: 10px;
+        margin-right: 2px;
+      }
+    }
   }
 }

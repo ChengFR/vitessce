@@ -21,7 +21,7 @@ export default function FocusInfo(props) {
         geneInfo = 'mismatch';
       }
   } else if(qryExpressionDataStatus === 'loading') {
-    geneInfo = 'loading';
+    geneInfo = 'loading...';
   } else if(qryExpressionDataStatus === 'error') {
     geneInfo = 'error';
   }
@@ -31,13 +31,13 @@ export default function FocusInfo(props) {
     <div className="qrComparisonViewFocusInfo">
       {qryAnchorSetFocus ? (
         <span className="focusItem">
-          <span>anchor set: </span>
+          <span>Focused set: </span>
           <span className="focusValue">{qryAnchorSetFocus}</span>
         </span>
       ) : null}
       {qryGeneSelection ? (
         <span className="focusItem">
-          <span>gene: </span>
+          <span>Selected gene: </span>
           <span className="focusValue">{geneInfo}</span>
         </span>
       ) : null}

@@ -650,6 +650,9 @@ export default function QRComparisonScatterplotSubscriber(props) {
         refCellSets={refCellSets}
         qryCellSetColor={qryValues.cellSetColor}
         refCellSetColor={refValues.cellSetColor}
+
+        qryEmbeddingEncoding={qryValues.embeddingEncoding}
+        refEmbeddingEncoding={refValues.embeddingEncoding}
       />
     </TitleInfo>
   );
