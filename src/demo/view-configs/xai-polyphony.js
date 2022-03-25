@@ -294,7 +294,7 @@ export const polyphonyConfig = {
             w: 6,
             h: 11,
           },
-          {
+          /*{
             // small left
             component: 'qrComparisonScatterplot',
             coordinationScopes: {
@@ -357,7 +357,7 @@ export const polyphonyConfig = {
             y: 9,
             w: 3,
             h: 3,
-          },
+          },*/
           {
             component: 'qrScores',
             coordinationScopes: {
@@ -416,9 +416,19 @@ export const polyphonyConfig = {
               geneSelection: 'all',
             },
             x: 0,
-            y: 0,
+            y: 3,
             w: 2,
-            h: 11,
+            h: 9,
+          },
+          {
+            component: 'description',
+            props: {
+              description: 'Pancreas'
+            },
+            x: 0,
+            y: 1,
+            w: 2,
+            h: 2,
           },
           /*{
             component: 'qrSupportingScatterplotReference',

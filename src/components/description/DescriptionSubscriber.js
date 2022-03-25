@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React, { useEffect, useMemo } from 'react';
 import { useReady } from '../hooks';
 import { useDescription, useRasterData } from '../data-hooks';
@@ -5,6 +6,7 @@ import { useCoordination, useLoaders } from '../../app/state/hooks';
 import { COMPONENT_COORDINATION_TYPES } from '../../app/state/coordination';
 import TitleInfo from '../TitleInfo';
 import Description from './Description';
+import { Component } from '../../app/constants';
 
 const DESCRIPTION_DATA_TYPES = ['raster'];
 
@@ -25,7 +27,7 @@ export default function DescriptionSubscriber(props) {
     description: descriptionOverride,
     removeGridComponent,
     theme,
-    title = 'Data Set',
+    title = 'Description',
   } = props;
 
   const loaders = useLoaders();
@@ -33,17 +35,14 @@ export default function DescriptionSubscriber(props) {
   // Get "props" from the coordination space.
   const [{
     dataset,
-    spatialRasterLayers: rasterLayers,
-  }] = useCoordination(COMPONENT_COORDINATION_TYPES.description, coordinationScopes);
+  }] = useCoordination(COMPONENT_COORDINATION_TYPES[Component.DESCRIPTION], coordinationScopes);
 
   const [
     isReady,
     setItemIsReady,
     setItemIsNotReady, // eslint-disable-line no-unused-vars
     resetReadyItems,
-  ] = useReady(
-    DESCRIPTION_DATA_TYPES,
-  );
+  ] = useReady([]);
 
   // Reset loader progress when the dataset has changed.
   useEffect(() => {
@@ -53,27 +52,7 @@ export default function DescriptionSubscriber(props) {
 
   // Get data from loaders using the data hooks.
   const [description] = useDescription(loaders, dataset);
-  const [raster, imageLayerLoaders, imageLayerMeta] = useRasterData(
-    loaders, dataset, setItemIsReady, () => {}, false,
-  );
-
-  const metadata = useMemo(() => {
-    const result = new Map();
-    if (rasterLayers && rasterLayers.length > 0 && raster && imageLayerMeta && imageLayerLoaders) {
-      rasterLayers.forEach((layer) => {
-        if (imageLayerMeta[layer.index]) {
-          // Want to ensure that layer index is a string.
-          const { format } = imageLayerLoaders[layer.index].metadata;
-          result.set(`${layer.index}`, {
-            name: raster.meta[layer.index].name,
-            metadata: format && format(),
-          });
-        }
-      });
-    }
-    return result;
-  }, [raster, rasterLayers, imageLayerMeta, imageLayerLoaders]);
-
+ 
   return (
     <TitleInfo
       title={title}
@@ -84,7 +63,7 @@ export default function DescriptionSubscriber(props) {
     >
       <Description
         description={descriptionOverride || description}
-        metadata={metadata}
+        metadata={new Map()}
       />
     </TitleInfo>
   );
