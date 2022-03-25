@@ -262,12 +262,33 @@
 
 /* Info about the focus state and gene selection in the comparison view */
 .qrComparisonViewFocusInfo {
-  background-color: rgba(199, 199, 199, 0.5);
   position: absolute;
   bottom: 0;
   z-index: 100;
-  border-radius: 4px;
-  padding: 2px;
-  font-size: 12px;
+  font-size: 12px !important;
   color: black;
+  .focusItem:not(:first-child) {
+    margin-left: 5px;
+  }
+  .focusItem {
+    display: inline-block;
+    background-color: rgba(199, 199, 199, 1);
+    border-radius: 4px;
+    padding: 0 2px;
+    box-shadow: 2px 2px 10px rgba(0, 0,0, 0.1);
+    .focusKey {
+
+    }
+    .focusValue {
+
+    }
+  }
+}
+
+.qrComparisonViewLegend {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 100;
+  font-size: 12px !important;
 }

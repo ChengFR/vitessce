@@ -87,6 +87,7 @@ export default class ContourPatternLayer extends ContourLayer {
           id: 'bands'
         }),
         {
+          parameters: {depthTest: false},
           data: this.state.contourData.contourPolygons,
           filled: filled,
           getPolygon: d => d.vertices,

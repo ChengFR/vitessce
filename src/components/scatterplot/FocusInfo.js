@@ -9,11 +9,37 @@ export default function FocusInfo(props) {
     qryExpressionDataStatus,
   } = props;
 
+
+  let geneInfo;
+  if(qryExpressionDataStatus === 'success') {
+    if(qryGeneSelection && Array.isArray(qryGeneSelection) && qryGeneSelection.length === 1
+      && qryLoadedSelection && Array.isArray(qryLoadedSelection) && qryLoadedSelection.length === 1
+      && qryLoadedSelection[0] === qryGeneSelection[0]
+      && qryExpressionDataStatus === 'success') {
+        geneInfo = qryGeneSelection[0];
+      } else {
+        geneInfo = 'mismatch';
+      }
+  } else if(qryExpressionDataStatus === 'loading') {
+    geneInfo = 'loading';
+  } else if(qryExpressionDataStatus === 'error') {
+    geneInfo = 'error';
+  }
+
  
   return (
     <div className="qrComparisonViewFocusInfo">
       {qryAnchorSetFocus ? (
-        <span>{qryAnchorSetFocus}</span>
+        <span className="focusItem">
+          <span>anchor set: </span>
+          <span className="focusValue">{qryAnchorSetFocus}</span>
+        </span>
+      ) : null}
+      {qryGeneSelection ? (
+        <span className="focusItem">
+          <span>gene: </span>
+          <span className="focusValue">{geneInfo}</span>
+        </span>
       ) : null}
     </div>
   );

@@ -32,6 +32,7 @@ import QRComparisonScatterplot from './QRComparisonScatterplot';
 import ScatterplotTooltipSubscriber from './ScatterplotTooltipSubscriber';
 import QRComparisonScatterplotOptions from './QRComparisonScatterplotOptions';
 import FocusInfo from './FocusInfo';
+import Legend from './Legend';
 import {
   useMultiDatasetCoordination,
   useLoaders,
@@ -636,6 +637,11 @@ export default function QRComparisonScatterplotSubscriber(props) {
         qryGeneSelection={qryValues.geneSelection}
         qryLoadedSelection={qryLoadedSelection}
         qryExpressionDataStatus={qryExpressionDataStatus}
+      />
+      <Legend
+        anchorSetFocus={qryAnchorSetFocus}
+        geneSelection={qryValues.geneSelection}
+        cellColorEncoding={qryValues.cellColorEncoding}
       />
     </TitleInfo>
   );
