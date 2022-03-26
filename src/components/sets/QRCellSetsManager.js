@@ -22,6 +22,34 @@ const useStyles = makeStyles((theme) => ({
   },
   menuPaper: {
     transform: 'translate(0, 40px) !important',
+  },
+  circularProgressLo: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    zIndex: 2,
+    color: '#b00', // red
+  },
+  circularProgressMd: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    zIndex: 2,
+    color: '#caca27', // yellow
+  },
+  circularProgressHi: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    zIndex: 2,
+    color: 'green', // green
+  },
+  circularProgressBelow: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    zIndex: 1,
+    color: 'rgb(231, 231, 231)', // very light gray
   }
 }));
 
@@ -47,6 +75,37 @@ function SignificanceIcon(props) {
       Score in Reference: {inRef ? (<b>{scoreRefStr}</b>) : (<span>{scoreRefStr}</span>)}
     </div>
   </div>);
+}
+
+function FullCircularProgress(props) {
+  const { value } = props;
+  const classes = useStyles();
+  let rootClass = classes.circularProgressLo;
+  if(value > 33 && value <= 66) {
+    rootClass = classes.circularProgressMd;
+  } else if(value >= 66) {
+    rootClass = classes.circularProgressHi;
+  }
+  return (
+    <div className="fullCircularProgress">
+      <CircularProgress
+        value={value}
+        variant="determinate"
+        thickness={5}
+        size={28}
+        style={{ marginLeft: 20 }}
+        classes={{ root: rootClass }}
+      />
+      <CircularProgress
+        value={100}
+        variant="determinate"
+        thickness={5}
+        size={28}
+        style={{ marginLeft: 20 }}
+        classes={{ root: classes.circularProgressBelow }}
+      />
+    </div>
+  );
 }
 
 
@@ -142,14 +201,9 @@ function TableRowLeft(props) {
         </div>
       </div>
       <div className="qrCellSetsTableHead colTopGenes">
-        <CircularProgress
+        <FullCircularProgress
           value={(40 - clusterResults.names.length) / 20 * 100}
-          variant="determinate"
-          thickness={5}
-          size={28}
-          style={{ marginLeft: 20 }}
-        >
-        </CircularProgress>
+        />
       </div>
       <div className="qrCellSetsTableHead colEdit">
         <IconButton component="span" classes={{ root: classes.arrowButtonRoot }} onClick={handleClickMore}>
