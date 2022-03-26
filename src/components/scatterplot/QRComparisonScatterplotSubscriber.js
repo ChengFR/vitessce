@@ -138,9 +138,11 @@ export default function QRComparisonScatterplotSubscriber(props) {
 
   const [anchors, anchorsStatus] = useAnchors(qryLoader, anchorIteration, setItemIsReady);
 
+  const featureKey = (qryValues.debugCellTypes ? "cellType" : "prediction");
+
   // Cell sets
   const [refCellType, refCellTypeStatus] = useAnnDataStatic(loaders, refDataset, refOptions?.features?.cellType?.path, 'columnString', setItemIsReady, false);
-  const [qryPrediction, qryPredictionStatus] = useAnnDataDynamic(loaders, qryDataset, qryOptions?.features?.prediction?.path, 'columnString', modelIteration, setItemIsReady, false);
+  const [qryPrediction, qryPredictionStatus] = useAnnDataDynamic(loaders, qryDataset, qryOptions?.features?.[featureKey]?.path, 'columnString', modelIteration, setItemIsReady, false);
   // const [qryLabel, qryLabelStatus] = useAnnDataDynamic(loaders, qryDataset, qryOptions?.features?.label?.path, 'columnString', modelIteration, setItemIsReady, false);
 
   const qryCellSets = useCellSetsTree(qryCellsIndex, [qryPrediction], ["Prediction"]);
@@ -539,6 +541,9 @@ export default function QRComparisonScatterplotSubscriber(props) {
           setGeneExpressionColormap={qrySetters.setGeneExpressionColormap}
           geneExpressionColormapRange={qryValues.geneExpressionColormapRange}
           setGeneExpressionColormapRange={qrySetters.setGeneExpressionColormapRange}
+
+          debugCellTypes={qryValues.debugCellTypes}
+          setDebugCellTypes={qrySetters.setDebugCellTypes}
         />
       )}
     >

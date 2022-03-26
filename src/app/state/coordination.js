@@ -66,6 +66,7 @@ export const DEFAULT_COORDINATION_VALUES = {
   [CoordinationType.ANCHOR_SET_FILTER]: null,
   [CoordinationType.PRESET_BUTTONS_VISIBLE]: true,
   [CoordinationType.EMBEDDING_LEGENDS_VISIBLE]: true,
+  [CoordinationType.DEBUG_CELL_TYPES]: false,
 };
 
 // The following coordination types should be
@@ -204,6 +205,7 @@ export const COMPONENT_COORDINATION_TYPES = {
     CoordinationType.ANCHOR_SET_FOCUS,
     CoordinationType.ANCHOR_SET_HIGHLIGHT,
     CoordinationType.ANCHOR_SET_FILTER,
+    CoordinationType.DEBUG_CELL_TYPES,
   ],
   [Component.GENES]: [
     CoordinationType.DATASET,
@@ -241,6 +243,7 @@ export const COMPONENT_COORDINATION_TYPES = {
     CoordinationType.EMBEDDING_VISIBLE,
     CoordinationType.EMBEDDING_ENCODING,
     CoordinationType.EMBEDDING_LINKS_VISIBLE,
+    CoordinationType.DEBUG_CELL_TYPES,
   ],
   [Component.CELL_SET_EXPRESSION]: [
     CoordinationType.DATASET,
@@ -336,6 +339,7 @@ export const COMPONENT_COORDINATION_TYPES = {
     CoordinationType.EMBEDDING_LINKS_VISIBLE,
     CoordinationType.PRESET_BUTTONS_VISIBLE,
     CoordinationType.EMBEDDING_LEGENDS_VISIBLE,
+    CoordinationType.DEBUG_CELL_TYPES,
   ],
   [Component.QR_SUPPORTING_SCATTERPLOT_QUERY]: [
     CoordinationType.DATASET,
@@ -369,6 +373,7 @@ export const COMPONENT_COORDINATION_TYPES = {
     CoordinationType.ANCHOR_EDIT_MODE,
     CoordinationType.ANCHOR_SET_FOCUS,
     CoordinationType.ANCHOR_SET_HIGHLIGHT,
+    CoordinationType.DEBUG_CELL_TYPES,
   ],
   [Component.QR_SUPPORTING_SCATTERPLOT_REFERENCE]: [
     CoordinationType.DATASET,
@@ -402,6 +407,7 @@ export const COMPONENT_COORDINATION_TYPES = {
     CoordinationType.ANCHOR_EDIT_MODE,
     CoordinationType.ANCHOR_SET_FOCUS,
     CoordinationType.ANCHOR_SET_HIGHLIGHT,
+    CoordinationType.DEBUG_CELL_TYPES,
   ],
   [Component.QR_CELL_SETS]: [
     CoordinationType.DATASET,
@@ -422,6 +428,7 @@ export const COMPONENT_COORDINATION_TYPES = {
     CoordinationType.ANCHOR_SET_HIGHLIGHT,
     CoordinationType.EMBEDDING_LINKS_VISIBLE,
     CoordinationType.ANCHOR_SET_FILTER,
+    CoordinationType.DEBUG_CELL_TYPES,
   ],
   [Component.QR_SCORES]: [
     CoordinationType.DATASET,
@@ -442,5 +449,6 @@ export const COMPONENT_COORDINATION_TYPES = {
     CoordinationType.ANCHOR_SET_HIGHLIGHT,
     CoordinationType.EMBEDDING_LINKS_VISIBLE,
     CoordinationType.ANCHOR_SET_FILTER,
+    CoordinationType.DEBUG_CELL_TYPES,
   ],
 };

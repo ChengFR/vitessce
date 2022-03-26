@@ -99,9 +99,11 @@ export default function QRScoresSubscriber(props) {
   const [qryCellsIndex, qryGenesIndex, qryIndicesStatus] = useAnnDataIndices(loaders, qryDataset, setItemIsReady, true);
   const [refCellsIndex, refGenesIndex, refIndicesStatus] = useAnnDataIndices(loaders, refDataset, setItemIsReady, true);
 
+  const featureKey = (qryValues.debugCellTypes ? "cellType" : "prediction");
+
   // Cell sets
   const [refCellType, refCellTypeStatus] = useAnnDataStatic(loaders, refDataset, refOptions?.features?.cellType?.path, 'columnString', setItemIsReady, false);
-  const [qryPrediction, qryPredictionStatus] = useAnnDataDynamic(loaders, qryDataset, qryOptions?.features?.prediction?.path, 'columnString', modelIteration, setItemIsReady, false);
+  const [qryPrediction, qryPredictionStatus] = useAnnDataDynamic(loaders, qryDataset, qryOptions?.features?.[featureKey]?.path, 'columnString', modelIteration, setItemIsReady, false);
   // const [qryLabel, qryLabelStatus] = useAnnDataDynamic(loaders, qryDataset, qryOptions?.features?.label?.path, 'columnString', modelIteration, setItemIsReady, false);
 
   const qryCellSets = useCellSetsTree(qryCellsIndex, [qryPrediction], ["Prediction"]);

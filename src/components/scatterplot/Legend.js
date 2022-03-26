@@ -73,7 +73,10 @@ export default function Legend(props) {
   const svg = useMemo(() => {
     const interpolateFunc = colormapToFunc[geneExpressionColormap];
     const color = scaleSequential([0, 100], interpolateFunc);
-    const n = Math.min(color.domain().length, color.range().length);
+    let n = 256;
+    if(color.domain && color.range) {
+      n = Math.min(color.domain().length, color.range().length);
+    }
     const xlinkHref = ramp(color.copy().domain(quantize(interpolate(0, 1), n))).toDataURL();
     return (
       <svg width="100" height="15">

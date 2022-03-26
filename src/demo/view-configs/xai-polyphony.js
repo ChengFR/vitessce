@@ -95,6 +95,9 @@ export const polyphonyConfig = {
                   label: {
                     path: 'obs/label'
                   },
+                  cellType: {
+                    path: 'obs/cell_type'
+                  },
                   anchorDist: {
                     path: 'obs/anchor_dist'
                   },

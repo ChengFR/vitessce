@@ -57,11 +57,18 @@ export default function QRComparisonScatterplotOptions(props) {
     setGeneExpressionColormap,
     geneExpressionColormapRange,
     setGeneExpressionColormapRange,
+
+    debugCellTypes,
+    setDebugCellTypes,
   } = props;
 
   const observationsLabelNice = capitalize(observationsLabel);
 
   const classes = useStyles();
+
+  function handleDebugCellTypesChange(event) {
+    setDebugCellTypes(event.target.checked);
+  }
 
   function handleLegendsVisibilityChange(event) {
     setLegendsVisible(event.target.checked);
@@ -401,6 +408,20 @@ export default function QRComparisonScatterplotOptions(props) {
             step={0.005}
             min={0.0}
             max={1.0}
+          />
+        </TableCell>
+      </TableRow>
+      <TableRow>
+        <TableCell className={classes.labelCell}>
+          Debug Cell Types
+        </TableCell>
+        <TableCell className={classes.inputCell}>
+          <Checkbox
+            className={classes.checkbox}
+            checked={debugCellTypes}
+            onChange={handleDebugCellTypesChange}
+            name="scatterplot-option-debug-cell-types"
+            color="default"
           />
         </TableCell>
       </TableRow>

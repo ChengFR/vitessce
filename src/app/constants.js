@@ -116,4 +116,5 @@ export const CoordinationType = {
   ANCHOR_SET_FILTER: 'anchorSetFilter', // How to sort and filter the list of anchor sets in the Cell Sets view.
   PRESET_BUTTONS_VISIBLE: 'presetButtonsVisible',
   EMBEDDING_LEGENDS_VISIBLE: 'embeddingLegendsVisible',
+  DEBUG_CELL_TYPES: 'debugCellTypes',
 };
