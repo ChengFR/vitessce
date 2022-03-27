@@ -68,6 +68,7 @@
         top: 10px;
         position: absolute;
         border-radius: 5px;
+        background-color: rgb(110, 110, 110);
       }
       .predictionBarOutter {
         background-color: #c0c0c0;
@@ -122,6 +123,15 @@
     left: 0px;
   }
 
+  .geneMatchContainer {
+    .geneMatchPercentage {
+      fill: none;
+      stroke-width: 5;
+      stroke-dasharray: 122.522;
+      stroke: #cecece;
+    }
+  }
+
   .iconContainer {
     overflow-y: visible;
     overflow-x: visible;
@@ -173,10 +183,10 @@
       border-radius: 2px;
     }
     .geneName {
-      margin-left: 5px;
-      margin-right: 5px;
-      margin-top: 4px;
+      left: 5px;
+      top: 5px;
       font-size: 14px !important;
+      position: absolute;
     }
   }
   .geneIcon:hover {

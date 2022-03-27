@@ -1,7 +1,10 @@
 /* eslint-disable */
 import { vapi } from '../utils';
 
-const zarrPath = 'http://localhost:7777/files/zarr';
+const zarrPath = 'http://localhost:7777/files/zarr/case-3';
+// const zarrPath = 'http://3.86.7.210:8080/files/zarr';
+const apiRoot = 'http://localhost:7777/api';
+// const apiRoot = 'http://3.86.7.210:8080/api';
 
 export const polyphonyConfig = {
     name: 'Polyphony',
@@ -16,7 +19,7 @@ export const polyphonyConfig = {
           {
             type: vapi.dt.CELLS,
             fileType: vapi.ft.ANNDATA_CELLS_ZARR,
-            url: `${zarrPath}/pancreas_easy/reference.zarr`,
+            url: `${zarrPath}/reference.zarr`,
             options: {
               expressionMatrix: {
                 path: 'X'
@@ -54,7 +57,7 @@ export const polyphonyConfig = {
           {
             type: vapi.dt.EXPRESSION_MATRIX,
             fileType: vapi.ft.ANNDATA_EXPRESSION_MATRIX_ZARR,
-            url: `${zarrPath}/pancreas_easy/reference.zarr`,
+            url: `${zarrPath}/reference.zarr`,
             options: {
               matrix: "X"
             }
@@ -68,9 +71,9 @@ export const polyphonyConfig = {
           {
               type: vapi.dt.CELLS,
               fileType: vapi.ft.ANNDATA_CELLS_ZARR,
-              url: `${zarrPath}/pancreas_easy/query.zarr`,
+              url: `${zarrPath}/query.zarr`,
               options: {
-                apiRoot: 'http://localhost:7777/api',
+                apiRoot: apiRoot,
                 expressionMatrix: {
                   path: 'X'
                 },
@@ -116,7 +119,7 @@ export const polyphonyConfig = {
           {
             type: vapi.dt.EXPRESSION_MATRIX,
             fileType: vapi.ft.ANNDATA_EXPRESSION_MATRIX_ZARR,
-            url: `${zarrPath}/pancreas_easy/query.zarr`,
+            url: `${zarrPath}/query.zarr`,
             options: {
               matrix: "X"
             }

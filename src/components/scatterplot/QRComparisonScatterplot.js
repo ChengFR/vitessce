@@ -125,6 +125,177 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
     this.onUpdateAnchorLinksLayer();
   }
 
+  createRefLayers() {
+    const {
+      refCellsEntries: cellsEntries
+    } = this;
+    const {
+      refCellsVisible,
+      refCellEncoding,
+      theme,
+      cellRadius = 1.0,
+      cellOpacity = 1.0,
+      cellFilter,
+      cellSelection,
+      setCellHighlight,
+      setComponentHover,
+      getCellIsSelected,
+      cellColors,
+      refCellsIndex,
+      getCellColor = makeDefaultGetCellColors(cellColors, refCellsIndex, theme),
+      getRefExpressionValue: getExpressionValue,
+      onCellClick,
+      geneExpressionColormap,
+      geneExpressionColormapRange = [0.0, 1.0],
+      cellColorEncoding,
+    } = this.props;
+    const filteredCellsEntries = (cellFilter
+      ? cellsEntries.filter(cellEntry => cellFilter.includes(cellEntry[0]))
+      : cellsEntries);
+
+    const commonProps = {
+      coordinateSystem: COORDINATE_SYSTEM.CARTESIAN,
+      visible: refCellsVisible,
+      pickable: true,
+      autoHighlight: true,
+      filled: true,
+      data: {
+        src: cellsEntries.data,
+        length: cellsEntries.shape[1]
+      },
+      getPosition: (object, { index, data, target }) => {
+        target[0] = data.src[0][index];
+        target[1] = -data.src[1][index];
+        target[2] = 0;
+        return target;
+      },
+      isExpressionMode: (cellColorEncoding === 'geneSelection'),
+      colormap: geneExpressionColormap,
+      getPolygonOffset: () => ([0, 90]),
+    };
+    const layers = [];
+    if (refCellEncoding === 'heatmap') {
+      layers.append(new HeatmapLayer({
+        ...commonProps,
+        id: `${REF_LAYER_ID}-heatmap`,
+        radiusPixels: 40,
+        radiusScale: cellRadius,
+        radiusMinPixels: 1,
+        radiusMaxPixels: 30,
+        colorRange: [
+          [241, 241, 241, 128],
+          [217, 217, 217, 128],
+          [217, 217, 217, 128],
+          [217, 217, 217, 128],
+          [217, 217, 217, 128],
+        ],
+        //modelMatrix: new Matrix4().makeTranslation(0, 0, 1),
+        // Our radius pixel setters measure in pixels.
+        radiusUnits: 'pixels',
+        lineWidthUnits: 'pixels',
+        getFillColor: getCellColor,
+        getLineColor: getCellColor,
+        getPointRadius: 1,
+        getExpressionValue,
+        getLineWidth: 0,
+        colorScaleLo: geneExpressionColormapRange[0],
+        colorScaleHi: geneExpressionColormapRange[1],
+        updateTriggers: {
+          getExpressionValue,
+          getFillColor: [cellColorEncoding, cellSelection, cellColors],
+          getLineColor: [cellColorEncoding, cellSelection, cellColors],
+          getCellIsSelected,
+        },
+      }),
+      );
+    }
+    else if (refCellEncoding === 'scatterplot-and-contour' || refCellEncoding === 'contour') { 
+      const baseOpacity = (refAnchorSetFocusContour || refAnchorSetHighlight) ? 0.5 * 255 : 255;
+      refContour.forEach(group => {
+        const { name, color, indices } = group;
+        const [r, g, b, a] = color;
+  
+        layers.append(ContourLayer({
+          ...commonProps,
+          id: `${REF_LAYER_ID}-contour-${name}`,
+          cellSize: 1,
+          contours: [
+            { threshold: 3, color: [r, g, b, 0.5 * baseOpacity], strokeWidth: 2 },
+            { threshold: [3, 1000], color: [r, g, b, 0.2 * baseOpacity] },
+            // { threshold: [10, 1000], color: color },
+            // { threshold: [30, 1000], color: color }
+          ],
+          pattern: true,
+          getFillPattern: () => "hatch-cross",
+          getFillPatternScale: 200,
+        }))
+      });
+    }
+    else if (refCellEncoding === 'scatterplot') { 
+      const getFadedCellColor = (cellEntry, { index }) => {
+        const [r, g, b, a] = getCellColor(cellEntry, { index });
+        if (refAnchorHighlightIndices && !refAnchorHighlightIndices.includes(index)) {
+          return [r, g, b, 0.5 * 255];
+        }
+        if (refAnchorHighlightIndices && !refAnchorHighlightIndices.includes(index)) {
+          return [r, g, b, 0.5 * 255];
+        }
+        return [r, g, b, a];
+      }
+      layer.append(ScatterplotLayer({
+        id: `${REF_LAYER_ID}-scatterplot`,
+        opacity: cellOpacity,
+        radiusScale: cellRadius, // TODO: fix upstream
+        radiusMinPixels: 1,
+        radiusMaxPixels: 30,
+        // Reference: http://pessimistress.github.io/deck.gl/docs/api-reference/core/layer#getpolygonoffset
+        getPolygonOffset: () => ([0, -90]), // TODO: determine optimal value
+        // Our radius pixel setters measure in pixels.
+        radiusUnits: 'pixels',
+        lineWidthUnits: 'pixels',
+        getLineColor: [211, 211, 211],
+        getRadius: (object, { index }) => {
+          if (refAnchorHighlightIndices && refAnchorHighlightIndices.includes(index)) {
+            return 2;
+          }
+          if (refAnchorFocusIndices && refAnchorFocusIndices.includes(index)) {
+            return 2;
+          }
+          return 1;
+        },
+        getLineWidth: (object, { index }) => {
+          if (refAnchorHighlightIndices && refAnchorHighlightIndices.includes(index)) {
+            return 1;
+          }
+          if (refAnchorFocusIndices && refAnchorFocusIndices.includes(index)) {
+            return 1;
+          }
+          return 0;
+        },
+        getFillColor: getFadedCellColor,
+        getExpressionValue,
+        colorScaleLo: geneExpressionColormapRange[0],
+        colorScaleHi: geneExpressionColormapRange[1],
+        isExpressionMode: (cellColorEncoding === 'geneSelection'),
+        colormap: geneExpressionColormap,
+        onClick: (info) => {
+          if (onCellClick) {
+            onCellClick(info);
+          }
+        },
+        updateTriggers: {
+          getExpressionValue,
+          getFillColor: [cellColorEncoding, cellSelection, refCellColors],
+          getLineColor: [cellColorEncoding, cellSelection, refCellColors],
+          getRadius: [refAnchorFocusIndices, refAnchorHighlightIndices],
+          getLineWidth: [refAnchorFocusIndices, refAnchorHighlightIndices],
+          getCellIsSelected,
+        },
+      }));
+    }
+
+  }
+
   createRefHeatmapLayers() {
     const {
       refCellsEntries: cellsEntries
@@ -214,17 +385,17 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       refCellsVisible,
       refCellEncoding,
       refCellColorEncoding,
+      refAnchorSetFocusContour,
+      refAnchorSetHighlight
     } = this.props;
 
+    const baseOpacity = (refAnchorSetFocusContour || refAnchorSetHighlight) ? 0.5 * 255 : 255;
 
     return refContour.map(group => {
       const { name, color: groupColor, indices } = group;
 
       const color = (refCellColorEncoding === 'cellSetSelection' ? groupColor : [180, 180, 180]);
-      const strokeColor = [...color];
-      strokeColor[3] = 0.5 * 255;
-      const fillColor = [...color];
-      fillColor[3] = 0.2 * 255;
+      const [r, g, b, a] = color;
 
       return new ContourLayer({
         id: `${REF_LAYER_ID}-contour-${name}`,
@@ -240,8 +411,8 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         getPolygonOffset: () => ([0, 20]),
         cellSize: 0.3,
         contours: [
-          { threshold: 3, color: strokeColor, strokeWidth: 2 },
-          { threshold: [3, 1000], color: fillColor },
+          { threshold: 3, color: [r, g, b, 0.5 * baseOpacity], strokeWidth: 2 },
+          { threshold: [3, 1000], color: [r, g, b, 0.2 * baseOpacity] },
           // { threshold: [10, 1000], color: color },
           // { threshold: [30, 1000], color: color }
         ],
@@ -257,7 +428,6 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       })
     });
   }
-
 
   createRefScatterplotLayer() {
     const { refCellsEntries: cellsEntries } = this;
@@ -286,6 +456,16 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
     const filteredCellsEntries = (cellFilter
       ? cellsEntries.filter(cellEntry => cellFilter.includes(cellEntry[0]))
       : cellsEntries);
+    const getFadedCellColor = (cellEntry, { index }) => {
+      const [r, g, b, a] = getCellColor(cellEntry, { index });
+      if (refAnchorHighlightIndices && !refAnchorHighlightIndices.includes(index)) {
+        return [r, g, b, 0.5 * 255];
+      }
+      if (refAnchorHighlightIndices && !refAnchorHighlightIndices.includes(index)) {
+        return [r, g, b, 0.5 * 255];
+      }
+      return [r, g, b, a];
+    }
     return new ScatterplotLayer({
       id: `${REF_LAYER_ID}-scatterplot`,
       coordinateSystem: COORDINATE_SYSTEM.CARTESIAN,
@@ -315,24 +495,24 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       },
       getLineColor: [211, 211, 211],
       getRadius: (object, { index }) => {
-        if(refAnchorHighlightIndices && refAnchorHighlightIndices.includes(index)) {
-          return 3;
+        if (refAnchorHighlightIndices && refAnchorHighlightIndices.includes(index)) {
+          return 2;
         }
-        if(refAnchorFocusIndices && refAnchorFocusIndices.includes(index)) {
+        if (refAnchorFocusIndices && refAnchorFocusIndices.includes(index)) {
           return 2;
         }
         return 1;
       },
       getLineWidth: (object, { index }) => {
-        if(refAnchorHighlightIndices && refAnchorHighlightIndices.includes(index)) {
+        if (refAnchorHighlightIndices && refAnchorHighlightIndices.includes(index)) {
           return 1;
         }
-        if(refAnchorFocusIndices && refAnchorFocusIndices.includes(index)) {
+        if (refAnchorFocusIndices && refAnchorFocusIndices.includes(index)) {
           return 1;
         }
         return 0;
       },
-      getFillColor: (cellColorEncoding === 'dataset' ? QR_COLORS.refScatterplotByDataset : getCellColor),
+      getFillColor: (cellColorEncoding === 'dataset' ? QR_COLORS.refScatterplotByDataset : getFadedCellColor),
       getExpressionValue,
       colorScaleLo: geneExpressionColormapRange[0],
       colorScaleHi: geneExpressionColormapRange[1],
@@ -446,16 +626,16 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       qryCellsVisible,
       qryCellEncoding,
       qryCellColorEncoding,
+      qryAnchorSetFocusContour,
+      qryAnchorSetHighlight
     } = this.props;
 
     return qryContour.map(group => {
       const { name, color: groupColor, indices } = group;
 
       const color = (qryCellColorEncoding === 'cellSetSelection' ? groupColor : [180, 180, 180]);
-      const strokeColor = [...color];
-      strokeColor[3] = 0.5 * 255;
-      const fillColor = [...color];
-      fillColor[3] = 0.2 * 255;
+      const [r, g, b, a] = color;
+      const baseOpacity = (qryAnchorSetFocusContour || qryAnchorSetHighlight) ? 0.5 * 255 : 255;
 
       return new ContourLayer({
         id: `${QRY_LAYER_ID}-contour-${name}`,
@@ -471,8 +651,8 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         getPolygonOffset: () => ([0, 10]),
         cellSize: 0.3,
         contours: [
-          { threshold: 3, color: strokeColor, strokeWidth: 2 },
-          { threshold: [3, 1000], color: fillColor },
+          { threshold: 3, color: [r, g, b, 0.5 * baseOpacity], strokeWidth: 2 },
+          { threshold: [3, 1000], color: [r, g, b, 0.2 * baseOpacity] },
           // { threshold: [10, 1000], color: color },
           // { threshold: [30, 1000], color: color }
         ],
@@ -497,10 +677,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
 
     return qryAnchorSetFocusContour.map(group => {
       const { name, color, indices, visible } = group;
-      const strokeColor = [...color];
-      strokeColor[3] = 0.5 * 255;
-      const fillColor = [...color];
-      fillColor[3] = 0.2 * 255;
+      const [r, g, b, a] = color;
 
       return new ContourLayer({
         id: `${QRY_LAYER_ID}-contour-focus-${name}`,
@@ -516,8 +693,8 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         getPolygonOffset: () => ([0, 8]),
         cellSize: 0.3,
         contours: [
-          { threshold: 3, color: strokeColor, strokeWidth: 2 },
-          { threshold: [3, 1000], color: fillColor },
+          { threshold: 3, color: [r, g, b, 0.5 * 255], strokeWidth: 2 },
+          { threshold: [3, 1000], color: [r, g, b, 0.2 * 255] },
           // { threshold: [10, 1000], color: color },
           // { threshold: [30, 1000], color: color }
         ],
@@ -541,10 +718,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
 
     return refAnchorSetFocusContour.map(group => {
       const { name, color, indices, visible } = group;
-      const strokeColor = [...color];
-      strokeColor[3] = 0.5 * 255;
-      const fillColor = [...color];
-      fillColor[3] = 0.2 * 255;
+      const [r, g, b, a] = color;
 
       return new ContourLayer({
         id: `${REF_LAYER_ID}-contour-focus-${name}`,
@@ -560,8 +734,8 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         getPolygonOffset: () => ([0, 9]),
         cellSize: 0.3,
         contours: [
-          { threshold: 3, color: strokeColor, strokeWidth: 2 },
-          { threshold: [3, 1000], color: fillColor },
+          { threshold: 3, color: [r, g, b, 0.5 * 255], strokeWidth: 2 },
+          { threshold: [3, 1000], color: [r, g, b, 0.2 * 255] },
           // { threshold: [10, 1000], color: color },
           // { threshold: [30, 1000], color: color }
         ],
@@ -585,10 +759,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
 
     return qryAnchorSetHighlightContour.map(group => {
       const { name, color, indices, visible } = group;
-      const strokeColor = [...color];
-      strokeColor[3] = 0.5 * 255;
-      const fillColor = [...color];
-      fillColor[3] = 0.2 * 255;
+      const [r, g, b, a] = color;
 
       return new ContourLayer({
         id: `${QRY_LAYER_ID}-contour-highlight-${name}`,
@@ -601,11 +772,11 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         pickable: false,
         autoHighlight: false,
         filled: true,
-        getPolygonOffset: () => ([0, -120]),
+        getPolygonOffset: () => ([0, 5]),
         cellSize: 0.3,
         contours: [
-          { threshold: 3, color: strokeColor, strokeWidth: 4 },
-          { threshold: [3, 1000], color: fillColor },
+          { threshold: 3, color: [r, g, b, 0.5 * 255], strokeWidth: 2 },
+          { threshold: [3, 1000], color: [r, g, b, 0.2 * 255] },
           // { threshold: [10, 1000], color: color },
           // { threshold: [30, 1000], color: color }
         ],
@@ -629,10 +800,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
 
     return refAnchorSetHighlightContour.map(group => {
       const { name, color, indices, visible } = group;
-      const strokeColor = [...color];
-      strokeColor[3] = 0.5 * 255;
-      const fillColor = [...color];
-      fillColor[3] = 0.2 * 255;
+      const [r, g, b, a] = color;
 
       return new ContourLayer({
         id: `${REF_LAYER_ID}-contour-highlight-${name}`,
@@ -645,11 +813,11 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         pickable: false,
         autoHighlight: false,
         filled: false,
-        getPolygonOffset: () => ([0, -110]),
+        getPolygonOffset: () => ([0, 4]),
         cellSize: 0.3,
         contours: [
-          { threshold: 3, color: strokeColor, strokeWidth: 4 },
-          { threshold: [3, 1000], color: fillColor },
+          { threshold: 3, color: [r, g, b, 0.5 * 255], strokeWidth: 4 },
+          { threshold: [3, 1000], color: [r, g, b, 0.2 * 255] },
           // { threshold: [10, 1000], color: color },
           // { threshold: [30, 1000], color: color }
         ],
@@ -690,6 +858,16 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
     const filteredCellsEntries = (cellFilter
       ? cellsEntries.filter(cellEntry => cellFilter.includes(cellEntry[0]))
       : cellsEntries);
+    const getFadedCellColor = (cellEntry, { index }) => {
+      const [r, g, b, a] = getCellColor(cellEntry, { index });
+      if (qryAnchorHighlightIndices && !qryAnchorHighlightIndices.includes(index)) {
+        return [r, g, b, 0.5 * 255];
+      }
+      if (qryAnchorFocusIndices && !qryAnchorFocusIndices.includes(index)) {
+        return [r, g, b, 0.5 * 255];
+      }
+      return [r, g, b, a];
+    }
     return new ScatterplotLayer({
       id: QRY_LAYER_ID,
       coordinateSystem: COORDINATE_SYSTEM.CARTESIAN,
@@ -717,11 +895,11 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         target[2] = 0;
         return target;
       },
-      getFillColor: (cellColorEncoding === 'dataset' ? QR_COLORS.qryScatterplotByDataset : getCellColor),
+      getFillColor: (cellColorEncoding === 'dataset' ? QR_COLORS.qryScatterplotByDataset : getFadedCellColor),
       getLineColor: [105, 105, 105],
       getRadius: (object, { index }) => {
         if (qryAnchorHighlightIndices && qryAnchorHighlightIndices.includes(index)) {
-          return 3;
+          return 2;
         }
         if (qryAnchorFocusIndices && qryAnchorFocusIndices.includes(index)) {
           return 2;
@@ -998,17 +1176,17 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       anchorLinksLayers,
       supportingBoundsLayer,
 
-      ...qryContourHighlightLayers,
-      ...refContourHighlightLayers,
-      
+      // ...qryContourHighlightLayers,
+      // ...refContourHighlightLayers,
+
       qryScatterplotLayer,
       refScatterplotLayer,
       ...qryHeatmapLayers,
       ...refHeatmapLayers,
 
-      ...qryContourFocusLayers,
+      // ...qryContourFocusLayers,
       ...qryContourLayers,
-      ...refContourFocusLayers,
+      // ...refContourFocusLayers,
       ...refContourLayers,
       //...cellSetsLayers,
       ...this.createQrySelectionLayers(),

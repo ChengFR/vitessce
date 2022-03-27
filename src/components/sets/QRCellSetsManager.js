@@ -2,7 +2,6 @@
 /* eslint-disable no-underscore-dangle */
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import * as _ from 'lodash'
-import { useVitessceContainer } from '../hooks';
 
 import { makeStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
@@ -25,33 +24,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-function SignificanceIcon(props) {
-  const { inRef, inQry, scoreRef, scoreQry, geneName, yScale, showGeneName } = props;
-
-  const scoreRefStr = Number(scoreRef).toFixed(2);
-  const scoreQryStr = Number(scoreQry).toFixed(2);
-
-  const className = (inRef && inQry) ? 'inBoth' : (inRef ? 'inRef' : 'inQry');
-
-  return (<div className="iconContainer">
-
-    <div className={`geneIcon ${true ? "withGeneName" : "withoutGeneName"}`}>
-      <div className={`geneIconOuter ${className}`} style={{
-        height: yScale ? yScale(scoreQry) : 30,
-      }} />
-      <div className="geneName">{geneName}</div>
-    </div>
-    <div className="signifIconTooltip">
-      {geneName}<br />
-      Score in Query: {inQry ? (<b>{scoreQryStr}</b>) : (<span>{scoreQryStr}</span>)}<br />
-      Score in Reference: {inRef ? (<b>{scoreRefStr}</b>) : (<span>{scoreRefStr}</span>)}
-    </div>
-  </div>);
-}
-
-
 const barWidth = 120 - 2;
-const barHeight = 24;
 
 function TableRowLeft(props) {
   const {
@@ -62,6 +35,7 @@ function TableRowLeft(props) {
     onEditAnchors,
     onFocusAnchors,
     onHighlightAnchors,
+    xScale
   } = props;
 
   const classes = useStyles();
@@ -106,13 +80,9 @@ function TableRowLeft(props) {
 
   return (
     <div className="qrCellSetsTableRow" key={clusterIndex}>
-      {/* <div className="qrCellSetsTableArrow colArrow">
-        <IconButton component="span" classes={{ root: classes.arrowButtonRoot }}>
-          <ArrowRight />
-        </IconButton>
-      </div> */}
       <div className="qrCellSetsTableHead colName" title={`${clusterIndex} (${anchorType})`}>
-        <button onClick={handleClickName} onMouseOver={handleMouseOver} onMouseOut={handleMouseOut} style={{ fontWeight: (anchorType !== 'unjustified' ? 'bold' : 'normal') }}>
+        <button onClick={handleClickName} onMouseOver={handleMouseOver} onMouseOut={handleMouseOut}
+          style={{ fontWeight: (anchorType !== 'unjustified' ? 'bold' : 'normal') }}>
           {clusterIndex}
         </button>
       </div>
@@ -130,26 +100,28 @@ function TableRowLeft(props) {
       </div>
       <div className="qrCellSetsTableHead colSimilarity">
         <div className="predictionBarOutter"
-          style={{
-            width: `${(barWidth - 4)}px`,
-          }}>
+          style={{ width: `${(barWidth - 4)}px` }}>
         </div>
         <div className="predictionBarInner"
           title={`Median Anchor Distance (${Number(clusterResults.latentDist).toFixed(2)})`}
-          style={{
-            width: `${(barWidth - 4) * clusterResults.latentDist}px`, backgroundColor: `rgb(110, 110, 110)`
-          }}>
+          style={{ width: `${xScale(clusterResults.latentDist)}px` }}>
         </div>
       </div>
       <div className="qrCellSetsTableHead colTopGenes">
         <CircularProgress
-          value={(40 - clusterResults.names.length) / 20 * 100}
+          value={200 - clusterResults.names.length}
           variant="determinate"
           thickness={5}
           size={28}
           style={{ marginLeft: 20 }}
         >
         </CircularProgress>
+        <svg className='geneMatchContainer' viewBox='22 22 44 44' width={28} height={28}>
+          <circle className='geneMatchPercentage'
+            cx={44} cy={44} r={19.5}
+            strokeDashoffset={clusterResults.names.length / 100 * 39 * Math.PI}
+          ></circle>
+        </svg>
       </div>
       <div className="qrCellSetsTableHead colEdit">
         <IconButton component="span" classes={{ root: classes.arrowButtonRoot }} onClick={handleClickMore}>
@@ -175,38 +147,6 @@ function TableRowLeft(props) {
   );
 }
 
-function TableRowRight(props) {
-  const {
-    clusterIndex,
-    clusterResults,
-    showGeneName
-  } = props;
-
-  const classes = useStyles();
-
-  const maxScore = _.max(clusterResults.scores.map(score => score.qry))
-  const yScale = (score) => Math.max(score, 0) / maxScore * barHeight;
-
-  return (
-    <div className="qrCellSetsTableRow" key={clusterIndex}>
-      {clusterResults.names.map((geneName, geneIndex) => (
-        <div className="qrCellSetsTableHead colGeneResult" key={geneName}>
-          <SignificanceIcon
-            inRef={clusterResults.significances[geneIndex].ref}
-            inQry={clusterResults.significances[geneIndex].qry}
-            scoreRef={clusterResults.scores[geneIndex].ref}
-            scoreQry={clusterResults.scores[geneIndex].qry}
-            showGeneName={showGeneName}
-            geneName={geneName}
-            yScale={yScale}
-          />
-        </div>
-      ))}
-    </div>
-  );
-}
-
-
 
 /**
  * A query+reference cell set manager component.
@@ -226,20 +166,29 @@ export default function QRCellSetsManager(props) {
 
   const classes = useStyles();
   const blockIds = ["user_selection", "unjustified", "confirmed"];
+  let xScale = undefined;
+  if (qryTopGenesLists) {
+    const anchors = _.flatten(Object.entries(qryTopGenesLists).map(([groupIdx, groupContent]) =>
+      Object.entries(groupContent).map(([anchorId, anchorContent]) => anchorContent)));
+    const maxDist = _.max(anchors.map(anchor => anchor.latentDist));
+    xScale = (latentDist) => Math.max(0, latentDist / maxDist * (barWidth - 4));
+
+    console.log(anchors);
+  }
 
   return (
     <div className="qrCellSets">
       <div className="qrCellSetsTableContainer">
         <div className="qrCellSetsTableLeft">
           <div className="qrCellSetsTableRow">
-            {/* <div className="qrCellSetsTableArrow colArrow"></div> */}
             <div className="qrCellSetsTableHead colName"></div>
             <div className="qrCellSetsTableHead colPrediction">
               <span className="qrCellSetsTableHeadText">Prediction</span>
-              <Sort></Sort>
+              {/* <FilterAltIcon></FilterAltIcon> */}
+              <ArrowDownwardIcon></ArrowDownwardIcon>
             </div>
             <div className="qrCellSetsTableHead colSimilarity">
-              <span className="qrCellSetsTableHeadText">Similarity</span>
+              <span className="qrCellSetsTableHeadText">Distance</span>
               <ArrowDownwardIcon></ArrowDownwardIcon>
             </div>
             <div className="qrCellSetsTableHead colTopGenes">
@@ -262,26 +211,12 @@ export default function QRCellSetsManager(props) {
                   onEditAnchors={onEditAnchors}
                   onFocusAnchors={onFocusAnchors}
                   onHighlightAnchors={onHighlightAnchors}
+                  xScale={xScale}
                 />
               ))}
             </div>
           }) : null}
         </div>
-        {/* <div className="qrCellSetsTableRight">
-          <div className="qrCellSetsTableRightInner">
-            <div className="qrCellSetsTableRow">
-              <div className="qrCellSetsTableHead colTopGenes">Top Gene</div>
-            </div>
-            {qryTopGenesLists ? Object.entries(qryTopGenesLists).map(([anchorType, anchorResults]) => (
-              Object.entries(anchorResults).map(([clusterIndex, clusterResults]) => (
-                <TableRowRight
-                  key={clusterIndex} clusterIndex={clusterIndex} clusterResults={clusterResults}
-                  showGeneName={showGeneName}
-                />
-              ))
-            )) : null}
-          </div>
-        </div> */}
       </div>
     </div>
   );
