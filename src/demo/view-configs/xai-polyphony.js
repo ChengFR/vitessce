@@ -260,9 +260,9 @@ export const polyphonyConfig = {
               anchorEditMode: 'qry',
               geneSelection: 'all',
             },
-            x: 8,
+            x: 7,
             y: 1,
-            w: 4,
+            w: 5,
             h: 6,
           },
           {
@@ -295,9 +295,9 @@ export const polyphonyConfig = {
               /* qrySupportingUuid: 3, */
               /* refSupportingUuid: 4, */
             },
-            x: 2,
+            x: 0,
             y: 1,
-            w: 6,
+            w: 7,
             h: 11,
           },
           /*{
@@ -378,9 +378,9 @@ export const polyphonyConfig = {
               anchorEditMode: 'qry',
               geneSelection: 'all',
             },
-            x: 8,
+            x: 7,
             y: 7,
-            w: 4,
+            w: 5,
             h: 5,
           },
           /*{
@@ -409,33 +409,33 @@ export const polyphonyConfig = {
             w: 3,
             h: 5,
           },*/
-          {
-            component: 'genes',
-            coordinationScopes: {
-              dataset: ['REFERENCE', 'QUERY'],
-              cellSetSelection: { REFERENCE: 'ref', QUERY: 'qry' },
-              cellSetColor: { REFERENCE: 'ref', QUERY: 'qry' },
-              cellColorEncoding: { REFERENCE: 'ref', QUERY: 'qry' },
-              embeddingType: { REFERENCE: 'ref', QUERY: 'qry' },
-              anchorSetFocus: { REFERENCE: 'ref', QUERY: 'qry' },
-              anchorSetHighlight: { REFERENCE: 'ref', QUERY: 'qry' },
-              geneSelection: 'all',
-            },
-            x: 0,
-            y: 3,
-            w: 2,
-            h: 9,
-          },
-          {
-            component: 'description',
-            props: {
-              description: 'Pancreas'
-            },
-            x: 0,
-            y: 1,
-            w: 2,
-            h: 2,
-          },
+          // {
+          //   component: 'genes',
+          //   coordinationScopes: {
+          //     dataset: ['REFERENCE', 'QUERY'],
+          //     cellSetSelection: { REFERENCE: 'ref', QUERY: 'qry' },
+          //     cellSetColor: { REFERENCE: 'ref', QUERY: 'qry' },
+          //     cellColorEncoding: { REFERENCE: 'ref', QUERY: 'qry' },
+          //     embeddingType: { REFERENCE: 'ref', QUERY: 'qry' },
+          //     anchorSetFocus: { REFERENCE: 'ref', QUERY: 'qry' },
+          //     anchorSetHighlight: { REFERENCE: 'ref', QUERY: 'qry' },
+          //     geneSelection: 'all',
+          //   },
+          //   x: 0,
+          //   y: 3,
+          //   w: 2,
+          //   h: 9,
+          // },
+          // {
+          //   component: 'description',
+          //   props: {
+          //     description: 'Pancreas'
+          //   },
+          //   x: 0,
+          //   y: 1,
+          //   w: 2,
+          //   h: 2,
+          // },
           /*{
             component: 'qrSupportingScatterplotReference',
             coordinationScopes: {

@@ -35,9 +35,9 @@ export default function PresetButtons(props) {
  
   return (visible ? (
     <div className="qrComparisonViewPresetButtons">
-      <button onClick={setView1} title="Reference: heatmap, Query: scatterplot">Preset 1</button>
-      <button onClick={setView2} title="Reference: scatterplot, Query: hidden">Preset 2</button>
-      <button onClick={setView3} title="Reference: contour, Query: scatterplot, Links: visible">Preset 3</button>
+      <button onClick={setView1} title="Reference: heatmap; Query: scatterplot; Links: hidden">Reference heatmap</button>
+      <button onClick={setView2} title="Reference: scatterplot; Query: hidden; Links: hidden">Reference only</button>
+      <button onClick={setView3} title="Reference: contour; Query: scatterplot; Links: visible">Reference contours with links</button>
     </div>
   ) : null);
 }

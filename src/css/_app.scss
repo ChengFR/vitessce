@@ -122,7 +122,7 @@
     }
 
     .card {
-        border: 1px solid map-get($theme-colors, "card-border");
+        border: 2px solid rgb(211, 211, 211);
     }
 
     .bg-black {
@@ -134,7 +134,7 @@
     }
 
     .bg-primary {
-        background-color: map-get($theme-colors, "primary-background");
+        background-color: #fff;
         color: map-get($theme-colors, "primary-foreground");
         a {
             color: map-get($theme-colors, "primary-foreground-active");
@@ -142,7 +142,7 @@
     }
 
     .bg-secondary {
-        background-color: map-get($theme-colors, "secondary-background");
+        background-color: #fff;
         color: map-get($theme-colors, "secondary-foreground");
     }
 

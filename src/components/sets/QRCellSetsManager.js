@@ -21,8 +21,90 @@ const useStyles = makeStyles((theme) => ({
   },
   menuPaper: {
     transform: 'translate(0, 40px) !important',
+  },
+  circularProgressLo: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    zIndex: 2,
+    // color: '#b00', // red
+  },
+  circularProgressMd: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    zIndex: 2,
+    // color: '#caca27', // yellow
+  },
+  circularProgressHi: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    zIndex: 2,
+    // color: 'green', // green
+  },
+  circularProgressBelow: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    zIndex: 1,
+    color: 'rgb(231, 231, 231)', // very light gray
   }
 }));
+
+function SignificanceIcon(props) {
+  const { inRef, inQry, scoreRef, scoreQry, geneName, yScale, showGeneName } = props;
+
+  const scoreRefStr = Number(scoreRef).toFixed(2);
+  const scoreQryStr = Number(scoreQry).toFixed(2);
+  const className = (inRef && inQry) ? 'inBoth' : (inRef ? 'inRef' : 'inQry');
+
+  return (<div className="iconContainer">
+
+    <div className={`geneIcon ${true ? "withGeneName" : "withoutGeneName"}`}>
+      <div className={`geneIconOuter ${className}`} style={{
+        height: yScale ? yScale(scoreQry) : 30,
+      }} />
+      <div className="geneName">{geneName}</div>
+    </div>
+    <div className="signifIconTooltip">
+      {geneName}<br />
+      Score in Query: {inQry ? (<b>{scoreQryStr}</b>) : (<span>{scoreQryStr}</span>)}<br />
+      Score in Reference: {inRef ? (<b>{scoreRefStr}</b>) : (<span>{scoreRefStr}</span>)}
+    </div>
+  </div>);
+}
+
+function FullCircularProgress(props) {
+  const { value } = props;
+  const classes = useStyles();
+  let rootClass = classes.circularProgressLo;
+  if(value > 33 && value <= 66) {
+    rootClass = classes.circularProgressMd;
+  } else if(value >= 66) {
+    rootClass = classes.circularProgressHi;
+  }
+  return (
+    <div className="fullCircularProgress">
+      <CircularProgress
+        value={value}
+        variant="determinate"
+        thickness={5}
+        size={28}
+        style={{ marginLeft: 20 }}
+        classes={{ root: rootClass }}
+      />
+      <CircularProgress
+        value={100}
+        variant="determinate"
+        thickness={5}
+        size={28}
+        style={{ marginLeft: 20 }}
+        classes={{ root: classes.circularProgressBelow }}
+      />
+    </div>
+  );
+}
 
 const barWidth = 120 - 2;
 
@@ -108,20 +190,9 @@ function TableRowLeft(props) {
         </div>
       </div>
       <div className="qrCellSetsTableHead colTopGenes">
-        <CircularProgress
-          value={200 - clusterResults.names.length}
-          variant="determinate"
-          thickness={5}
-          size={28}
-          style={{ marginLeft: 20 }}
-        >
-        </CircularProgress>
-        <svg className='geneMatchContainer' viewBox='22 22 44 44' width={28} height={28}>
-          <circle className='geneMatchPercentage'
-            cx={44} cy={44} r={19.5}
-            strokeDashoffset={clusterResults.names.length / 100 * 39 * Math.PI}
-          ></circle>
-        </svg>
+        <FullCircularProgress
+          value={(200 - clusterResults.names.length)}
+        />
       </div>
       <div className="qrCellSetsTableHead colEdit">
         <IconButton component="span" classes={{ root: classes.arrowButtonRoot }} onClick={handleClickMore}>
@@ -146,8 +217,6 @@ function TableRowLeft(props) {
     </div>
   );
 }
-
-
 /**
  * A query+reference cell set manager component.
  */
@@ -172,8 +241,6 @@ export default function QRCellSetsManager(props) {
       Object.entries(groupContent).map(([anchorId, anchorContent]) => anchorContent)));
     const maxDist = _.max(anchors.map(anchor => anchor.latentDist));
     xScale = (latentDist) => Math.max(0, latentDist / maxDist * (barWidth - 4));
-
-    console.log(anchors);
   }
 
   return (

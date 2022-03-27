@@ -220,8 +220,8 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
           id: `${REF_LAYER_ID}-contour-${name}`,
           cellSize: 1,
           contours: [
-            { threshold: 3, color: [r, g, b, 0.5 * baseOpacity], strokeWidth: 2 },
-            { threshold: [3, 1000], color: [r, g, b, 0.2 * baseOpacity] },
+            { threshold: 3, color: [r, g, b, 0.8 * baseOpacity], strokeWidth: 2 },
+            { threshold: [3, 1000], color: [r, g, b, 0.5 * baseOpacity] },
             // { threshold: [10, 1000], color: color },
             // { threshold: [30, 1000], color: color }
           ],
@@ -411,8 +411,8 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         getPolygonOffset: () => ([0, 20]),
         cellSize: 0.3,
         contours: [
-          { threshold: 3, color: [r, g, b, 0.5 * baseOpacity], strokeWidth: 2 },
-          { threshold: [3, 1000], color: [r, g, b, 0.2 * baseOpacity] },
+          { threshold: 3, color: [r, g, b, 0.8 * baseOpacity], strokeWidth: 2 },
+          { threshold: [3, 1000], color: [r, g, b, 0.5 * baseOpacity] },
           // { threshold: [10, 1000], color: color },
           // { threshold: [30, 1000], color: color }
         ],
@@ -651,8 +651,8 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         getPolygonOffset: () => ([0, 10]),
         cellSize: 0.3,
         contours: [
-          { threshold: 3, color: [r, g, b, 0.5 * baseOpacity], strokeWidth: 2 },
-          { threshold: [3, 1000], color: [r, g, b, 0.2 * baseOpacity] },
+          { threshold: 3, color: [r, g, b, 0.8 * baseOpacity], strokeWidth: 2 },
+          { threshold: [3, 1000], color: [r, g, b, 0.5 * baseOpacity] },
           // { threshold: [10, 1000], color: color },
           // { threshold: [30, 1000], color: color }
         ],
@@ -974,71 +974,65 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       refAnchorSetHighlight,
       cellRadius,
     } = this.props;
+    const lightGray = [223, 223, 223, 255 * 0.5]; // wider line, outer circles on each end, inner circle for reference end
+    // const lightGray = [0, 12, 64, 255 * 0.5];
+    // const darkGray = [150, 150, 150, 255]; // inner line, middle circles on each end
+    const darkGray = [75, 75, 75, 255]; 
+
+    const darkerGray = [111, 111, 111, 255]; // for focus and highlight
+
     return [
       // Lines
       new LineLayer({
-        id: 'anchor-links-outer',
+        id: 'anchor-line-wide',
         data: anchorLinks,
         visible: anchorLinksVisible,
         pickable: false,
         widthUnits: 'pixels',
         widthScale: 1,
         getWidth: d => {
-          // if(d.qryId === qryAnchorSetHighlight && d.refId === refAnchorSetHighlight) {
-          //   return 8;
-          // }
-          // if(d.qryId === qryAnchorSetFocus && d.refId === refAnchorSetFocus) {
-          //   return 5;
-          // }
-          // return 2;
           return 4;
         },
-        getPolygonOffset: () => ([0, -200]), // TODO: determine optimal value
+        getPolygonOffset: () => ([0, -200]),
         getSourcePosition: d => [d.qry[0], -d.qry[1]],
         getTargetPosition: d => [d.ref[0], -d.ref[1]],
-        // getColor: d => [234, 234, 132],
-        getColor: d => [140, 140, 140],
-        updateTriggers: {
-          getWidth: [qryAnchorSetFocus, refAnchorSetFocus, qryAnchorSetHighlight, refAnchorSetHighlight],
-        },
+        getColor: d => lightGray,
       }),
       new LineLayer({
-        id: 'anchor-links-inner',
+        id: 'anchor-line-thin',
         data: anchorLinks,
         visible: anchorLinksVisible,
         pickable: false,
         widthUnits: 'pixels',
         widthScale: 1,
-        getWidth: d => {
-          return 2;
-        },
-        getPolygonOffset: () => ([0, -200]), // TODO: determine optimal value
+        getWidth: 2,
+        getPolygonOffset: () => ([0, -201]),
         getSourcePosition: d => [d.qry[0], -d.qry[1]],
         getTargetPosition: d => [d.ref[0], -d.ref[1]],
-        // getColor: d => [140, 140, 140],
         getColor: d => {
           if ((d.qryId === qryAnchorSetHighlight && d.refId === refAnchorSetHighlight)
-            || (d.qryId === qryAnchorSetFocus && d.refId === refAnchorSetFocus))
-            return [234, 234, 132]
-          else
-            return [217, 217, 217, 128]
+            || (d.qryId === qryAnchorSetFocus && d.refId === refAnchorSetFocus)) {
+            return darkerGray;
+          } else {
+            return darkGray;
+          }
         },
         updateTriggers: {
-          getWidth: [qryAnchorSetFocus, refAnchorSetFocus, qryAnchorSetHighlight, refAnchorSetHighlight],
+          getColor: [qryAnchorSetFocus, refAnchorSetFocus, qryAnchorSetHighlight, refAnchorSetHighlight],
         },
       }),
       // Line endpoints
       new ScatterplotLayer({
-        id: 'anchor-link-endpoints',
+        id: 'anchor-endpoints-outer',
         data: [
           ...anchorLinks.map(d => ({ coordinate: d.qry, type: 'qry' })),
           ...anchorLinks.map(d => ({ coordinate: d.ref, type: 'ref' })),
         ],
         visible: anchorLinksVisible,
         pickable: false,
-        stroked: true,
+        stroked: false,
         filled: true,
-        getPolygonOffset: () => ([0, -300]), // TODO: determine optimal value
+        getPolygonOffset: () => ([0, -200]), // TODO: determine optimal value
         opacity: 1,
         radiusScale: 1,
         radiusMinPixels: 1,
@@ -1046,17 +1040,81 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         radiusUnits: 'pixels',
         lineWidthUnits: 'pixels',
         getPosition: d => [d.coordinate[0], -d.coordinate[1], 0],
-        getFillColor: d => d.type === 'qry' ? [105, 105, 105] : [211, 211, 211],
+        getFillColor: darkGray,
         getLineColor: [60, 60, 60],
         getRadius: d => {
           if (d.qryId === qryAnchorSetFocus && d.refId === refAnchorSetFocus) {
-            return 10;
+            return 5;
           }
           return 5;
         },
-        getLineWidth: d => {
+        getLineWidth: d => 0,
+        updateTriggers: {
+          getLineWidth: [qryAnchorSetFocus, refAnchorSetFocus],
+          getRadius: [qryAnchorSetFocus, refAnchorSetFocus],
+        },
+      }),
+      new ScatterplotLayer({
+        id: 'anchor-endpoints-middle',
+        data: [
+          ...anchorLinks.map(d => ({ coordinate: d.qry, type: 'qry', id: d.qryId })),
+          ...anchorLinks.map(d => ({ coordinate: d.ref, type: 'ref', id: d.refId })),
+        ],
+        visible: anchorLinksVisible,
+        pickable: false,
+        stroked: false,
+        filled: true,
+        getPolygonOffset: () => ([0, -201]), // TODO: determine optimal value
+        opacity: 1,
+        radiusScale: 1,
+        radiusMinPixels: 1,
+        radiusMaxPixels: 30,
+        radiusUnits: 'pixels',
+        lineWidthUnits: 'pixels',
+        getPosition: d => [d.coordinate[0], -d.coordinate[1], 0],
+        getFillColor: d => d.type === 'qry' ? darkGray : lightGray,
+        getLineColor: [60, 60, 60],
+        getRadius: d => {
+          if (d.qryId === qryAnchorSetFocus && d.refId === refAnchorSetFocus) {
+            return 3;
+          }
+          return 3;
+        },
+        getLineWidth: d => 0,
+        updateTriggers: {
+          getFillColor: [qryAnchorSetFocus, refAnchorSetFocus, qryAnchorSetHighlight, refAnchorSetHighlight],
+        },
+      }),
+      // Line endpoints
+      new ScatterplotLayer({
+        id: 'anchor-endpoints-inner',
+        data: [
+          ...anchorLinks.map(d => ({ coordinate: d.qry, type: 'qry' })),
+          ...anchorLinks.map(d => ({ coordinate: d.ref, type: 'ref' })),
+        ],
+        visible: anchorLinksVisible,
+        pickable: false,
+        stroked: false,
+        filled: true,
+        getPolygonOffset: () => ([0, -202]), // TODO: determine optimal value
+        opacity: 1,
+        radiusScale: 1,
+        radiusMinPixels: 1,
+        radiusMaxPixels: 30,
+        radiusUnits: 'pixels',
+        lineWidthUnits: 'pixels',
+        getPosition: d => [d.coordinate[0], -d.coordinate[1], 0],
+        getFillColor: d => d.type === 'qry' ? darkGray : lightGray,
+        getLineColor: [60, 60, 60],
+        getRadius: d => {
           if (d.qryId === qryAnchorSetFocus && d.refId === refAnchorSetFocus) {
             return 2;
+          }
+          return 2;
+        },
+        getLineWidth: d => {
+          if (d.qryId === qryAnchorSetFocus && d.refId === refAnchorSetFocus) {
+            return 0;
           }
           return 0;
         },

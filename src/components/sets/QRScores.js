@@ -20,7 +20,7 @@ import MoreVert from '@material-ui/icons/MoreVert';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 
-const barWidth = 90;
+const barWidth = 130;
 
 function QRGeneList(props) {
   const {
@@ -73,6 +73,7 @@ export default function QRScores(props) {
     setGeneSelection
   } = props;
 
+
   const geneList = _.flatten(['shared', 'qry', 'ref'].map(group => topGenes[group]));
   const maxScore = _.max(geneList.map(gene => Math.max(gene.score.qry, gene.score.ref)));
   const xScale = (score) => Math.max(score, 0) / maxScore * barWidth / 2;
@@ -80,13 +81,13 @@ export default function QRScores(props) {
   return (
     <div className="qrTopGene">
       <div className="qrTopGeneContainer">
-        <div className="qrTopGeneColumn">
+        <div className="qrTopGeneColumn shared">
           {QRGeneList({ geneList: topGenes.shared, header: "Shared", xScale, setGeneSelection })}
         </div>
-        <div className="qrTopGeneColumn">
+        <div className="qrTopGeneColumn queryTop">
           {QRGeneList({ geneList: topGenes.qry, header: "Query", xScale, setGeneSelection })}
         </div>
-        <div className="qrTopGeneColumn">
+        <div className="qrTopGeneColumn refTop">
           {QRGeneList({ geneList: topGenes.ref, header: "Reference", xScale, setGeneSelection })}
         </div>
       </div>
