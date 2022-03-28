@@ -199,12 +199,9 @@
       border-radius: 2px;
     }
     .geneName {
-      left: 5px;
-      top: 5px;
       font-size: 14px !important;
-      position: absolute;
-      left: 65px;
-      transform: translateX(-50%);
+      text-align: center;
+      margin-top: 5px;
     }
   }
   .geneIcon:hover {

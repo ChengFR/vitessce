@@ -991,7 +991,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         widthUnits: 'pixels',
         widthScale: 1,
         getWidth: d => {
-          return 4;
+          return 6;
         },
         getPolygonOffset: () => ([0, -200]),
         getSourcePosition: d => [d.qry[0], -d.qry[1]],
@@ -1040,13 +1040,10 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         radiusUnits: 'pixels',
         lineWidthUnits: 'pixels',
         getPosition: d => [d.coordinate[0], -d.coordinate[1], 0],
-        getFillColor: darkGray,
+        getFillColor: lightGray,
         getLineColor: [60, 60, 60],
         getRadius: d => {
-          if (d.qryId === qryAnchorSetFocus && d.refId === refAnchorSetFocus) {
-            return 5;
-          }
-          return 5;
+          return 6;
         },
         getLineWidth: d => 0,
         updateTriggers: {
@@ -1054,11 +1051,12 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
           getRadius: [qryAnchorSetFocus, refAnchorSetFocus],
         },
       }),
+      // Line endpoints
       new ScatterplotLayer({
         id: 'anchor-endpoints-middle',
         data: [
-          ...anchorLinks.map(d => ({ coordinate: d.qry, type: 'qry', id: d.qryId })),
-          ...anchorLinks.map(d => ({ coordinate: d.ref, type: 'ref', id: d.refId })),
+          ...anchorLinks.map(d => ({ coordinate: d.qry, type: 'qry' })),
+          ...anchorLinks.map(d => ({ coordinate: d.ref, type: 'ref' })),
         ],
         visible: anchorLinksVisible,
         pickable: false,
@@ -1072,17 +1070,18 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         radiusUnits: 'pixels',
         lineWidthUnits: 'pixels',
         getPosition: d => [d.coordinate[0], -d.coordinate[1], 0],
-        getFillColor: d => d.type === 'qry' ? darkGray : lightGray,
+        getFillColor: darkGray,
         getLineColor: [60, 60, 60],
         getRadius: d => {
           if (d.qryId === qryAnchorSetFocus && d.refId === refAnchorSetFocus) {
-            return 3;
+            return 4;
           }
-          return 3;
+          return 4;
         },
         getLineWidth: d => 0,
         updateTriggers: {
-          getFillColor: [qryAnchorSetFocus, refAnchorSetFocus, qryAnchorSetHighlight, refAnchorSetHighlight],
+          getLineWidth: [qryAnchorSetFocus, refAnchorSetFocus],
+          getRadius: [qryAnchorSetFocus, refAnchorSetFocus],
         },
       }),
       // Line endpoints

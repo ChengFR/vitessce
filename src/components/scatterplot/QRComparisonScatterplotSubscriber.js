@@ -487,10 +487,13 @@ export default function QRComparisonScatterplotSubscriber(props) {
   const qryCellsCount = qryCellsIndex?.length;
   const refCellsCount = refCellsIndex?.length;
 
+  const qryCellsCountNice = qryCellsCount ? (qryCellsCount).toLocaleString("en-US") : "";
+  const refCellsCountNice = refCellsCount ? (refCellsCount).toLocaleString("en-US") : "";
+
   return (
     <TitleInfo
       title={title}
-      info={isMainComparisonView ? `${qryCellsCount} ${pluralize('query cell', 'query cells', qryCellsCount)}, ${refCellsCount} ${pluralize('reference cell', 'reference cells', refCellsCount)}` : ''}
+      info={isMainComparisonView ? `${qryCellsCountNice} ${pluralize('query cell', 'query cells', qryCellsCount)}, ${refCellsCountNice} ${pluralize('reference cell', 'reference cells', refCellsCount)}` : ''}
       removeGridComponent={removeGridComponent}
       urls={urls}
       theme={theme}

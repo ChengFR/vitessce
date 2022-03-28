@@ -34,7 +34,11 @@ function QRGeneList(props) {
       <div className='qrTopGeneHeader'>{header}</div>
       {geneList.map(gene =>
         SignificanceIcon({
-          geneName: gene.name, score: gene.score, xScale,
+          geneName: gene.name,
+          score: gene.score,
+          ranking: gene.ranking,
+          header,
+          xScale,
           onClick: () => setGeneSelection([gene.name])
         })
       )}
@@ -43,7 +47,16 @@ function QRGeneList(props) {
 }
 
 function SignificanceIcon(props) {
-  const { score, geneName, xScale, onClick } = props;
+  const { score, ranking, header, geneName, xScale, onClick } = props;
+
+  let rankingText = '';
+  if(header === 'Shared') {
+    rankingText = `(${ranking.qry} | ${ranking.ref})`;
+  } else if(header === 'Query') {
+    rankingText = `(${ranking.qry})`;
+  } else if(header === 'Reference') {
+    rankingText = `(${ranking.ref})`;
+  }
 
   return (<div className="iconContainer" onClick={onClick}>
 
@@ -57,7 +70,7 @@ function SignificanceIcon(props) {
       <div className={`geneIconRef`} style={{
         width: xScale(score.ref)
       }} />
-      <div className="geneName">{geneName}</div>
+      <div className="geneName">{geneName} {rankingText}</div>
     </div>
   </div>);
 }

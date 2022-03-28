@@ -1032,6 +1032,10 @@ export function useProcessedAnchorSets(
               qry: qryClusterTopGeneNames.includes(name),
               ref: refClusterTopGeneNames.includes(name),
             })),
+            rankings: topGeneNames.map(name => ({
+              qry: (qryClusterAllGeneNames.indexOf(name) + 1), // convert to 1-indexed?
+              ref: (refClusterAllGeneNames.indexOf(name) + 1), // convert to 1-indexed?
+            })),
             latentDist: anchorObj.anchor_dist_median,
             numCells: anchorObj.cells.length,
             predictionProportions: predictionPaths.map(path => {
@@ -1185,11 +1189,12 @@ export function useSeperatedGenes(anchor) {
   const seperatedGenes = useMemo(() => {
     const seperatedGenes = { shared: [], ref: [], qry: [] };
     if (anchor) {
-      const { names, scores, significances } = anchor;
+      const { names, scores, significances, rankings } = anchor;
       significances.forEach((sig, i) => {
         const geneInfo = {
           name: names[i],
-          score: scores[i]
+          score: scores[i],
+          ranking: rankings[i],
         };
         if (sig.qry && sig.ref) {
           seperatedGenes.shared.push(geneInfo)
