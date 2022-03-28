@@ -49,7 +49,7 @@ export default function QRScoresSubscriber(props) {
     coordinationScopes,
     removeGridComponent,
     theme,
-    title = 'Top Genes',
+    title = 'Markers View',
   } = props;
 
   const loaders = useLoaders();
@@ -172,9 +172,11 @@ export default function QRScoresSubscriber(props) {
     );
   }, [anchorFocused]);
 
+  const titleWithFocusedSet = `${title} ${(anchorFocused ? '(' + anchorFocused.id + ')' : '')}`;
+
   return (
     <TitleInfo
-      title={title}
+      title={titleWithFocusedSet}
       removeGridComponent={removeGridComponent}
       theme={theme}
       isReady={isReady}

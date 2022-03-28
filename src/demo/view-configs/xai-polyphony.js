@@ -1,7 +1,9 @@
 /* eslint-disable */
 import { vapi } from '../utils';
 
-const zarrPath = 'http://localhost:7777/files/zarr/case-3';
+const experiment = 'pancreas_easy';
+
+const zarrPath = `http://localhost:7777/files/zarr/${experiment}`;
 // const zarrPath = 'http://3.86.7.210:8080/files/zarr';
 const apiRoot = 'http://localhost:7777/api';
 // const apiRoot = 'http://3.86.7.210:8080/api';

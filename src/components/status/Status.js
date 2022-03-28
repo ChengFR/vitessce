@@ -151,7 +151,7 @@ export default function Status(props) {
 
   return (
     <div className="qrStatus">
-      <div className="qrStatusCompletion">
+      {/*<div className="qrStatusCompletion">
         <CircularProgressWithLabel value={progress} />
         <Box position="relative" display="inline-flex">
           <span className="qrStatusCompletionInfo">
@@ -160,6 +160,9 @@ export default function Status(props) {
             )}
           </span>
         </Box>
+      </div>*/}
+      <div className="systemTitle">
+        <span>Polyphony</span>
       </div>
       <div className="qrStatusMode">
         <Tabs

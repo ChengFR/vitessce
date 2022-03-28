@@ -227,7 +227,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
           ],
           pattern: true,
           getFillPattern: () => "hatch-cross",
-          getFillPatternScale: 200,
+          getFillPatternScale: 350,
         }))
       });
     }
@@ -424,7 +424,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         },
         pattern: true,
         getFillPattern: () => "hatch-cross",
-        getFillPatternScale: 200,
+        getFillPatternScale: 350,
       })
     });
   }

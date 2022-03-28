@@ -11,9 +11,13 @@ import ArrowDropDown from '@material-ui/icons/ArrowDropDown';
 import MoreVert from '@material-ui/icons/MoreVert';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
-import { Divider, CircularProgress } from '@material-ui/core';
 import Sort from '@material-ui/icons/Sort'
 import ArrowDownwardIcon from '@material-ui/icons/ArrowDownward';
+import Divider from '@material-ui/core/Divider';
+import CircularProgress from '@material-ui/core/CircularProgress';
+
+import { ReactComponent as RadixSortSVG } from '../../assets/qr/radix_sort.svg';
+import { ReactComponent as FASortSVG } from '../../assets/qr/fontawesome_sort.svg';
 
 const useStyles = makeStyles((theme) => ({
   arrowButtonRoot: {
@@ -251,16 +255,15 @@ export default function QRCellSetsManager(props) {
             <div className="qrCellSetsTableHead colName"></div>
             <div className="qrCellSetsTableHead colPrediction">
               <span className="qrCellSetsTableHeadText">Prediction</span>
-              {/* <FilterAltIcon></FilterAltIcon> */}
-              <ArrowDownwardIcon></ArrowDownwardIcon>
+              <span className="qrCellSetsTableHeadSort"><RadixSortSVG /></span>
             </div>
             <div className="qrCellSetsTableHead colSimilarity">
               <span className="qrCellSetsTableHeadText">Distance</span>
-              <ArrowDownwardIcon></ArrowDownwardIcon>
+              <span className="qrCellSetsTableHeadSort"><RadixSortSVG /></span>
             </div>
             <div className="qrCellSetsTableHead colTopGenes">
               <span className="qrCellSetsTableHeadText">Top Gene</span>
-              <ArrowDownwardIcon></ArrowDownwardIcon>
+              <span className="qrCellSetsTableHeadSort"><RadixSortSVG /></span>
             </div>
             <div className="qrCellSetsTableHead colEdit"></div>
           </div>

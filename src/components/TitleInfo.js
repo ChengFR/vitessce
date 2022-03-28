@@ -150,7 +150,7 @@ export default function TitleInfo(props) {
           />*/}
         </div>
       </div>
-      <div className={`${childClassName} ${extraClassName}`}>
+      <div className={`${childClassName} ${extraClassName} ${(title === 'Polyphony' ? 'status-card' : '')}`}>
         { !isReady && <LoadingIndicator /> }
         {children}
       </div>

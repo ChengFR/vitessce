@@ -995,7 +995,7 @@ export function useProcessedAnchorSets(
       const predictionNode = qryCellSets.tree.find(n => n.name === parentKey);
       const predictionPaths = predictionNode.children.map(n => ([parentKey, n.name]));
 
-      const NUM_GENES = 100;
+      const NUM_GENES = 20;
 
       const result = {};
       Object.keys(anchors).forEach(anchorType => {
