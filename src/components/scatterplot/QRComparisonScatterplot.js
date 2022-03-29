@@ -3,6 +3,7 @@ import React, { forwardRef } from 'react';
 import { COORDINATE_SYSTEM } from '@deck.gl/core'; // eslint-disable-line import/no-extraneous-dependencies
 import { PolygonLayer, TextLayer, ScatterplotLayer, PointCloudLayer, LineLayer } from '@deck.gl/layers'; // eslint-disable-line import/no-extraneous-dependencies
 import { HeatmapLayer } from '@deck.gl/aggregation-layers'; // eslint-disable-line import/no-extraneous-dependencies
+import { DataFilterExtension } from '@deck.gl/extensions';
 import ContourLayer from '../../layers/contour/ContourLayer';
 
 import { forceSimulation } from 'd3-force';
@@ -93,11 +94,13 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
     this.refHeatmapLayers = [];
     this.refContourLayers = [];
     this.refScatterplotLayer = null;
+    this.refScatterplotHighlightLayer = null;
     this.refContourFocusLayers = [];
     this.refContourHighlightLayers = [];
     this.qryHeatmapLayers = [];
     this.qryContourLayers = [];
     this.qryScatterplotLayer = null;
+    this.qryScatterplotHighlightLayer = null;
     this.qryContourFocusLayers = [];
     this.qryContourHighlightLayers = [];
 
@@ -432,6 +435,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
   createRefScatterplotLayer() {
     const { refCellsEntries: cellsEntries } = this;
     const {
+      refAnchorSetHighlight,
       refAnchorHighlightIndices,
       refAnchorFocusIndices,
       refCellsVisible,
@@ -478,7 +482,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       autoHighlight: false,
       stroked: true,
       filled: true,
-      opacity: cellOpacity,
+      opacity: (refAnchorSetHighlight === null ? cellOpacity : 0.1),
       radiusScale: cellRadius, // TODO: fix upstream
       radiusMinPixels: 1,
       radiusMaxPixels: 30,
@@ -512,7 +516,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         }
         return 0;
       },
-      getFillColor: (cellColorEncoding === 'dataset' ? QR_COLORS.refScatterplotByDataset : getFadedCellColor),
+      getFillColor: (cellColorEncoding === 'dataset' ? QR_COLORS.refScatterplotByDataset : getCellColor),
       getExpressionValue,
       colorScaleLo: geneExpressionColormapRange[0],
       colorScaleHi: geneExpressionColormapRange[1],
@@ -525,6 +529,94 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       },
       extensions: [
         new ScaledExpressionExtension(),
+      ],
+      updateTriggers: {
+        getExpressionValue,
+        getFillColor: [cellColorEncoding, cellSelection, refCellColors],
+        getLineColor: [cellColorEncoding, cellSelection, refCellColors],
+        getRadius: [refAnchorFocusIndices, refAnchorHighlightIndices],
+        getLineWidth: [refAnchorFocusIndices, refAnchorHighlightIndices],
+        getCellIsSelected,
+      },
+    });
+  }
+
+  createRefScatterplotHighlightLayer() {
+    const { refCellsEntries: cellsEntries } = this;
+    const {
+      refAnchorHighlightIndices,
+      refAnchorFocusIndices,
+      refCellsVisible,
+      refCellEncoding,
+      theme,
+      cellRadius = 1.0,
+      cellOpacity = 1.0,
+      cellFilter,
+      cellSelection,
+      setCellHighlight,
+      setComponentHover,
+      getCellIsSelected,
+      refCellsIndex,
+      refCellColors,
+      getCellColor = makeDefaultGetCellColors(refCellColors, refCellsIndex, theme),
+      getRefExpressionValue: getExpressionValue,
+      onCellClick,
+      geneExpressionColormap,
+      geneExpressionColormapRange = [0.0, 1.0],
+      refCellColorEncoding: cellColorEncoding,
+    } = this.props;
+    return new ScatterplotLayer({
+      id: `${REF_LAYER_ID}-scatterplot-highlight`,
+      coordinateSystem: COORDINATE_SYSTEM.CARTESIAN,
+      data: {
+        src: cellsEntries.data,
+        length: cellsEntries.shape[1]
+      },
+      visible: (refCellsVisible && (refCellEncoding === 'scatterplot' || refCellEncoding === 'scatterplot-and-contour')),
+      opacity: 1.0,
+      pickable: false,
+      autoHighlight: false,
+      stroked: true,
+      filled: true,
+      radiusScale: cellRadius, // TODO: fix upstream
+      radiusMinPixels: 1,
+      radiusMaxPixels: 30,
+      // Reference: http://pessimistress.github.io/deck.gl/docs/api-reference/core/layer#getpolygonoffset
+      getPolygonOffset: () => ([0, -91]), // TODO: determine optimal value
+      // Our radius pixel setters measure in pixels.
+      radiusUnits: 'pixels',
+      lineWidthUnits: 'pixels',
+      getPosition: (object, { index, data, target }) => {
+        target[0] = data.src[0][index];
+        target[1] = -data.src[1][index];
+        target[2] = 0;
+        return target;
+      },
+      getLineColor: [211, 211, 211],
+      getRadius: (object, { index }) => {
+        return 2;
+      },
+      getLineWidth: (object, { index }) => {
+        return 1;
+      },
+      getFillColor: (cellColorEncoding === 'dataset' ? QR_COLORS.refScatterplotByDataset : getCellColor),
+      getExpressionValue,
+      colorScaleLo: geneExpressionColormapRange[0],
+      colorScaleHi: geneExpressionColormapRange[1],
+      isExpressionMode: (cellColorEncoding === 'geneSelection'),
+      colormap: geneExpressionColormap,
+      filterRange: [1, 1],
+      getFilterValue: (object, { index }) => {
+        return (refAnchorHighlightIndices && refAnchorHighlightIndices.includes(index) ? 1 : 0);
+      },
+      onClick: (info) => {
+        if (onCellClick) {
+          onCellClick(info);
+        }
+      },
+      extensions: [
+        new ScaledExpressionExtension(),
+        new DataFilterExtension({ filterSize: 1 })
       ],
       updateTriggers: {
         getExpressionValue,
@@ -834,6 +926,98 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
   createQryScatterplotLayer() {
     const { qryCellsEntries: cellsEntries } = this;
     const {
+      qryAnchorSetHighlight,
+      refAnchorSetHighlight,
+      qryAnchorHighlightIndices,
+      qryAnchorFocusIndices,
+      qryCellsVisible,
+      qryCellEncoding,
+      theme,
+      cellRadius = 1.0,
+      cellOpacity = 1.0,
+      cellSelection,
+      setCellHighlight,
+      setComponentHover,
+      getCellIsSelected,
+      qryCellsIndex,
+      qryCellColors,
+      getCellColor = makeDefaultGetCellColors(qryCellColors, qryCellsIndex, theme),
+      getQryExpressionValue: getExpressionValue,
+      onCellClick,
+      geneExpressionColormap,
+      geneExpressionColormapRange = [0.0, 1.0],
+      qryCellColorEncoding: cellColorEncoding,
+    } = this.props;
+
+    return new ScatterplotLayer({
+      id: QRY_LAYER_ID,
+      coordinateSystem: COORDINATE_SYSTEM.CARTESIAN,
+      data: {
+        src: cellsEntries.data,
+        length: cellsEntries.shape[1]
+      },
+      visible: (qryCellsVisible && (qryCellEncoding === 'scatterplot' || qryCellEncoding === 'scatterplot-and-contour')),
+      pickable: true,
+      autoHighlight: true,
+      stroked: true,
+      filled: true,
+      opacity: (qryAnchorSetHighlight === null ? cellOpacity : 0.1),
+      radiusScale: cellRadius, // TODO: fix upstream
+      radiusMinPixels: 1,
+      radiusMaxPixels: 30,
+      // Reference: http://pessimistress.github.io/deck.gl/docs/api-reference/core/layer#getpolygonoffset
+      getPolygonOffset: () => ([0, -100]), // TODO: determine optimal value
+      // Our radius pixel setters measure in pixels.
+      radiusUnits: 'pixels',
+      lineWidthUnits: 'pixels',
+      getPosition: (object, { index, data, target }) => {
+        target[0] = data.src[0][index];
+        target[1] = -data.src[1][index];
+        target[2] = 0;
+        return target;
+      },
+      getFillColor: (cellColorEncoding === 'dataset' ? QR_COLORS.qryScatterplotByDataset : getCellColor),
+      getLineColor: [105, 105, 105],
+      getRadius: (object, { index }) => {
+        if (qryAnchorFocusIndices && qryAnchorFocusIndices.includes(index)) {
+          return 2;
+        }
+        return 1;
+      },
+      getLineWidth: (object, { index }) => {
+        if (qryAnchorFocusIndices && qryAnchorFocusIndices.includes(index)) {
+          return 1;
+        }
+        return 0;
+      },
+      getExpressionValue,
+      colorScaleLo: geneExpressionColormapRange[0],
+      colorScaleHi: geneExpressionColormapRange[1],
+      isExpressionMode: (cellColorEncoding === 'geneSelection'),
+      colormap: geneExpressionColormap,
+      onClick: (info) => {
+        if (onCellClick) {
+          onCellClick(info);
+        }
+      },
+      extensions: [
+        new ScaledExpressionExtension(),
+      ],
+      updateTriggers: {
+        getExpressionValue,
+        getFillColor: [cellColorEncoding, cellSelection, qryCellColors],
+        getLineColor: [cellColorEncoding, cellSelection, qryCellColors],
+        getRadius: [qryAnchorFocusIndices, qryAnchorHighlightIndices],
+        getLineWidth: [qryAnchorFocusIndices, qryAnchorHighlightIndices],
+        getCellIsSelected,
+      },
+    });
+  }
+
+  createQryScatterplotHighlightLayer() {
+    const { qryCellsEntries: cellsEntries } = this;
+    const {
+      qryAnchorSetHighlight,
       qryAnchorHighlightIndices,
       qryAnchorFocusIndices,
       qryCellsVisible,
@@ -858,34 +1042,24 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
     const filteredCellsEntries = (cellFilter
       ? cellsEntries.filter(cellEntry => cellFilter.includes(cellEntry[0]))
       : cellsEntries);
-    const getFadedCellColor = (cellEntry, { index }) => {
-      const [r, g, b, a] = getCellColor(cellEntry, { index });
-      if (qryAnchorHighlightIndices && !qryAnchorHighlightIndices.includes(index)) {
-        return [r, g, b, 0.5 * 255];
-      }
-      if (qryAnchorFocusIndices && !qryAnchorFocusIndices.includes(index)) {
-        return [r, g, b, 0.5 * 255];
-      }
-      return [r, g, b, a];
-    }
     return new ScatterplotLayer({
-      id: QRY_LAYER_ID,
+      id: `${QRY_LAYER_ID}-scatterplot-highlight`,
       coordinateSystem: COORDINATE_SYSTEM.CARTESIAN,
       data: {
         src: cellsEntries.data,
         length: cellsEntries.shape[1]
       },
-      visible: (qryCellsVisible && (qryCellEncoding === 'scatterplot' || qryCellEncoding === 'scatterplot-and-contour')),
-      pickable: true,
+      visible: (qryAnchorSetHighlight !== null && qryCellsVisible && (qryCellEncoding === 'scatterplot' || qryCellEncoding === 'scatterplot-and-contour')),
+      opacity: 1.0,
+      pickable: false,
       autoHighlight: true,
       stroked: true,
       filled: true,
-      opacity: cellOpacity,
       radiusScale: cellRadius, // TODO: fix upstream
       radiusMinPixels: 1,
       radiusMaxPixels: 30,
       // Reference: http://pessimistress.github.io/deck.gl/docs/api-reference/core/layer#getpolygonoffset
-      getPolygonOffset: () => ([0, -100]), // TODO: determine optimal value
+      getPolygonOffset: () => ([0, -101]), // TODO: determine optimal value
       // Our radius pixel setters measure in pixels.
       radiusUnits: 'pixels',
       lineWidthUnits: 'pixels',
@@ -895,31 +1069,23 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         target[2] = 0;
         return target;
       },
-      getFillColor: (cellColorEncoding === 'dataset' ? QR_COLORS.qryScatterplotByDataset : getFadedCellColor),
+      getFillColor: (cellColorEncoding === 'dataset' ? QR_COLORS.qryScatterplotByDataset : getCellColor),
       getLineColor: [105, 105, 105],
       getRadius: (object, { index }) => {
-        if (qryAnchorHighlightIndices && qryAnchorHighlightIndices.includes(index)) {
-          return 2;
-        }
-        if (qryAnchorFocusIndices && qryAnchorFocusIndices.includes(index)) {
-          return 2;
-        }
-        return 1;
+        return 2;
       },
       getLineWidth: (object, { index }) => {
-        if (qryAnchorHighlightIndices && qryAnchorHighlightIndices.includes(index)) {
-          return 1;
-        }
-        if (qryAnchorFocusIndices && qryAnchorFocusIndices.includes(index)) {
-          return 1;
-        }
-        return 0;
+        return 1;
       },
       getExpressionValue,
       colorScaleLo: geneExpressionColormapRange[0],
       colorScaleHi: geneExpressionColormapRange[1],
       isExpressionMode: (cellColorEncoding === 'geneSelection'),
       colormap: geneExpressionColormap,
+      filterRange: [1, 1],
+      getFilterValue: (object, { index }) => {
+        return (qryAnchorHighlightIndices && qryAnchorHighlightIndices.includes(index) ? 1 : 0);
+      },
       onClick: (info) => {
         if (onCellClick) {
           onCellClick(info);
@@ -927,6 +1093,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       },
       extensions: [
         new ScaledExpressionExtension(),
+        new DataFilterExtension({ filterSize: 1 })
       ],
       updateTriggers: {
         getExpressionValue,
@@ -1218,11 +1385,13 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       refHeatmapLayers,
       refContourLayers,
       refScatterplotLayer,
+      refScatterplotHighlightLayer,
       refContourFocusLayers,
       refContourHighlightLayers,
       qryHeatmapLayers,
       qryContourLayers,
       qryScatterplotLayer,
+      qryScatterplotHighlightLayer,
       qryContourFocusLayers,
       qryContourHighlightLayers,
       //cellSetsLayers,
@@ -1235,7 +1404,8 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
 
       // ...qryContourHighlightLayers,
       // ...refContourHighlightLayers,
-
+      qryScatterplotHighlightLayer,
+      refScatterplotHighlightLayer,
       qryScatterplotLayer,
       refScatterplotLayer,
       ...qryHeatmapLayers,
@@ -1310,6 +1480,12 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
     }
   }
 
+  onUpdateQryScatterplotHighlightLayer() {
+    if (this.qryCellsEntries.data) {
+      this.qryScatterplotHighlightLayer = this.createQryScatterplotHighlightLayer();
+    }
+  }
+
   onUpdateRefHeatmapLayer() {
     if (this.refCellsEntries.data && this.props.refContour) {
       this.refHeatmapLayers = this.createRefHeatmapLayers();
@@ -1325,6 +1501,12 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
   onUpdateRefScatterplotLayer() {
     if (this.refCellsEntries.data) {
       this.refScatterplotLayer = this.createRefScatterplotLayer();
+    }
+  }
+
+  onUpdateRefScatterplotHighlightLayer() {
+    if (this.refCellsEntries.data) {
+      this.refScatterplotHighlightLayer = this.createRefScatterplotHighlightLayer();
     }
   }
 
@@ -1437,17 +1619,21 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
     }
 
     if ([
+      'qryAnchorSetHighlight',
       'qryAnchorFocusIndices', 'qryAnchorHighlightIndices',
     ].some(shallowDiff)) {
       // Cells layer props changed.
       this.onUpdateQryScatterplotLayer();
+      this.onUpdateQryScatterplotHighlightLayer();
       this.forceUpdate();
     }
     if ([
+      'refAnchorSetHighlight',
       'refAnchorFocusIndices', 'refAnchorHighlightIndices',
     ].some(shallowDiff)) {
       // Cells layer props changed.
       this.onUpdateRefScatterplotLayer();
+      this.onUpdateRefScatterplotHighlightLayer();
       this.forceUpdate();
     }
 
