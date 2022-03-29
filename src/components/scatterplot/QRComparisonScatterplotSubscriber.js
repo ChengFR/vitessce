@@ -154,7 +154,7 @@ export default function QRComparisonScatterplotSubscriber(props) {
   //const [refAnchorMatrix, refAnchorMatrixStatus] = useAnnDataDynamic(loaders, refDataset, refOptions?.anchorMatrix?.path, 'columnNumeric', modelIteration, setItemIsReady, false);
 
   // Anchor cluster
-  //const [qryAnchorCluster, qryAnchorClusterStatus] = useAnnDataDynamic(loaders, qryDataset, qryOptions?.features?.anchorCluster?.path, 'columnString', modelIteration, setItemIsReady, false);
+  const [qryAnchorCluster, qryAnchorClusterStatus] = useAnnDataDynamic(loaders, qryDataset, qryOptions?.features?.anchorCluster?.path, 'columnString', modelIteration, setItemIsReady, false);
   const [refAnchorCluster, refAnchorClusterStatus] = useAnnDataDynamic(loaders, refDataset, refOptions?.features?.anchorCluster?.path, 'columnString', modelIteration, setItemIsReady, false);
   //const [qryAnchorDist, qryAnchorDistStatus] = useAnnDataDynamic(loaders, qryDataset, qryOptions?.features?.anchorDist?.path, 'columnNumeric', modelIteration, setItemIsReady, false);
 
@@ -189,7 +189,7 @@ export default function QRComparisonScatterplotSubscriber(props) {
     qryIndicesStatus, refIndicesStatus,
     anchorsStatus,
     refCellTypeStatus, qryPredictionStatus,
-    refAnchorClusterStatus,
+    qryAnchorClusterStatus, refAnchorClusterStatus,
     qryEmbeddingStatus, refEmbeddingStatus,
     qryExpressionDataStatus, qryAttrsStatus,
     refExpressionDataStatus, refAttrsStatus,
@@ -486,14 +486,17 @@ export default function QRComparisonScatterplotSubscriber(props) {
   }, [xRange, yRange, xExtent, yExtent, numCells, qryValues.embeddingType,
     width, height, averageFillDensity, modelIteration]);
 
-  const getQryCellInfo = useCallback((cellId) => {
-    //const cellInfo = qryCells[cellId];
-    const cellInfo = {};
+  const getQryCellInfo = useCallback((cellIndex) => {
     return {
-      [`${capitalize(observationsLabel)} ID`]: cellId,
-      ...(cellInfo ? cellInfo.factors : {}),
+      [`Cell ID`]: qryCellsIndex[cellIndex],
     };
-  }, [observationsLabel]);
+  }, [qryCellsIndex]);
+
+  const setQryCellHighlight = useCallback((cellIndex) => {
+    qrySetters.setCellHighlight(cellIndex);
+    //console.log(cellIndex);
+    //console.log(qryAnchorCluster[cellIndex]);
+  }, [qryAnchorCluster]);
 
   const cellSelectionSet = useMemo(() => new Set(qryCellSelection), [qryCellSelection]);
   const getCellIsSelected = useCallback(cellEntry => (
@@ -629,7 +632,8 @@ export default function QRComparisonScatterplotSubscriber(props) {
         cellSetPolygonsVisible={qryValues.embeddingCellSetPolygonsVisible}
         setCellFilter={qrySetters.setCellFilter}
         setCellSelection={setQryCellSelectionProp}
-        setCellHighlight={qrySetters.setCellHighlight}
+        setQryCellHighlight={setQryCellHighlight}
+        setRefCellHighlight={refSetters.setCellHighlight}
         cellRadius={cellRadius}
         cellOpacity={cellOpacity}
         refCellColorEncoding={refValues.cellColorEncoding}
@@ -673,13 +677,13 @@ export default function QRComparisonScatterplotSubscriber(props) {
         refAnchorSetHighlightContour={refAnchorSetHighlightContour}
       />
       {!disableTooltip && (
-      <ScatterplotTooltipSubscriber
-        parentUuid={uuid}
-        cellHighlight={qryValues.cellHighlight}
-        width={width}
-        height={height}
-        getCellInfo={getQryCellInfo}
-      />
+        <ScatterplotTooltipSubscriber
+          parentUuid={uuid}
+          cellHighlight={qryValues.cellHighlight}
+          width={width}
+          height={height}
+          getCellInfo={getQryCellInfo}
+        />
       )}
       <FocusInfo
         qryAnchorSetFocus={qryAnchorSetFocus}

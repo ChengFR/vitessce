@@ -17,6 +17,8 @@ import AbstractSpatialOrScatterplot from '../shared-spatial-scatterplot/Abstract
 import { forceCollideRects } from '../shared-spatial-scatterplot/force-collide-rects';
 import { ScaledExpressionExtension, SelectionExtension } from '../../layer-extensions';
 import { Matrix4 } from "@math.gl/core";
+import { interpolateReds } from "d3-scale-chromatic";
+import { color } from "d3-color";
 
 const REF_LAYER_ID = 'ref-scatterplot';
 const QRY_LAYER_ID = 'qry-scatterplot';
@@ -936,7 +938,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       cellRadius = 1.0,
       cellOpacity = 1.0,
       cellSelection,
-      setCellHighlight,
+      setQryCellHighlight,
       setComponentHover,
       getCellIsSelected,
       qryCellsIndex,
@@ -999,6 +1001,9 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         if (onCellClick) {
           onCellClick(info);
         }
+      },
+      onHover: (info, event) => {
+        setQryCellHighlight(info.index);
       },
       extensions: [
         new ScaledExpressionExtension(),
@@ -1151,6 +1156,14 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
 
     const darkerGray = [111, 111, 111, 255]; // for focus and highlight
 
+    const topGeneScoreToColor = (d) => {
+      if(linksSizeEncoding) {
+        const redColor = color(interpolateReds((100 - d.topGeneScore) / 120));
+        return [redColor.r, redColor.g, redColor.b, 255];
+      }
+      return lightGray;
+    };
+
 
     return [
       // Lines
@@ -1163,16 +1176,17 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         widthScale: 1,
         getWidth: d => {
           if(linksSizeEncoding) {
-            return (d.topGeneScore / 100) * 4 + 4;
+            return ((100 - d.topGeneScore) / 100) * 10;
           }
           return 6;
         },
         getPolygonOffset: () => ([0, -200]),
         getSourcePosition: d => [d.qry[0], -d.qry[1]],
         getTargetPosition: d => [d.ref[0], -d.ref[1]],
-        getColor: d => lightGray,
+        getColor: topGeneScoreToColor,
         updateTriggers: {
           getWidth: [linksSizeEncoding],
+          getColor: [linksSizeEncoding],
         },
       }),
       new LineLayer({
@@ -1183,6 +1197,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         widthUnits: 'pixels',
         widthScale: 1,
         getWidth: d => {
+          return 2;
           if(linksSizeEncoding) {
             return (d.topGeneScore / 100) * 4 + 1;
           }
@@ -1208,8 +1223,8 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       new ScatterplotLayer({
         id: 'anchor-endpoints-outer',
         data: [
-          ...anchorLinks.map(d => ({ coordinate: d.qry, type: 'qry', numCells: d.qrySize })),
-          ...anchorLinks.map(d => ({ coordinate: d.ref, type: 'ref', numCells: d.refSize })),
+          ...anchorLinks.map(d => ({ coordinate: d.qry, type: 'qry', numCells: d.qrySize, topGeneScore: d.topGeneScore })),
+          ...anchorLinks.map(d => ({ coordinate: d.ref, type: 'ref', numCells: d.refSize, topGeneScore: d.topGeneScore })),
         ],
         visible: anchorLinksVisible,
         pickable: false,
@@ -1223,11 +1238,11 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         radiusUnits: 'pixels',
         lineWidthUnits: 'pixels',
         getPosition: d => [d.coordinate[0], -d.coordinate[1], 0],
-        getFillColor: lightGray,
+        getFillColor: topGeneScoreToColor,
         getLineColor: [60, 60, 60],
         getRadius: d => {
           if(linksSizeEncoding) {
-            return d.numCells / (d.type === 'qry' ? maxQryAnchorSize : maxRefAnchorSize) * 10 + 2;
+            return d.numCells / (d.type === 'qry' ? maxQryAnchorSize : maxRefAnchorSize) * 16 + 2;
           }
           return 6;
         },
@@ -1235,6 +1250,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         updateTriggers: {
           getLineWidth: [qryAnchorSetFocus, refAnchorSetFocus],
           getRadius: [qryAnchorSetFocus, refAnchorSetFocus, linksSizeEncoding, maxQryAnchorSize, maxRefAnchorSize],
+          getFillColor: [linksSizeEncoding],
         },
       }),
       new ScatterplotLayer({
@@ -1258,10 +1274,10 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         getFillColor: darkGray,
         getLineColor: [60, 60, 60],
         getRadius: d => {
+          return 4;
           if(linksSizeEncoding) {
             return d.numCells / (d.type === 'qry' ? maxQryAnchorSize : maxRefAnchorSize) * 8 + 2;
           }
-          return 4;
         },
         getLineWidth: d => 0,
         updateTriggers: {
@@ -1290,10 +1306,10 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         getFillColor: d => d.type === 'qry' ? darkGray : lightGray,
         getLineColor: [60, 60, 60],
         getRadius: d => {
+          return 2;
           if(linksSizeEncoding) {
             return d.numCells / (d.type === 'qry' ? maxQryAnchorSize : maxRefAnchorSize) * 4 + 2;
           }
-          return 2;
         },
         getLineWidth: d => {
           if (d.qryId === qryAnchorSetFocus && d.refId === refAnchorSetFocus) {
@@ -1572,24 +1588,19 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
 
   viewInfoDidUpdate() {
     const {
-      qryCells: cells,
-      qryMapping: mapping,
-      getCellPosition = makeDefaultGetCellPosition(mapping, 0),
       updateViewInfo,
       uuid,
+      qryCellsIndex,
     } = this.props;
-    const { viewport } = this;
-
-    // TODO(scXAI): update
-    const getCellCoords = cell => getCellPosition([null, cell]);
+    const { viewport, qryCellsEntries } = this;
 
     if (updateViewInfo && viewport) {
       updateViewInfo({
         uuid,
-        project: (cellId) => {
-          const cell = cells[cellId];
+        project: (cellIndex) => {
           try {
-            const [positionX, positionY] = getCellCoords(cell);
+            const positionX = qryCellsEntries.data[0][cellIndex];
+            const positionY = -qryCellsEntries.data[1][cellIndex];
             return viewport.project([positionX, positionY]);
           } catch (e) {
             return [null, null];

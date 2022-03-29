@@ -227,7 +227,7 @@ export default function QRComparisonScatterplotOptions(props) {
       </TableRow>
       <TableRow>
         <TableCell className={classes.labelCell}>
-          Query-Reference Links Size Encoding
+          Query-Reference Links Size and Color Encoding
         </TableCell>
         <TableCell className={classes.inputCell}>
           <Checkbox

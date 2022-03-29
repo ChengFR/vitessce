@@ -44,7 +44,7 @@ export default function Tooltip2D(props) {
         </Tooltip>
       ) : (
         <>
-          {x !== null ? (
+          {x !== null && false ? (
             <div
               className="cell-emphasis-crosshair"
               style={{
@@ -55,7 +55,7 @@ export default function Tooltip2D(props) {
               }}
             />
           ) : null}
-          {y !== null ? (
+          {y !== null && false ? (
             <div
               className="cell-emphasis-crosshair"
               style={{
