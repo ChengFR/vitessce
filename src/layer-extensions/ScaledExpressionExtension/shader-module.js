@@ -22,6 +22,10 @@ const vs = glsl`
 #pragma glslify: summer = require("glsl-colormap/summer")
 #pragma glslify: autumn = require("glsl-colormap/autumn")
 #pragma glslify: winter = require("glsl-colormap/winter")
+#pragma glslify: bluered = require("glsl-colormap/bluered")
+#pragma glslify: rdbu = require("glsl-colormap/rdbu")
+#pragma glslify: picnic = require("glsl-colormap/picnic")
+#pragma glslify: portland = require("glsl-colormap/portland")
 
 // Custom attributes for Vitessce:
 attribute float expressionValue;

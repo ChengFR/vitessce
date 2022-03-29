@@ -1,35 +1,24 @@
 /* eslint-disable */
 import React, { useMemo } from 'react';
 import { scaleSequential } from "d3-scale";
-import { interpolateViridis, interpolatePlasma } from "d3-scale-chromatic";
+import { interpolateViridis, interpolatePlasma, interpolateRdBu, interpolateCool } from "d3-scale-chromatic";
 import { interpolate, quantize, interpolateRgb, piecewise } from "d3-interpolate";
 import { rgb } from "d3-color";
 import every from 'lodash/every';
+import colormaps from 'colormap/colorScale';
 
 const QRY_COLOR = [120, 120, 120];
 const REF_COLOR = [201, 201, 201];
 
 // Reference: https://observablehq.com/@mjmdavis/color-encoding
-const interpolateJet = () => {
-  //The steps in the jet colorscale
-  const jet_data_lin = [
-    [0,0,0.5],
-    [0,0,1],
-    [0,0.5,1],
-    [0,1,1],
-    [0.5,1,0.5],
-    [1,1,0],
-    [1,0.5,0],
-    [1,0,0],
-    [0.5,0,0]
-  ]
-  
-  const jet_rgb = jet_data_lin.map(x => {
-    return rgb.apply(null, x.map(y=>y*255))
+const getInterpolateFunction = (cmap) => {
+  const colormapData = colormaps[cmap].map(d => d.rgb);
+  const colormapRgb = colormapData.map(x => {
+    return rgb.apply(null, x);
   });
   
-  //perform piecewise interpolation between each color in the range
-  return piecewise(interpolateRgb, jet_rgb);
+  // Perform piecewise interpolation between each color in the range.
+  return piecewise(interpolateRgb, colormapRgb);
 };
 
 // Reference: https://observablehq.com/@d3/color-legend
@@ -44,12 +33,6 @@ function ramp(color, n = 256) {
     }
     return canvas;
 }
-
-const colormapToFunc = {
-  plasma: interpolatePlasma,
-  viridis: interpolateViridis,
-  jet: interpolateJet(),
-};
 
 export default function Legend(props) {
   const {
@@ -71,7 +54,7 @@ export default function Legend(props) {
   } = props;
 
   const svg = useMemo(() => {
-    const interpolateFunc = colormapToFunc[geneExpressionColormap];
+    const interpolateFunc = getInterpolateFunction(geneExpressionColormap);
     const color = scaleSequential([0, 100], interpolateFunc);
     let n = 256;
     if(color.domain && color.range) {
