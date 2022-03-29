@@ -23,7 +23,6 @@ import {
   useAnnDataIndices,
   useCellSetsTree,
   useDiffGeneNames,
-  useInitialCellSetSelection,
   useAnchors,
 } from '../data-hooks';
 import { getCellColors } from '../interpolate-colors';

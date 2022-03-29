@@ -931,7 +931,7 @@ export function useCellSetsTree(qryCellsIndex, qryFeatureColumns, qryFeatureColu
   return tree;
 }
 
-export function useInitialCellSetSelection(mergedQryCellSets, qryValues, qrySetters, parentKey) {
+export function useInitialRefCellSetSelection(mergedQryCellSets, qryValues, qrySetters, parentKey) {
   useEffect(() => {
     if (qryValues.cellSetColor !== null || qryValues.cellSetSelection !== null || qryValues.cellColorEncoding !== null) {
       return;
@@ -942,7 +942,11 @@ export function useInitialCellSetSelection(mergedQryCellSets, qryValues, qrySett
       const newSelection = node.children.map(n => ([parentKey, n.name]));
       qrySetters.setCellSetSelection(newSelection);
 
-      const newColors = newSelection.map((path, i) => ({
+      const sortedSelection = node.children
+        .map(n => ({ path: [parentKey, n.name], size: n.set?.length || 0 }))
+        .sort((a, b) => b.size - a.size);
+
+      const newColors = sortedSelection.map(({ path }, i) => ({
         color: PALETTE[i % PALETTE.length],
         path: path,
       }));
@@ -950,6 +954,34 @@ export function useInitialCellSetSelection(mergedQryCellSets, qryValues, qrySett
       qrySetters.setCellColorEncoding('cellSetSelection');
     }
   }, [mergedQryCellSets, parentKey, qryValues.cellSetColor, qryValues.cellSetSelection, qryValues.cellColorEncoding]);
+}
+
+export function useInitialQryCellSetSelection(mergedQryCellSets, qryValues, qrySetters, parentKey, initialRefCellSetColor) {
+  useEffect(() => {
+    if (qryValues.cellSetColor !== null || qryValues.cellSetSelection !== null || qryValues.cellColorEncoding !== null || !initialRefCellSetColor) {
+      return;
+    }
+
+    const node = mergedQryCellSets.tree.find(n => n.name === parentKey);
+    if (node) {
+      const newSelection = node.children.map(n => ([parentKey, n.name]));
+      qrySetters.setCellSetSelection(newSelection);
+
+      const newColors = newSelection.map((path, i) => {
+        const matchingRefSet = initialRefCellSetColor.find(d => d.path[1] === path[1]);
+        let newColor = PALETTE[i % PALETTE.length];
+        if(matchingRefSet) {
+          newColor = matchingRefSet.color;
+        }
+        return {
+          color: newColor,
+          path: path,
+        };
+      });
+      qrySetters.setCellSetColor(newColors);
+      qrySetters.setCellColorEncoding('cellSetSelection');
+    }
+  }, [mergedQryCellSets, parentKey, qryValues.cellSetColor, qryValues.cellSetSelection, qryValues.cellColorEncoding, initialRefCellSetColor]);
 }
 
 export function useAnchors(

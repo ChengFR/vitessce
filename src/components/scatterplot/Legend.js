@@ -37,7 +37,8 @@ function ramp(color, n = 256) {
 export default function Legend(props) {
   const {
     visible,
-    cellColorEncoding,
+    refCellColorEncoding,
+    qryCellColorEncoding,
 
     geneSelection,
     geneExpressionColormap,
@@ -69,7 +70,7 @@ export default function Legend(props) {
   }, [geneExpressionColormap]);
 
   const geneExpressionLegend = useMemo(() => {
-    if(cellColorEncoding === 'geneSelection' && geneSelection && Array.isArray(geneSelection) && geneSelection.length === 1) {
+    if(qryCellColorEncoding === 'geneSelection' && geneSelection && Array.isArray(geneSelection) && geneSelection.length === 1) {
       return (
         <>
           <span className="continuousTitle">Gene Expression</span>
@@ -82,11 +83,11 @@ export default function Legend(props) {
       );
     }
     return null;
-  }, [svg, cellColorEncoding, geneSelection, geneExpressionColormapRange]);
+  }, [svg, qryCellColorEncoding, geneSelection, geneExpressionColormapRange]);
 
   const cellSetLegend = useMemo(() => {
-    if(cellColorEncoding === 'cellSetSelection' && qryCellSetColor && qryCellSetColor.length > 0 && refCellSetColor && refCellSetColor.length > 0) {
-      if(qryCellSetColor.length === refCellSetColor.length && every(qryCellSetColor.map((qs, i) => ([qs.path[1], refCellSetColor[i].path[1]])), val => val[0] === val[1])) {
+    if(qryCellColorEncoding === 'cellSetSelection' && qryCellSetColor && qryCellSetColor.length > 0 && refCellSetColor && refCellSetColor.length > 0) {
+      if(qryCellSetColor.length === refCellSetColor.length && every(qryCellSetColor.map((qs, i) => refCellSetColor.some(rs => rs.path[1] === qs.path[1])))) {
         return (
           <span className="categoricalLabels">
             <span className="categoricalTitle">Cell Type Prediction</span>
@@ -101,10 +102,10 @@ export default function Legend(props) {
       }
     }
     return null;
-  }, [cellColorEncoding, qryCellSetColor, refCellSetColor]);
+  }, [qryCellColorEncoding, qryCellSetColor, refCellSetColor]);
 
   const datasetLegend = useMemo(() => {
-    if(qryEmbeddingEncoding === 'scatterplot' && refEmbeddingEncoding === 'scatterplot' && cellColorEncoding === 'dataset') {
+    if((qryEmbeddingEncoding.includes('scatterplot') && qryCellColorEncoding === 'dataset') || (refEmbeddingEncoding.includes('scatterplot') && refCellColorEncoding === 'dataset')) {
       return (
         <span className="categoricalLabels">
           <span className="categoricalTitle">Dataset</span>
@@ -120,7 +121,7 @@ export default function Legend(props) {
       );
     }
     return null;
-  }, [cellColorEncoding, qryEmbeddingEncoding, refEmbeddingEncoding]);
+  }, [qryCellColorEncoding, qryEmbeddingEncoding, refCellColorEncoding, refEmbeddingEncoding]);
 
   const contourLegend = useMemo(() => {
     if(refEmbeddingEncoding.includes("contour")) {
@@ -144,7 +145,7 @@ export default function Legend(props) {
       );
     }
     return null;
-  }, [qryEmbeddingEncoding, refEmbeddingEncoding])
+  }, [refEmbeddingEncoding])
  
   return (visible ? (
     <div className="qrComparisonViewLegend">

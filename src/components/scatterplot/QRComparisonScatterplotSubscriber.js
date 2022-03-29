@@ -22,7 +22,6 @@ import {
   useAnnDataIndices,
   useCellSetsTree,
   useDiffGeneNames,
-  useInitialCellSetSelection,
   useAnchors,
   useProcessedAnchorSets,
   useAnchorSetOfInterest,
@@ -693,7 +692,8 @@ export default function QRComparisonScatterplotSubscriber(props) {
       />
       <Legend
         visible={qryValues.embeddingLegendsVisible}
-        cellColorEncoding={qryValues.cellColorEncoding}
+        qryCellColorEncoding={qryValues.cellColorEncoding}
+        refCellColorEncoding={refValues.cellColorEncoding}
         
         geneSelection={qryValues.geneSelection}
         geneExpressionColormap={qryValues.geneExpressionColormap}

@@ -18,7 +18,7 @@ import { useUrls, useReady } from '../hooks';
 import {
   useAnnDataStatic, useAnnDataDynamic, useAnnDataIndices,
   useDiffGeneNames, useCellSetsTree,
-  useAnchors, useInitialCellSetSelection,
+  useAnchors,
   useProcessedAnchorSets,
   useCompressedAnchors,
   useSeperatedGenes,
@@ -132,18 +132,6 @@ export default function QRScoresSubscriber(props) {
   ]);
 
   const refDiffGeneNames = useDiffGeneNames(refGenesIndex, refDiffGeneNameIndices);
-
-  const mergedQryCellSets = useMemo(() => mergeCellSets(
-    qryCellSets, qryValues.additionalCellSets,
-  ), [qryCellSets, qryValues.additionalCellSets]);
-
-  const mergedRefCellSets = useMemo(() => mergeCellSets(
-    refCellSets, refValues.additionalCellSets,
-  ), [refCellSets, refValues.additionalCellSets]);
-
-  // Initialize cell set colors and selections.
-  useInitialCellSetSelection(mergedQryCellSets, qryValues, qrySetters, "Prediction");
-  useInitialCellSetSelection(mergedRefCellSets, refValues, refSetters, "Cell Type");
 
   const qryTopGenesLists = useProcessedAnchorSets(
     anchors, refDiffGeneNames, refDiffGeneScores, refDiffClusters, qryPrediction, qryCellsIndex, qryCellSets, qryValues.cellSetColor, "Prediction"

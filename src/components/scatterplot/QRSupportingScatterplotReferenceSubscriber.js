@@ -23,7 +23,6 @@ import {
   useAnnDataIndices,
   useCellSetsTree,
   useDiffGeneNames,
-  useInitialCellSetSelection,
 } from '../data-hooks';
 import { getCellColors } from '../interpolate-colors';
 import QRSupportingScatterplot from './QRSupportingScatterplot';

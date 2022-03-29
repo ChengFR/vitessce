@@ -12,5 +12,5 @@ export const GLSL_COLORMAPS = [
   'picnic',
   'portland',
 ];
-export const GLSL_COLORMAP_DEFAULT = 'cool';
+export const GLSL_COLORMAP_DEFAULT = 'winter';
 export const COLORMAP_SHADER_PLACEHOLDER = 'COLORMAP_FUNC';

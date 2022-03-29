@@ -19,7 +19,9 @@ import { useUrls, useReady } from '../hooks';
 import {
   useAnnDataStatic, useAnnDataDynamic, useAnnDataIndices,
   useDiffGeneNames, useCellSetsTree,
-  useAnchors, useInitialCellSetSelection,
+  useAnchors,
+  useInitialRefCellSetSelection,
+  useInitialQryCellSetSelection,
   useProcessedAnchorSets,
 } from '../data-hooks';
 import { Component } from '../../app/constants';
@@ -156,8 +158,8 @@ export default function QRCellSetsManagerSubscriber(props) {
   ), [refCellSets, refValues.additionalCellSets]);
 
   // Initialize cell set colors and selections.
-  useInitialCellSetSelection(mergedQryCellSets, qryValues, qrySetters, "Prediction");
-  useInitialCellSetSelection(mergedRefCellSets, refValues, refSetters, "Cell Type");
+  useInitialRefCellSetSelection(mergedRefCellSets, refValues, refSetters, "Cell Type");
+  useInitialQryCellSetSelection(mergedQryCellSets, qryValues, qrySetters, "Prediction", refValues.cellSetColor);
 
   const qryTopGenesLists = useProcessedAnchorSets(
     anchors, refDiffGeneNames, refDiffGeneScores, refDiffClusters, qryPrediction, qryCellsIndex, qryCellSets, qryValues.cellSetColor, "Prediction"

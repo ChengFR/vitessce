@@ -37,7 +37,7 @@ export const DEFAULT_COORDINATION_VALUES = {
   [CoordinationType.HEATMAP_ZOOM_Y]: 0,
   [CoordinationType.HEATMAP_TARGET_X]: 0,
   [CoordinationType.HEATMAP_TARGET_Y]: 0,
-  [CoordinationType.GENE_EXPRESSION_COLORMAP]: 'plasma',
+  [CoordinationType.GENE_EXPRESSION_COLORMAP]: 'winter',
   [CoordinationType.GENE_EXPRESSION_COLORMAP_RANGE]: [0.0, 1.0],
   [CoordinationType.GENE_EXPRESSION_TRANSFORM]: null,
   [CoordinationType.GENE_FILTER]: null,
