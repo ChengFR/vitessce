@@ -19,6 +19,8 @@ import { DEFAULT_COORDINATION_VALUES } from '../app/state/coordination';
 
 import { dataToCellSetsTree } from '../loaders/anndata-zarr-loaders/CellSetsZarrLoader';
 import { PALETTE } from './utils';
+import intersection from 'lodash/intersection';
+import union from 'lodash/union';
 
 const STATUS_LOADING = 'loading';
 const STATUS_SUCCESS = 'success';
@@ -1021,9 +1023,12 @@ export function useProcessedAnchorSets(
 
           const topGeneNames = Array.from(new Set([...qryClusterTopGeneNames, ...refClusterTopGeneNames]));
 
+          const topGeneScore = (intersection(qryClusterTopGeneNames, refClusterTopGeneNames).length / union(qryClusterTopGeneNames, refClusterTopGeneNames).length) * 100;
+
           result[anchorType][anchorObj.id] = {
             id: anchorObj.id,
             names: topGeneNames,
+            topGeneScore: topGeneScore,
             scores: topGeneNames.map(name => ({
               qry: qryClusterAllGeneScores[qryClusterAllGeneNames.indexOf(name)],
               ref: refClusterAllGeneScores[refClusterAllGeneNames.indexOf(name)],

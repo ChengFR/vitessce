@@ -32,6 +32,8 @@ export default function QRComparisonScatterplotOptions(props) {
 
     linksVisible,
     setLinksVisible,
+    linksSizeEncoding,
+    setLinksSizeEncoding,
 
     refCellColorEncoding,
     setRefCellColorEncoding,
@@ -65,6 +67,10 @@ export default function QRComparisonScatterplotOptions(props) {
   const observationsLabelNice = capitalize(observationsLabel);
 
   const classes = useStyles();
+
+  function handleLinksSizeEncodingChange(event) {
+    setLinksSizeEncoding(event.target.checked);
+  }
 
   function handleDebugCellTypesChange(event) {
     setDebugCellTypes(event.target.checked);
@@ -215,6 +221,20 @@ export default function QRComparisonScatterplotOptions(props) {
             checked={linksVisible}
             onChange={handleLinksVisibilityChange}
             name="scatterplot-option-links-visible"
+            color="default"
+          />
+        </TableCell>
+      </TableRow>
+      <TableRow>
+        <TableCell className={classes.labelCell}>
+          Query-Reference Links Size Encoding
+        </TableCell>
+        <TableCell className={classes.inputCell}>
+          <Checkbox
+            className={classes.checkbox}
+            checked={linksSizeEncoding}
+            onChange={handleLinksSizeEncodingChange}
+            name="scatterplot-option-links-size-encoding"
             color="default"
           />
         </TableCell>

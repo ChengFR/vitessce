@@ -67,6 +67,7 @@ export const DEFAULT_COORDINATION_VALUES = {
   [CoordinationType.PRESET_BUTTONS_VISIBLE]: true,
   [CoordinationType.EMBEDDING_LEGENDS_VISIBLE]: true,
   [CoordinationType.DEBUG_CELL_TYPES]: false,
+  [CoordinationType.EMBEDDING_LINKS_SIZE_ENCODING]: 'anchorSetScores',
 };
 
 // The following coordination types should be
@@ -340,6 +341,7 @@ export const COMPONENT_COORDINATION_TYPES = {
     CoordinationType.PRESET_BUTTONS_VISIBLE,
     CoordinationType.EMBEDDING_LEGENDS_VISIBLE,
     CoordinationType.DEBUG_CELL_TYPES,
+    CoordinationType.EMBEDDING_LINKS_SIZE_ENCODING,
   ],
   [Component.QR_SUPPORTING_SCATTERPLOT_QUERY]: [
     CoordinationType.DATASET,

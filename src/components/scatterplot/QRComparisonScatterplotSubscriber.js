@@ -24,6 +24,7 @@ import {
   useDiffGeneNames,
   useInitialCellSetSelection,
   useAnchors,
+  useProcessedAnchorSets,
   useAnchorSetOfInterest,
   useAnchorContourOfInterest,
 } from '../data-hooks';
@@ -161,6 +162,14 @@ export default function QRComparisonScatterplotSubscriber(props) {
   const [qryEmbedding, qryEmbeddingStatus] = useAnnDataDynamic(loaders, qryDataset, qryOptions?.embeddings[qryValues.embeddingType]?.path, 'embeddingNumeric', modelIteration, setItemIsReady, false);
   const [refEmbedding, refEmbeddingStatus] = useAnnDataDynamic(loaders, refDataset, refOptions?.embeddings[refValues.embeddingType]?.path, 'embeddingNumeric', modelIteration, setItemIsReady, false);
 
+  // Differential genes
+  const [refDiffGeneNameIndices, refDiffGeneNamesStatus] = useAnnDataDynamic(loaders, refDataset, refOptions?.differentialGenes?.names?.path, 'columnNumeric', modelIteration, setItemIsReady, false);
+  const [refDiffGeneScores, refDiffGeneScoresStatus] = useAnnDataDynamic(loaders, refDataset, refOptions?.differentialGenes?.scores?.path, 'columnNumeric', modelIteration, setItemIsReady, false);
+  const [refDiffClusters, refDiffClustersStatus] = useAnnDataDynamic(loaders, refDataset, refOptions?.differentialGenes?.clusters?.path, 'columnString', modelIteration, setItemIsReady, false);
+
+  const refDiffGeneNames = useDiffGeneNames(refGenesIndex, refDiffGeneNameIndices);
+
+  // Gene expression data
   const [qryExpressionData, qryLoadedSelection, qryExpressionDataStatus] = useGeneSelection(
     loaders, qryDataset, setItemIsReady, false, qryValues.geneSelection, setItemIsNotReady,
   );
@@ -184,7 +193,13 @@ export default function QRComparisonScatterplotSubscriber(props) {
     qryEmbeddingStatus, refEmbeddingStatus,
     qryExpressionDataStatus, qryAttrsStatus,
     refExpressionDataStatus, refAttrsStatus,
+    refDiffGeneNamesStatus, refDiffGeneScoresStatus, refDiffClustersStatus,
   ]);
+  
+
+  const qryTopGenesLists = useProcessedAnchorSets(
+    anchors, refDiffGeneNames, refDiffGeneScores, refDiffClusters, qryPrediction, qryCellsIndex, qryCellSets, qryValues.cellSetColor, "Prediction"
+  );
   
   const [dynamicCellRadius, setDynamicCellRadius] = useState(qryValues.embeddingCellRadius);
   const [dynamicCellOpacity, setDynamicCellOpacity] = useState(qryValues.embeddingCellOpacity);
@@ -195,16 +210,20 @@ export default function QRComparisonScatterplotSubscriber(props) {
 
   
   // Compute endpoints for lines ("links") between query and reference anchor sets.
-  const anchorLinks = useMemo(() => {
-    if(anchors && refAnchorCluster && qryEmbedding && refEmbedding && qryCellsIndex) {
+  const [anchorLinks, maxQryAnchorSize, maxRefAnchorSize] = useMemo(() => {
+    if(anchors && refAnchorCluster && qryEmbedding && refEmbedding && qryCellsIndex && qryTopGenesLists) {
       const result = [];
+      let maxQrySize = 0;
+      let maxRefSize = 0;
       Object.keys(anchors).forEach(anchorType => {
-        anchors[anchorType].forEach((anchorObj) => {
+        anchors[anchorType].forEach((anchorObj, i) => {
           const refAnchorId = `${anchorObj.anchor_ref_id}`; // convert to string
           const qryAnchorId = anchorObj.id;
 
           const qryCellIds = anchorObj.cells.map(c => c.cell_id);
           const qryCellIndices = qryCellIds.map(cellId => qryCellsIndex.indexOf(cellId));
+
+          const topGeneScore = qryTopGenesLists[anchorType]?.[qryAnchorId]?.topGeneScore;
 
           const refCellIndices = [];
           refAnchorCluster.forEach((anchorClusterId, i) => {
@@ -223,13 +242,17 @@ export default function QRComparisonScatterplotSubscriber(props) {
           result.push({
             qry: qryCentroid, ref: refCentroid,
             qryId: qryAnchorId, refId: refAnchorId,
+            topGeneScore,
+            qrySize: qryCellIndices.length, refSize: refCellIndices.length,
           });
+          maxQrySize = Math.max(maxQrySize, qryCellIndices.length);
+          maxRefSize = Math.max(maxRefSize, refCellIndices.length);
         });
       });
-      return result;
+      return [result, maxQrySize, maxRefSize];
     }
-    return null;
-  }, [anchors, refAnchorCluster, qryEmbedding, refEmbedding, qryCellsIndex]);
+    return [null, null, null];
+  }, [anchors, refAnchorCluster, qryEmbedding, refEmbedding, qryCellsIndex, qryTopGenesLists]);
 
   // Determine which cells to emphasize when anchor set is focused or highlighted.
   const [qryAnchorSetFocus, refAnchorSetFocus, qryAnchorFocusIndices, refAnchorFocusIndices, qryAnchorFocusViewState] = useAnchorSetOfInterest(
@@ -519,6 +542,14 @@ export default function QRComparisonScatterplotSubscriber(props) {
 
           linksVisible={qryValues.embeddingLinksVisible}
           setLinksVisible={qrySetters.setEmbeddingLinksVisible}
+          linksSizeEncoding={qryValues.embeddingLinksSizeEncoding === 'anchorSetScores'}
+          setLinksSizeEncoding={(v) => {
+            if(v) {
+              qrySetters.setEmbeddingLinksSizeEncoding('anchorSetScores');
+            } else {
+              qrySetters.setEmbeddingLinksSizeEncoding(null);
+            }
+          }}
 
           refCellColorEncoding={refValues.cellColorEncoding}
           setRefCellColorEncoding={refSetters.setCellColorEncoding}
@@ -620,6 +651,9 @@ export default function QRComparisonScatterplotSubscriber(props) {
 
         anchorLinks={anchorLinks}
         anchorLinksVisible={qryValues.embeddingLinksVisible}
+        maxQryAnchorSize={maxQryAnchorSize}
+        maxRefAnchorSize={maxRefAnchorSize}
+        linksSizeEncoding={qryValues.embeddingLinksSizeEncoding === 'anchorSetScores'}
 
         qryAnchorSetFocus={qryAnchorSetFocus}
         refAnchorSetFocus={refAnchorSetFocus}

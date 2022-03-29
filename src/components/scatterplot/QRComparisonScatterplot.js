@@ -1135,18 +1135,22 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
     const {
       anchorLinks,
       anchorLinksVisible,
+      maxQryAnchorSize,
+      maxRefAnchorSize,
+      linksSizeEncoding,
       qryAnchorSetFocus,
       refAnchorSetFocus,
       qryAnchorSetHighlight,
       refAnchorSetHighlight,
       cellRadius,
     } = this.props;
-    const lightGray = [223, 223, 223, 255 * 0.5]; // wider line, outer circles on each end, inner circle for reference end
+    const lightGray = [255, 255, 255, 255 * 0.5]; // wider line, outer circles on each end, inner circle for reference end
     // const lightGray = [0, 12, 64, 255 * 0.5];
     // const darkGray = [150, 150, 150, 255]; // inner line, middle circles on each end
     const darkGray = [75, 75, 75, 255]; 
 
     const darkerGray = [111, 111, 111, 255]; // for focus and highlight
+
 
     return [
       // Lines
@@ -1158,12 +1162,18 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         widthUnits: 'pixels',
         widthScale: 1,
         getWidth: d => {
+          if(linksSizeEncoding) {
+            return (d.topGeneScore / 100) * 4 + 4;
+          }
           return 6;
         },
         getPolygonOffset: () => ([0, -200]),
         getSourcePosition: d => [d.qry[0], -d.qry[1]],
         getTargetPosition: d => [d.ref[0], -d.ref[1]],
         getColor: d => lightGray,
+        updateTriggers: {
+          getWidth: [linksSizeEncoding],
+        },
       }),
       new LineLayer({
         id: 'anchor-line-thin',
@@ -1172,7 +1182,12 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         pickable: false,
         widthUnits: 'pixels',
         widthScale: 1,
-        getWidth: 2,
+        getWidth: d => {
+          if(linksSizeEncoding) {
+            return (d.topGeneScore / 100) * 4 + 1;
+          }
+          return 2;
+        },
         getPolygonOffset: () => ([0, -201]),
         getSourcePosition: d => [d.qry[0], -d.qry[1]],
         getTargetPosition: d => [d.ref[0], -d.ref[1]],
@@ -1185,6 +1200,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
           }
         },
         updateTriggers: {
+          getWidth: [linksSizeEncoding],
           getColor: [qryAnchorSetFocus, refAnchorSetFocus, qryAnchorSetHighlight, refAnchorSetHighlight],
         },
       }),
@@ -1192,8 +1208,8 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       new ScatterplotLayer({
         id: 'anchor-endpoints-outer',
         data: [
-          ...anchorLinks.map(d => ({ coordinate: d.qry, type: 'qry' })),
-          ...anchorLinks.map(d => ({ coordinate: d.ref, type: 'ref' })),
+          ...anchorLinks.map(d => ({ coordinate: d.qry, type: 'qry', numCells: d.qrySize })),
+          ...anchorLinks.map(d => ({ coordinate: d.ref, type: 'ref', numCells: d.refSize })),
         ],
         visible: anchorLinksVisible,
         pickable: false,
@@ -1210,20 +1226,22 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         getFillColor: lightGray,
         getLineColor: [60, 60, 60],
         getRadius: d => {
+          if(linksSizeEncoding) {
+            return d.numCells / (d.type === 'qry' ? maxQryAnchorSize : maxRefAnchorSize) * 10 + 2;
+          }
           return 6;
         },
         getLineWidth: d => 0,
         updateTriggers: {
           getLineWidth: [qryAnchorSetFocus, refAnchorSetFocus],
-          getRadius: [qryAnchorSetFocus, refAnchorSetFocus],
+          getRadius: [qryAnchorSetFocus, refAnchorSetFocus, linksSizeEncoding, maxQryAnchorSize, maxRefAnchorSize],
         },
       }),
-      // Line endpoints
       new ScatterplotLayer({
         id: 'anchor-endpoints-middle',
         data: [
-          ...anchorLinks.map(d => ({ coordinate: d.qry, type: 'qry' })),
-          ...anchorLinks.map(d => ({ coordinate: d.ref, type: 'ref' })),
+          ...anchorLinks.map(d => ({ coordinate: d.qry, type: 'qry', numCells: d.qrySize })),
+          ...anchorLinks.map(d => ({ coordinate: d.ref, type: 'ref', numCells: d.refSize })),
         ],
         visible: anchorLinksVisible,
         pickable: false,
@@ -1240,23 +1258,22 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         getFillColor: darkGray,
         getLineColor: [60, 60, 60],
         getRadius: d => {
-          if (d.qryId === qryAnchorSetFocus && d.refId === refAnchorSetFocus) {
-            return 4;
+          if(linksSizeEncoding) {
+            return d.numCells / (d.type === 'qry' ? maxQryAnchorSize : maxRefAnchorSize) * 8 + 2;
           }
           return 4;
         },
         getLineWidth: d => 0,
         updateTriggers: {
           getLineWidth: [qryAnchorSetFocus, refAnchorSetFocus],
-          getRadius: [qryAnchorSetFocus, refAnchorSetFocus],
+          getRadius: [qryAnchorSetFocus, refAnchorSetFocus, linksSizeEncoding, maxQryAnchorSize, maxRefAnchorSize],
         },
       }),
-      // Line endpoints
       new ScatterplotLayer({
         id: 'anchor-endpoints-inner',
         data: [
-          ...anchorLinks.map(d => ({ coordinate: d.qry, type: 'qry' })),
-          ...anchorLinks.map(d => ({ coordinate: d.ref, type: 'ref' })),
+          ...anchorLinks.map(d => ({ coordinate: d.qry, type: 'qry', numCells: d.qrySize })),
+          ...anchorLinks.map(d => ({ coordinate: d.ref, type: 'ref', numCells: d.refSize })),
         ],
         visible: anchorLinksVisible,
         pickable: false,
@@ -1273,8 +1290,8 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         getFillColor: d => d.type === 'qry' ? darkGray : lightGray,
         getLineColor: [60, 60, 60],
         getRadius: d => {
-          if (d.qryId === qryAnchorSetFocus && d.refId === refAnchorSetFocus) {
-            return 2;
+          if(linksSizeEncoding) {
+            return d.numCells / (d.type === 'qry' ? maxQryAnchorSize : maxRefAnchorSize) * 4 + 2;
           }
           return 2;
         },
@@ -1286,7 +1303,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         },
         updateTriggers: {
           getLineWidth: [qryAnchorSetFocus, refAnchorSetFocus],
-          getRadius: [qryAnchorSetFocus, refAnchorSetFocus],
+          getRadius: [qryAnchorSetFocus, refAnchorSetFocus, linksSizeEncoding, maxQryAnchorSize, maxRefAnchorSize],
         },
       }),
     ];
@@ -1673,6 +1690,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       'anchorLinks', 'anchorLinksVisible',
       'qryAnchorSetFocus', 'refAnchorSetFocus',
       'qryAnchorSetHighlight', 'refAnchorSetHighlight',
+      'linksSizeEncoding', 'maxQryAnchorSize', 'maxRefAnchorSize',
     ].some(shallowDiff)) {
       this.onUpdateAnchorLinksLayer();
       this.forceUpdate();

@@ -195,7 +195,7 @@ function TableRowLeft(props) {
       </div>
       <div className="qrCellSetsTableHead colTopGenes">
         <FullCircularProgress
-          value={(200 - clusterResults.names.length)}
+          value={clusterResults.topGeneScore}
         />
       </div>
       <div className="qrCellSetsTableHead colEdit">

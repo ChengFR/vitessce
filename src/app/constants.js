@@ -117,4 +117,5 @@ export const CoordinationType = {
   PRESET_BUTTONS_VISIBLE: 'presetButtonsVisible',
   EMBEDDING_LEGENDS_VISIBLE: 'embeddingLegendsVisible',
   DEBUG_CELL_TYPES: 'debugCellTypes',
+  EMBEDDING_LINKS_SIZE_ENCODING: 'embeddingLinksSizeEncoding', // null or 'anchorSetScores'
 };
