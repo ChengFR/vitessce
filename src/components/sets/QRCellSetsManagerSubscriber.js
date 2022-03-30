@@ -190,11 +190,17 @@ export default function QRCellSetsManagerSubscriber(props) {
   const onDeleteAnchors = useCallback((anchorId) => {
     if(anchorApiState.status === 'success') {
       qrySetters.setAnchorApiState({ ...anchorApiState, status: 'loading' });
+      if(qryValues.anchorSetFocus === anchorId) {
+        qrySetters.setAnchorSetFocus(null);
+      }
+      if(qryValues.anchorSetHighlight === anchorId) {
+        qrySetters.setAnchorSetHighlight(null);
+      }
       qryLoader.anchorDelete(anchorId).then(() => {
         qrySetters.setAnchorApiState({ ...anchorApiState, iteration: anchorApiState.iteration+1, status: 'success' });
       });
     }
-  }, [anchorApiState]);
+  }, [anchorApiState, qryValues.anchorSetFocus, qryValues.anchorSetHighlight]);
 
   const onConfirmAnchors = useCallback((anchorId) => {
     if(anchorApiState.status === 'success') {
