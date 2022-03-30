@@ -57,7 +57,7 @@ export default function QRCellSetsManagerSubscriber(props) {
     coordinationScopes,
     removeGridComponent,
     theme,
-    title = 'Anchor Sets View',
+    title = 'Anchor Set View',
     refDiffGeneScoreThreshold = 15,
     qryDiffGeneScoreThreshold = 15,
   } = props;

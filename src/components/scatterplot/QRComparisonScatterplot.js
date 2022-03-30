@@ -17,8 +17,9 @@ import AbstractSpatialOrScatterplot from '../shared-spatial-scatterplot/Abstract
 import { forceCollideRects } from '../shared-spatial-scatterplot/force-collide-rects';
 import { ScaledExpressionExtension, SelectionExtension } from '../../layer-extensions';
 import { Matrix4 } from "@math.gl/core";
-import { interpolateReds } from "d3-scale-chromatic";
+import { interpolateReds, interpolateGreys } from "d3-scale-chromatic";
 import { color } from "d3-color";
+import { interpolate } from "d3"
 
 const REF_LAYER_ID = 'ref-scatterplot';
 const QRY_LAYER_ID = 'qry-scatterplot';
@@ -128,177 +129,6 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
     this.onUpdateCellSetsLayers();
     this.onUpdateSupportingBoundsLayer();
     this.onUpdateAnchorLinksLayer();
-  }
-
-  createRefLayers() {
-    const {
-      refCellsEntries: cellsEntries
-    } = this;
-    const {
-      refCellsVisible,
-      refCellEncoding,
-      theme,
-      cellRadius = 1.0,
-      cellOpacity = 1.0,
-      cellFilter,
-      cellSelection,
-      setCellHighlight,
-      setComponentHover,
-      getCellIsSelected,
-      cellColors,
-      refCellsIndex,
-      getCellColor = makeDefaultGetCellColors(cellColors, refCellsIndex, theme),
-      getRefExpressionValue: getExpressionValue,
-      onCellClick,
-      geneExpressionColormap,
-      geneExpressionColormapRange = [0.0, 1.0],
-      cellColorEncoding,
-    } = this.props;
-    const filteredCellsEntries = (cellFilter
-      ? cellsEntries.filter(cellEntry => cellFilter.includes(cellEntry[0]))
-      : cellsEntries);
-
-    const commonProps = {
-      coordinateSystem: COORDINATE_SYSTEM.CARTESIAN,
-      visible: refCellsVisible,
-      pickable: true,
-      autoHighlight: true,
-      filled: true,
-      data: {
-        src: cellsEntries.data,
-        length: cellsEntries.shape[1]
-      },
-      getPosition: (object, { index, data, target }) => {
-        target[0] = data.src[0][index];
-        target[1] = -data.src[1][index];
-        target[2] = 0;
-        return target;
-      },
-      isExpressionMode: (cellColorEncoding === 'geneSelection'),
-      colormap: geneExpressionColormap,
-      getPolygonOffset: () => ([0, 90]),
-    };
-    const layers = [];
-    if (refCellEncoding === 'heatmap') {
-      layers.append(new HeatmapLayer({
-        ...commonProps,
-        id: `${REF_LAYER_ID}-heatmap`,
-        radiusPixels: 40,
-        radiusScale: cellRadius,
-        radiusMinPixels: 1,
-        radiusMaxPixels: 30,
-        colorRange: [
-          [241, 241, 241, 128],
-          [217, 217, 217, 128],
-          [217, 217, 217, 128],
-          [217, 217, 217, 128],
-          [217, 217, 217, 128],
-        ],
-        //modelMatrix: new Matrix4().makeTranslation(0, 0, 1),
-        // Our radius pixel setters measure in pixels.
-        radiusUnits: 'pixels',
-        lineWidthUnits: 'pixels',
-        getFillColor: getCellColor,
-        getLineColor: getCellColor,
-        getPointRadius: 1,
-        getExpressionValue,
-        getLineWidth: 0,
-        colorScaleLo: geneExpressionColormapRange[0],
-        colorScaleHi: geneExpressionColormapRange[1],
-        updateTriggers: {
-          getExpressionValue,
-          getFillColor: [cellColorEncoding, cellSelection, cellColors],
-          getLineColor: [cellColorEncoding, cellSelection, cellColors],
-          getCellIsSelected,
-        },
-      }),
-      );
-    }
-    else if (refCellEncoding === 'scatterplot-and-contour' || refCellEncoding === 'contour') { 
-      const baseOpacity = (refAnchorSetFocusContour || refAnchorSetHighlight) ? 0.5 * 255 : 255;
-      refContour.forEach(group => {
-        const { name, color, indices } = group;
-        const [r, g, b, a] = color;
-  
-        layers.append(ContourLayer({
-          ...commonProps,
-          id: `${REF_LAYER_ID}-contour-${name}`,
-          cellSize: 1,
-          contours: [
-            { threshold: 3, color: [r, g, b, 0.8 * baseOpacity], strokeWidth: 2 },
-            { threshold: [3, 1000], color: [r, g, b, 0.5 * baseOpacity] },
-            // { threshold: [10, 1000], color: color },
-            // { threshold: [30, 1000], color: color }
-          ],
-          pattern: true,
-          getFillPattern: () => "hatch-cross",
-          getFillPatternScale: 350,
-        }))
-      });
-    }
-    else if (refCellEncoding === 'scatterplot') { 
-      const getFadedCellColor = (cellEntry, { index }) => {
-        const [r, g, b, a] = getCellColor(cellEntry, { index });
-        if (refAnchorHighlightIndices && !refAnchorHighlightIndices.includes(index)) {
-          return [r, g, b, 0.5 * 255];
-        }
-        if (refAnchorHighlightIndices && !refAnchorHighlightIndices.includes(index)) {
-          return [r, g, b, 0.5 * 255];
-        }
-        return [r, g, b, a];
-      }
-      layer.append(ScatterplotLayer({
-        id: `${REF_LAYER_ID}-scatterplot`,
-        opacity: cellOpacity,
-        radiusScale: cellRadius, // TODO: fix upstream
-        radiusMinPixels: 1,
-        radiusMaxPixels: 30,
-        // Reference: http://pessimistress.github.io/deck.gl/docs/api-reference/core/layer#getpolygonoffset
-        getPolygonOffset: () => ([0, -90]), // TODO: determine optimal value
-        // Our radius pixel setters measure in pixels.
-        radiusUnits: 'pixels',
-        lineWidthUnits: 'pixels',
-        getLineColor: [211, 211, 211],
-        getRadius: (object, { index }) => {
-          if (refAnchorHighlightIndices && refAnchorHighlightIndices.includes(index)) {
-            return 2;
-          }
-          if (refAnchorFocusIndices && refAnchorFocusIndices.includes(index)) {
-            return 2;
-          }
-          return 1;
-        },
-        getLineWidth: (object, { index }) => {
-          if (refAnchorHighlightIndices && refAnchorHighlightIndices.includes(index)) {
-            return 1;
-          }
-          if (refAnchorFocusIndices && refAnchorFocusIndices.includes(index)) {
-            return 1;
-          }
-          return 0;
-        },
-        getFillColor: getFadedCellColor,
-        getExpressionValue,
-        colorScaleLo: geneExpressionColormapRange[0],
-        colorScaleHi: geneExpressionColormapRange[1],
-        isExpressionMode: (cellColorEncoding === 'geneSelection'),
-        colormap: geneExpressionColormap,
-        onClick: (info) => {
-          if (onCellClick) {
-            onCellClick(info);
-          }
-        },
-        updateTriggers: {
-          getExpressionValue,
-          getFillColor: [cellColorEncoding, cellSelection, refCellColors],
-          getLineColor: [cellColorEncoding, cellSelection, refCellColors],
-          getRadius: [refAnchorFocusIndices, refAnchorHighlightIndices],
-          getLineWidth: [refAnchorFocusIndices, refAnchorHighlightIndices],
-          getCellIsSelected,
-        },
-      }));
-    }
-
   }
 
   createRefHeatmapLayers() {
@@ -414,12 +244,14 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         autoHighlight: false,
         filled: true,
         getPolygonOffset: () => ([0, 20]),
-        cellSize: 0.3,
+        // cellSize: 0.5,
+        // contours: [
+        //   { threshold: 10, color: [r, g, b, 0.9 * baseOpacity], strokeWidth: 2 },
+        //   { threshold: [10, 1000], color: [r, g, b, 0.7 * baseOpacity] },
+        cellSize: 0.8,
         contours: [
-          { threshold: 3, color: [r, g, b, 0.8 * baseOpacity], strokeWidth: 2 },
-          { threshold: [3, 1000], color: [r, g, b, 0.5 * baseOpacity] },
-          // { threshold: [10, 1000], color: color },
-          // { threshold: [30, 1000], color: color }
+          { threshold: 40, color: [r, g, b, 0.9 * baseOpacity], strokeWidth: 2 },
+          { threshold: [40, 1000], color: [r, g, b, 0.7 * baseOpacity] },
         ],
         getPosition: (object, { index, data, target }) => {
           target[0] = data.src.embedding[0][data.src.indices[index]];
@@ -1149,19 +981,32 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
       refAnchorSetHighlight,
       cellRadius,
     } = this.props;
-    const lightGray = [255, 255, 255, 255 * 0.5]; // wider line, outer circles on each end, inner circle for reference end
+    const lightGray = [255, 255, 255, 255]; // wider line, outer circles on each end, inner circle for reference end
     // const lightGray = [0, 12, 64, 255 * 0.5];
     // const darkGray = [150, 150, 150, 255]; // inner line, middle circles on each end
-    const darkGray = [75, 75, 75, 255]; 
+    // const darkGray = [75, 75, 75, 255];
+    const darkGray = [100, 100, 100, 255];
 
     const darkerGray = [111, 111, 111, 255]; // for focus and highlight
+    const interp = interpolateGreys;
+    // const interp = interpolate(lightGray, darkGray);
 
     const topGeneScoreToColor = (d) => {
-      if(linksSizeEncoding) {
-        const redColor = color(interpolateReds((100 - d.topGeneScore) / 120));
-        return [redColor.r, redColor.g, redColor.b, 255];
+      if (linksSizeEncoding) {
+        // const shadowColor = color(interp((100 - d.topGeneScore) / 200));
+        // const shadowColor = color(interp(0.3));
+        // const shadowColor = {r: 210, g: 156, b: 132};
+        const shadowColor = {r: 209, g: 197, b: 185};
+        return [shadowColor.r, shadowColor.g, shadowColor.b, 255];
       }
       return lightGray;
+    };
+
+    const topGeneScoreToSize = (d) => {
+      if (linksSizeEncoding) {
+        return (100 - d.topGeneScore) / 100 * 22 + 2;
+      }
+      return 8;
     };
 
 
@@ -1174,12 +1019,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         pickable: false,
         widthUnits: 'pixels',
         widthScale: 1,
-        getWidth: d => {
-          if(linksSizeEncoding) {
-            return ((100 - d.topGeneScore) / 100) * 10;
-          }
-          return 6;
-        },
+        getWidth: topGeneScoreToSize,
         getPolygonOffset: () => ([0, -200]),
         getSourcePosition: d => [d.qry[0], -d.qry[1]],
         getTargetPosition: d => [d.ref[0], -d.ref[1]],
@@ -1197,11 +1037,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         widthUnits: 'pixels',
         widthScale: 1,
         getWidth: d => {
-          return 2;
-          if(linksSizeEncoding) {
-            return (d.topGeneScore / 100) * 4 + 1;
-          }
-          return 2;
+          return 3;
         },
         getPolygonOffset: () => ([0, -201]),
         getSourcePosition: d => [d.qry[0], -d.qry[1]],
@@ -1240,12 +1076,7 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         getPosition: d => [d.coordinate[0], -d.coordinate[1], 0],
         getFillColor: topGeneScoreToColor,
         getLineColor: [60, 60, 60],
-        getRadius: d => {
-          if(linksSizeEncoding) {
-            return d.numCells / (d.type === 'qry' ? maxQryAnchorSize : maxRefAnchorSize) * 16 + 2;
-          }
-          return 6;
-        },
+        getRadius: d => topGeneScoreToSize(d) / 2,
         getLineWidth: d => 0,
         updateTriggers: {
           getLineWidth: [qryAnchorSetFocus, refAnchorSetFocus],
@@ -1275,9 +1106,6 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         getLineColor: [60, 60, 60],
         getRadius: d => {
           return 4;
-          if(linksSizeEncoding) {
-            return d.numCells / (d.type === 'qry' ? maxQryAnchorSize : maxRefAnchorSize) * 8 + 2;
-          }
         },
         getLineWidth: d => 0,
         updateTriggers: {
@@ -1306,17 +1134,9 @@ class QRComparisonScatterplot extends AbstractSpatialOrScatterplot {
         getFillColor: d => d.type === 'qry' ? darkGray : lightGray,
         getLineColor: [60, 60, 60],
         getRadius: d => {
-          return 2;
-          if(linksSizeEncoding) {
-            return d.numCells / (d.type === 'qry' ? maxQryAnchorSize : maxRefAnchorSize) * 4 + 2;
-          }
+          return 1;
         },
-        getLineWidth: d => {
-          if (d.qryId === qryAnchorSetFocus && d.refId === refAnchorSetFocus) {
-            return 0;
-          }
-          return 0;
-        },
+        getLineWidth: 0,
         updateTriggers: {
           getLineWidth: [qryAnchorSetFocus, refAnchorSetFocus],
           getRadius: [qryAnchorSetFocus, refAnchorSetFocus, linksSizeEncoding, maxQryAnchorSize, maxRefAnchorSize],

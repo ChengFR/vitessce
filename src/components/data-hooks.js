@@ -1029,7 +1029,7 @@ export function useProcessedAnchorSets(
       const predictionNode = qryCellSets.tree.find(n => n.name === parentKey);
       const predictionPaths = predictionNode.children.map(n => ([parentKey, n.name]));
 
-      const NUM_GENES = 20;
+      const NUM_GENES = 100;
 
       const result = {};
       Object.keys(anchors).forEach(anchorType => {
@@ -1232,8 +1232,8 @@ export function useSeperatedGenes(anchor) {
           name: names[i],
           score: scores[i],
           ranking: rankings[i],
-          qryTriangles: rankings[i].qry === null ? 0 : (rankings[i].qry <= 5 ? 3 : (rankings[i].qry <= 10 ? 2 : (rankings[i].qry <= 20 ? 1 : 0))),
-          refTriangles: rankings[i].ref === null ? 0 : (rankings[i].ref <= 5 ? 3 : (rankings[i].ref <= 10 ? 2 : (rankings[i].ref <= 20 ? 1 : 0))),
+          qryTriangles: rankings[i].qry === null ? 0 : (rankings[i].qry <= 10 ? 3 : (rankings[i].qry <= 20 ? 2 : (rankings[i].qry <= 100 ? 1 : 0))),
+          refTriangles: rankings[i].ref === null ? 0 : (rankings[i].ref <= 10 ? 3 : (rankings[i].ref <= 20 ? 2 : (rankings[i].ref <= 100 ? 1 : 0))),
         };
         if (sig.qry && sig.ref) {
           seperatedGenes.shared.push(geneInfo)

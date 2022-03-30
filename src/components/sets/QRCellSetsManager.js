@@ -262,7 +262,7 @@ export default function QRCellSetsManager(props) {
               <span className="qrCellSetsTableHeadSort"><RadixSortSVG /></span>
             </div>
             <div className="qrCellSetsTableHead colTopGenes">
-              <span className="qrCellSetsTableHeadText">Top Gene</span>
+              <span className="qrCellSetsTableHeadText">GE Similarity</span>
               <span className="qrCellSetsTableHeadSort"><RadixSortSVG /></span>
             </div>
             <div className="qrCellSetsTableHead colEdit"></div>

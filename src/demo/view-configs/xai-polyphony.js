@@ -1,11 +1,11 @@
 /* eslint-disable */
 import { vapi } from '../utils';
 
-const experiment = 'pancreas_easy';
+const experiment = 'case-1';
 
-const zarrPath = `http://localhost:7777/files/zarr/${experiment}`;
+const zarrPath = `http://localhost:7778/files/zarr/${experiment}`;
 // const zarrPath = 'http://3.86.7.210:8080/files/zarr';
-const apiRoot = 'http://localhost:7777/api';
+const apiRoot = 'http://localhost:7778/api';
 // const apiRoot = 'http://3.86.7.210:8080/api';
 
 export const polyphonyConfig = {

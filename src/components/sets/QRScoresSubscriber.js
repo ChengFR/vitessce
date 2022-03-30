@@ -49,7 +49,7 @@ export default function QRScoresSubscriber(props) {
     coordinationScopes,
     removeGridComponent,
     theme,
-    title = 'Markers View',
+    title = 'Marker View',
   } = props;
 
   const loaders = useLoaders();
