@@ -202,6 +202,42 @@
       font-size: 14px !important;
       text-align: center;
       margin-top: 5px;
+      display: flex;
+      flex-direction: row;
+      .geneNameMiddle {
+        width: 50%;
+        display: inline-block;
+        text-align: center;
+      }
+
+      .geneTrisLeft, .geneTrisRight {
+        display: flex;
+        flex-direction: column;
+        width: 25%;
+        height: 30px;
+        margin-top: -18px;
+        justify-content: flex-end;
+        
+        .geneTriangle {
+          display: inline-block;
+          width: 100%;
+          height: 6px;
+          svg {
+            width: 24px;
+            height: 24px;
+          }
+        }
+      }
+      .geneTrisLeft {
+        svg {
+          color: #75a273;
+        }
+      }
+      .geneTrisRight {
+        svg {
+          color: #d28282;
+        }
+      }
     }
   }
   .geneIcon:hover {

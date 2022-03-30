@@ -16,9 +16,11 @@ import Button from '@material-ui/core/Button';
 import IconButton from '@material-ui/core/IconButton';
 import ArrowRight from '@material-ui/icons/ArrowRight';
 import ArrowDropDown from '@material-ui/icons/ArrowDropDown';
+import ArrowDropUpIcon from '@material-ui/icons/ArrowDropUp';
 import MoreVert from '@material-ui/icons/MoreVert';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
+import range from 'lodash/range';
 
 const barWidth = 130;
 
@@ -37,6 +39,8 @@ function QRGeneList(props) {
           geneName: gene.name,
           score: gene.score,
           ranking: gene.ranking,
+          qryTriangles: gene.qryTriangles,
+          refTriangles: gene.refTriangles,
           header,
           xScale,
           onClick: () => setGeneSelection([gene.name])
@@ -47,7 +51,10 @@ function QRGeneList(props) {
 }
 
 function SignificanceIcon(props) {
-  const { score, ranking, header, geneName, xScale, onClick } = props;
+  const {
+    score, ranking, header, geneName, xScale, onClick,
+    qryTriangles, refTriangles,
+  } = props;
 
   let rankingText = '';
   if(header === 'Shared') {
@@ -70,7 +77,21 @@ function SignificanceIcon(props) {
       <div className={`geneIconRef`} style={{
         width: xScale(score.ref)
       }} />
-      <div className="geneName">{geneName} {rankingText}</div>
+      <div className="geneName">
+        <div className="geneTrisLeft">
+          {range(qryTriangles).map(i => (
+            <span className="geneTriangle" key={i}><ArrowDropUpIcon key={i} /></span>
+          ))}
+        </div>
+        <div className="geneNameMiddle">
+          {geneName}
+        </div>
+        <div className="geneTrisRight">
+          {range(refTriangles).map(i => (
+            <span className="geneTriangle" key={i}><ArrowDropUpIcon/></span>
+          ))}
+        </div>
+      </div>
     </div>
   </div>);
 }

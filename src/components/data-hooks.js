@@ -1232,6 +1232,8 @@ export function useSeperatedGenes(anchor) {
           name: names[i],
           score: scores[i],
           ranking: rankings[i],
+          qryTriangles: rankings[i].qry <= 5 ? 3 : (rankings[i].qry <= 10 ? 2 : 1),
+          refTriangles: rankings[i].ref <= 5 ? 3 : (rankings[i].ref <= 10 ? 2 : 1),
         };
         if (sig.qry && sig.ref) {
           seperatedGenes.shared.push(geneInfo)
