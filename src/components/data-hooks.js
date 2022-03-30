@@ -1070,8 +1070,8 @@ export function useProcessedAnchorSets(
               ref: refClusterTopGeneNames.includes(name),
             })),
             rankings: topGeneNames.map(name => ({
-              qry: (qryClusterAllGeneNames.indexOf(name) + 1), // convert to 1-indexed?
-              ref: (refClusterAllGeneNames.indexOf(name) + 1), // convert to 1-indexed?
+              qry: (qryClusterAllGeneNames.indexOf(name) >= 0 ? qryClusterAllGeneNames.indexOf(name)+1 : null), // convert to 1-indexed?
+              ref: (refClusterAllGeneNames.indexOf(name) >= 0 ? refClusterAllGeneNames.indexOf(name)+1 : null), // convert to 1-indexed?
             })),
             latentDist: anchorObj.anchor_dist_median,
             numCells: anchorObj.cells.length,
@@ -1232,8 +1232,8 @@ export function useSeperatedGenes(anchor) {
           name: names[i],
           score: scores[i],
           ranking: rankings[i],
-          qryTriangles: rankings[i].qry <= 5 ? 3 : (rankings[i].qry <= 10 ? 2 : 1),
-          refTriangles: rankings[i].ref <= 5 ? 3 : (rankings[i].ref <= 10 ? 2 : 1),
+          qryTriangles: rankings[i].qry === null ? 0 : (rankings[i].qry <= 5 ? 3 : (rankings[i].qry <= 10 ? 2 : (rankings[i].qry <= 20 ? 1 : 0))),
+          refTriangles: rankings[i].ref === null ? 0 : (rankings[i].ref <= 5 ? 3 : (rankings[i].ref <= 10 ? 2 : (rankings[i].ref <= 20 ? 1 : 0))),
         };
         if (sig.qry && sig.ref) {
           seperatedGenes.shared.push(geneInfo)

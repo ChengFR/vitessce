@@ -81,7 +81,7 @@ function SignificanceIcon(props) {
       <div className="geneName">
         <div className="geneTrisLeft">
           {range(qryTriangles).map(i => (
-            <span className="geneTriangle" key={i}><ArrowDropUpIcon key={i} /></span>
+            <span className="geneTriangle" key={`${geneName}-left-${i}`}><ArrowDropUpIcon key={i} /></span>
           ))}
         </div>
         <div className="geneNameMiddle">
@@ -89,7 +89,7 @@ function SignificanceIcon(props) {
         </div>
         <div className="geneTrisRight">
           {range(refTriangles).map(i => (
-            <span className="geneTriangle" key={i}><ArrowDropUpIcon/></span>
+            <span className="geneTriangle" key={`${geneName}-right-${i}`}><ArrowDropUpIcon/></span>
           ))}
         </div>
       </div>
@@ -107,7 +107,6 @@ export default function QRScores(props) {
     topGenes,
     setGeneSelection
   } = props;
-
 
   const geneList = _.flatten(['shared', 'qry', 'ref'].map(group => topGenes[group]));
   const maxScore = _.max(geneList.map(gene => Math.max(gene.score.qry, gene.score.ref)));
