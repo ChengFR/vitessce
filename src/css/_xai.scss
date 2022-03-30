@@ -195,19 +195,23 @@
       background: #75a273;
       position: absolute;
       top: 0px;
-      right: 65px;
+      right: 64px;
       border-radius: 2px;
     }
     .geneName {
       font-size: 14px !important;
       text-align: center;
-      margin-top: 5px;
+      margin-top: 7px;
       display: flex;
       flex-direction: row;
       .geneNameMiddle {
         width: 50%;
         display: inline-block;
         text-align: center;
+        overflow: visible;
+        height: 30px;
+        font-size: 0.9rem;
+        white-space: nowrap;
       }
 
       .geneTrisLeft, .geneTrisRight {
@@ -215,7 +219,7 @@
         flex-direction: column;
         width: 25%;
         height: 30px;
-        margin-top: -18px;
+        margin-top: -19px;
         justify-content: flex-end;
         
         .geneTriangle {
@@ -322,8 +326,8 @@
     width: 130px;
     margin-left: 10px;
     height: 100%;
-    overflow-y: scroll;
-    overflow-x: visible;
+    //overflow-y: scroll;
+    //overflow-x: visible;
     .qrTopGeneHeader {
       margin-bottom: 5px;
     }

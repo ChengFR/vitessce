@@ -34,18 +34,19 @@ function QRGeneList(props) {
   return (
     <>
       <div className='qrTopGeneHeader'>{header}</div>
-      {geneList.map(gene =>
-        SignificanceIcon({
-          geneName: gene.name,
-          score: gene.score,
-          ranking: gene.ranking,
-          qryTriangles: gene.qryTriangles,
-          refTriangles: gene.refTriangles,
-          header,
-          xScale,
-          onClick: () => setGeneSelection([gene.name])
-        })
-      )}
+      {geneList.map(gene => (
+        <SignificanceIcon
+          key={gene.name}
+          geneName={gene.name}
+          score={gene.score}
+          ranking={gene.ranking}
+          qryTriangles={gene.qryTriangles}
+          refTriangles={gene.refTriangles}
+          header={header}
+          xScale={xScale}
+          onClick={() => setGeneSelection([gene.name])}
+        />
+      ))}
     </>
   )
 }
@@ -72,10 +73,10 @@ function SignificanceIcon(props) {
         height: 30, width: barWidth
       }} />
       <div className={`geneIconQry`} style={{
-        width: xScale(score.qry)
+        width: xScale(score.qry) || 0
       }} />
       <div className={`geneIconRef`} style={{
-        width: xScale(score.ref)
+        width: xScale(score.ref) || 0
       }} />
       <div className="geneName">
         <div className="geneTrisLeft">
