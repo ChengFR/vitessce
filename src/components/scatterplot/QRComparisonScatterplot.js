@@ -19,7 +19,7 @@ import { ScaledExpressionExtension, SelectionExtension } from '../../layer-exten
 import { Matrix4 } from "@math.gl/core";
 import { interpolateReds, interpolateGreys } from "d3-scale-chromatic";
 import { color } from "d3-color";
-import { interpolate } from "d3"
+import { interpolate } from "d3-interpolate";
 
 const REF_LAYER_ID = 'ref-scatterplot';
 const QRY_LAYER_ID = 'qry-scatterplot';
