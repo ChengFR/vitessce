@@ -217,16 +217,26 @@ export default function QRCellSetsManagerSubscriber(props) {
       qrySetters.setAnchorEditTool(null);
     }
     qrySetters.setAdditionalCellSets(null);
+
     const parentKey = "Prediction";
     const node = mergedQryCellSets.tree.find(n => n.name === parentKey);
     if(node) {
       const newSelection = node.children.map(n => ([parentKey, n.name]));
       qrySetters.setCellSetSelection(newSelection);
 
-      const newColors = newSelection.map((path, i) => ({
-        color: PALETTE[i % PALETTE.length],
-        path: path,
-      }));
+      // Must use same method as in useInitialQryCellSetSelection
+      const newColors = newSelection.map((path, i) => {
+        const matchingRefSet = refValues.cellSetColor.find(d => d.path[1] === path[1]);
+        let newColor = PALETTE[i % PALETTE.length];
+        if(matchingRefSet) {
+          newColor = matchingRefSet.color;
+        }
+        return {
+          color: newColor,
+          path: path,
+        };
+      });
+
       qrySetters.setCellSetColor(newColors);
       qrySetters.setCellColorEncoding("cellSetSelection");
     }
