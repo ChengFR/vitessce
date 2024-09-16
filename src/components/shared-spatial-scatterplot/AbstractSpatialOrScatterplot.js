@@ -1,8 +1,10 @@
+/* eslint-disable */
 import React, { PureComponent } from 'react';
 import DeckGL, { OrthographicView, OrbitView } from 'deck.gl';
 import ToolMenu from './ToolMenu';
 import { DEFAULT_GL_OPTIONS } from '../utils';
 import { getCursor, getCursorWithTool } from './cursor';
+import { SELECTION_TYPE } from 'nebula.gl';
 
 /**
  * Abstract class component intended to be inherited by
@@ -93,6 +95,12 @@ export default class AbstractSpatialOrScatterplot extends PureComponent {
     return [];
   }
 
+  getTool() {
+    const { anchorEditTool } = this.props;
+    const tool = anchorEditTool === 'lasso' ? SELECTION_TYPE.POLYGON : null;
+    return tool;
+  }
+
   // eslint-disable-next-line consistent-return
   onHover(info) {
     const {
@@ -179,6 +187,7 @@ export default class AbstractSpatialOrScatterplot extends PureComponent {
             return [null, null];
           }
         },
+        bounds: viewport.getBounds(),
       });
     }
   }
@@ -196,37 +205,30 @@ export default class AbstractSpatialOrScatterplot extends PureComponent {
    */
   render() {
     const {
+      cells,
       deckRef, viewState, uuid, layers: layerProps,
     } = this.props;
-    const { gl, tool } = this.state;
+    const { gl } = this.state;
+    const tool = this.getTool();
     const layers = this.getLayers();
-    const use3d = (layerProps || []).some(l => l.use3d);
+    const use3d = false;
 
     const showCellSelectionTools = this.cellsLayer !== null
-      || (this.cellsEntries.length && this.cellsEntries[0][1].xy);
-    const showPanTool = this.cellsLayer !== null || layerProps.findIndex(l => l.type === 'bitmask' || l.type === 'raster') >= 0;
+      || (this.cellsEntries?.length && this.cellsEntries?.[0][1].xy);
+    const showPanTool = this.cellsLayer !== null;
     // For large datasets or ray casting, the visual quality takes only a small
     // hit in exchange for much better performance by setting this to false:
     // https://deck.gl/docs/api-reference/core/deck#usedevicepixels
-    const useDevicePixels = this.cellsEntries.length < 100000 && !use3d;
+    const useDevicePixels = this.cellsEntries?.length < 100000 && !use3d;
 
     return (
       <>
-        <ToolMenu
-          activeTool={tool}
-          setActiveTool={this.onToolChange}
-          visibleTools={{
-            pan: showPanTool,
-            selectRectangle: showCellSelectionTools,
-            selectLasso: showCellSelectionTools,
-          }}
-        />
         <DeckGL
           id={`deckgl-overlay-${uuid}`}
           ref={deckRef}
           views={[
-            use3d
-              ? new OrbitView({ id: 'orbit', controller: true, orbitAxis: 'Y' })
+            use3d && cells
+              ? new OrbitView({ id: 'orbit', orbitAxis: 'Y' })
               : new OrthographicView({
                 id: 'ortho',
               }),
@@ -241,7 +243,7 @@ export default class AbstractSpatialOrScatterplot extends PureComponent {
           onViewStateChange={this.onViewStateChange}
           viewState={viewState}
           useDevicePixels={useDevicePixels}
-          controller={tool ? { dragPan: false } : true}
+          controller={tool ? { dragPan: 'false' } : true}
           getCursor={tool ? getCursorWithTool : getCursor}
           onHover={this.onHover}
         >

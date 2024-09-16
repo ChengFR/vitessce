@@ -1,8 +1,10 @@
+/* eslint-disable */
 import { useRef, useCallback, useMemo } from 'react';
 import create from 'zustand';
 import createContext from 'zustand/context';
 import shallow from 'zustand/shallow';
 import { fromEntries, capitalize } from '../../utils';
+import { CoordinationType } from '../constants';
 
 // Reference: https://github.com/pmndrs/zustand#react-context
 // Reference: https://github.com/pmndrs/zustand/blob/e47ea03/tests/context.test.tsx#L60
@@ -215,6 +217,85 @@ export function useCoordination(parameters, coordinationScopes) {
       value,
     });
     return [setterName, setterFunc];
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  })), [parameters, coordinationScopes]);
+
+  return [values, setters];
+}
+
+
+export function useDatasetUids(coordinationScopes) {
+  const parameter = CoordinationType.DATASET;
+  const datasetScopes = coordinationScopes[parameter];
+
+  // Mapping from dataset coordination scope name to dataset uid
+  const datasetUids = useViewConfigStore((state) => {
+    const { coordinationSpace } = state.viewConfig;
+    return fromEntries(datasetScopes.map((datasetScope) => {
+      if (coordinationSpace && coordinationSpace[parameter]) {
+        const value = coordinationSpace[parameter][datasetScope];
+        return [datasetScope, value];
+      }
+      return [datasetScope, undefined];
+    }));
+  }, shallow);
+
+  //return useCoordination([CoordinationType.DATASET], coordinationScopes);
+  return datasetUids;
+}
+
+
+export function useMultiDatasetCoordination(parameters, coordinationScopes) {
+  const setCoordinationValue = useViewConfigStore(state => state.setCoordinationValue);
+
+  const { dataset: datasetScopes } = coordinationScopes;
+  if (!Array.isArray(datasetScopes)) {
+    console.error('useMultiDatasetCoordination requires an array of dataset coordination scopes.');
+  }
+
+  const values = useViewConfigStore((state) => {
+    const { coordinationSpace } = state.viewConfig;
+    return fromEntries(datasetScopes.map((datasetScope) => {
+      const datasetValues = fromEntries(parameters.map((parameter) => {
+        if (coordinationSpace && coordinationSpace[parameter]) {
+          let value;
+          if (typeof coordinationScopes[parameter] === 'object') {
+            value = coordinationSpace[parameter][coordinationScopes[parameter][datasetScope]];
+          } else if (typeof coordinationScopes[parameter] === 'string') {
+            value = coordinationSpace[parameter][coordinationScopes[parameter]];
+          } else {
+            console.error(`coordination scope for ${parameter} must be of type string or object.`);
+          }
+          return [parameter, value];
+        }
+        return [parameter, undefined];
+      }));
+      return [datasetScope, datasetValues];
+    }));
+  }, shallow);
+
+  const setters = useMemo(() => fromEntries(datasetScopes.map((datasetScope) => {
+    const datasetSetters = fromEntries(parameters.map((parameter) => {
+      const setterName = `set${capitalize(parameter)}`;
+      let setterFunc;
+      if (typeof coordinationScopes[parameter] === 'object') {
+        setterFunc = value => setCoordinationValue({
+          parameter,
+          scope: coordinationScopes[parameter][datasetScope],
+          value,
+        });
+      } else if (typeof coordinationScopes[parameter] === 'string') {
+        setterFunc = value => setCoordinationValue({
+          parameter,
+          scope: coordinationScopes[parameter],
+          value,
+        });
+      } else {
+        console.error(`coordination scope for ${parameter} must be of type string or object.`);
+      }
+      return [setterName, setterFunc];
+    }));
+    return [datasetScope, datasetSetters];
   // eslint-disable-next-line react-hooks/exhaustive-deps
   })), [parameters, coordinationScopes]);
 

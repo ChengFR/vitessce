@@ -20,7 +20,6 @@ export function cellLayerDefaultProps(cells, updateStatus, setCellHighlight, set
     autoHighlight: true,
     stroked: true,
     filled: true,
-    getElevation: 0,
     onHover: (info) => {
       // Notify the parent component that its child component is
       // the "hover source".
@@ -188,6 +187,17 @@ export function setCellSelection(cellSelection, additionalCellSets, cellSetColor
   ]);
   setCellSetSelection([nextPath]);
   setCellColorEncoding('cellSetSelection');
+}
+
+export function mergeMultipleCellSets(multipleCellSets, additionalCellSets) {
+  return {
+    version: HIERARCHICAL_SCHEMAS[SETS_DATATYPE_CELL].latestVersion,
+    datatype: SETS_DATATYPE_CELL,
+    tree: [
+      ...(multipleCellSets.flatMap(cellSets => (cellSets ? cellSets.tree : []))),
+      ...(additionalCellSets ? additionalCellSets.tree : []),
+    ],
+  };
 }
 
 export function mergeCellSets(cellSets, additionalCellSets) {

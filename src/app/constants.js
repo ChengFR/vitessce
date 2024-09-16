@@ -11,7 +11,16 @@ export const Component = {
   GENOMIC_PROFILES: 'genomicProfiles',
   CELL_SET_EXPRESSION: 'cellSetExpression',
   EXPRESSION_HISTOGRAM: 'expressionHistogram',
+  QR_COMPARISON_SCATTERPLOT: 'qrComparisonScatterplot',
+  QR_SUPPORTING_SCATTERPLOT_QUERY: 'qrSupportingScatterplotQuery',
+  QR_SUPPORTING_SCATTERPLOT_REFERENCE: 'qrSupportingScatterplotReference',
+  QR_CELL_SETS: 'qrCellSets',
+  QR_SCORES: 'qrScores',
 };
+
+export const MULTI_DATASET_COMPONENTS = [
+  Component.QUERY_REFERENCE_SCATTERPLOT,
+];
 
 export const DataType = {
   CELLS: 'cells',
@@ -95,4 +104,14 @@ export const CoordinationType = {
   GENOMIC_TARGET_Y: 'genomicTargetY',
   ADDITIONAL_CELL_SETS: 'additionalCellSets',
   MOLECULE_HIGHLIGHT: 'moleculeHighlight',
+  ANCHOR_API_STATE: 'anchorApiState',
+  MODEL_API_STATE: 'modelApiState',
+  ANCHOR_EDIT_TOOL: 'anchorEditTool', // Is the user lassoing? Either 'lasso' or null.
+  ANCHOR_EDIT_MODE: 'anchorEditMode', // Which anchor set is the user currently editing?
+  ANCHOR_SET_FOCUS: 'anchorSetFocus', // Which anchor set to focus? (caused by click in Cell Sets)
+  ANCHOR_SET_HIGHLIGHT: 'anchorSetHighlight', // Which anchor set to highlight? (caused by hover in Cell Sets)
+  EMBEDDING_VISIBLE: 'embeddingVisible', // Whether the embedding is visible (boolean). Intended to be used by the comparison view to determine whether to show the reference or query only.
+  EMBEDDING_ENCODING: 'embeddingEncoding', // scatterplot, heatmap, or contour.
+  EMBEDDING_LINKS_VISIBLE: 'embeddingLinksVisible', // Whether the lines linking between corresponding query and reference anchor sets are visible (boolean).
+  ANCHOR_SET_FILTER: 'anchorSetFilter', // How to sort and filter the list of anchor sets in the Cell Sets view.
 };

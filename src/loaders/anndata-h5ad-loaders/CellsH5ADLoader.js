@@ -4,7 +4,7 @@ import AbstractTwoStepLoader from '../AbstractTwoStepLoader';
 /**
  * Loader for converting zarr into the cell json schema.
  */
-export default class CellsZarrLoader extends AbstractTwoStepLoader {
+export default class CellsH5ADLoader extends AbstractTwoStepLoader {
   /**
    * Class method for loading spatial cell centroids.
    * @returns {Promise} A promise for an array of tuples/triples for cell centroids.

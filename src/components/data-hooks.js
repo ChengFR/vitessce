@@ -1,5 +1,9 @@
-import { useState, useEffect } from 'react';
+/* eslint-disable */
+import { useState, useEffect, useMemo } from 'react';
 import equal from 'fast-deep-equal';
+import isEqual from 'lodash/isEqual';
+import { extent } from 'd3-array';
+import sum from 'lodash/sum';
 import { capitalize } from '../utils';
 import { useSetWarning } from '../app/state/hooks';
 import {
@@ -12,6 +16,13 @@ import {
   DEFAULT_NEIGHBORHOODS_LAYER,
 } from './spatial/constants';
 import { DEFAULT_COORDINATION_VALUES } from '../app/state/coordination';
+
+import { dataToCellSetsTree } from '../loaders/anndata-zarr-loaders/CellSetsZarrLoader';
+import { PALETTE } from './utils';
+
+const STATUS_LOADING = 'loading';
+const STATUS_SUCCESS = 'success';
+const STATUS_ERROR = 'error';
 
 /**
  * Warn via publishing to the console
@@ -258,7 +269,7 @@ export function useExpressionMatrixData(
       return;
     }
 
-    if (loaders[dataset].loaders['expression-matrix']) {
+    if (false && loaders[dataset].loaders['expression-matrix']) {
       loaders[dataset].loaders['expression-matrix'].load().catch(e => warn(e, setWarning)).then((payload) => {
         if (!payload) return;
         const { data, url, coordinationValues } = payload;
@@ -315,6 +326,8 @@ export function useGeneSelection(
   setItemIsNotReady,
 ) {
   const [geneData, setGeneData] = useState();
+  const [status, setStatus] = useState(STATUS_LOADING);
+  const [loadedGeneName, setLoadedGeneName] = useState(null);
 
   const setWarning = useSetWarning();
 
@@ -324,11 +337,15 @@ export function useGeneSelection(
     }
     if (!selection) {
       setItemIsReady('expression-matrix');
+      setStatus(STATUS_SUCCESS);
+      setLoadedGeneName(null);
       return;
     }
     const loader = loaders[dataset].loaders['expression-matrix'];
     if (loader) {
       setItemIsNotReady('expression-matrix');
+      setLoadedGeneName(null);
+      setStatus(STATUS_LOADING);
       const implementsGeneSelection = typeof loader.loadGeneSelection === 'function';
       if (implementsGeneSelection) {
         loaders[dataset].loaders['expression-matrix']
@@ -339,6 +356,8 @@ export function useGeneSelection(
             const { data } = payload;
             setGeneData(data);
             setItemIsReady('expression-matrix');
+            setStatus(STATUS_SUCCESS);
+            setLoadedGeneName(selection);
           });
       } else {
         loader.load().catch(e => warn(e, setWarning)).then((payload) => {
@@ -357,20 +376,26 @@ export function useGeneSelection(
           });
           setGeneData(expressionDataForSelection);
           setItemIsReady('expression-matrix');
+          setStatus(STATUS_SUCCESS);
+          setLoadedGeneName(selection);
         });
       }
     } else {
       setGeneData(null);
       if (isRequired) {
         warn(new LoaderNotFoundError(dataset, 'expression-matrix', null, null), setWarning);
+        setStatus(STATUS_ERROR);
+        setLoadedGeneName(null);
       } else {
         setItemIsReady('expression-matrix');
+        setStatus(STATUS_SUCCESS);
+        setLoadedGeneName(null);
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loaders, dataset, selection]);
 
-  return [geneData];
+  return [geneData, loadedGeneName, status];
 }
 
 /**
@@ -393,6 +418,7 @@ export function useGeneSelection(
  */
 export function useExpressionAttrs(loaders, dataset, setItemIsReady, addUrl, isRequired) {
   const [attrs, setAttrs] = useState();
+  const [status, setStatus] = useState(STATUS_LOADING);
 
   const setWarning = useSetWarning();
 
@@ -402,6 +428,7 @@ export function useExpressionAttrs(loaders, dataset, setItemIsReady, addUrl, isR
     }
     const loader = loaders[dataset].loaders['expression-matrix'];
     if (loader) {
+      setStatus(STATUS_LOADING);
       const implementsLoadAttrs = typeof loader.loadAttrs === 'function';
       if (implementsLoadAttrs) {
         loader.loadAttrs().catch(e => warn(e, setWarning)).then((payload) => {
@@ -410,6 +437,7 @@ export function useExpressionAttrs(loaders, dataset, setItemIsReady, addUrl, isR
           setAttrs(data);
           addUrl(url, 'Expression Matrix');
           setItemIsReady('expression-matrix');
+          setStatus(STATUS_SUCCESS);
         });
       } else {
         loader.load().catch(e => warn(e, setWarning)).then((payload) => {
@@ -418,20 +446,23 @@ export function useExpressionAttrs(loaders, dataset, setItemIsReady, addUrl, isR
           setAttrs(data[0]);
           addUrl(url, 'Expression Matrix');
           setItemIsReady('expression-matrix');
+          setStatus(STATUS_SUCCESS);
         });
       }
     } else {
       setAttrs(null);
       if (isRequired) {
         warn(new LoaderNotFoundError(dataset, 'expression-matrix', null, null), setWarning);
+        setStatus(STATUS_ERROR);
       } else {
         setItemIsReady('expression-matrix');
+        setStatus(STATUS_SUCCESS);
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loaders, dataset]);
 
-  return [attrs];
+  return [attrs, status];
 }
 
 /**
@@ -723,4 +754,408 @@ export function useGenomicProfilesData(
   }, [loaders, dataset]);
 
   return [genomicProfilesAttrs];
+}
+
+
+/**
+ * Get data from an AnnData store.
+ * @param {object} loaders The object mapping
+ * datasets and data types to loader instances.
+ * @param {string} dataset The key for a dataset,
+ * used to identify which loader to use.
+ * @param {function} setItemIsReady A function to call
+ * when done loading.
+ * @param {function} addUrl A function to call to update
+ * the URL list.
+ * @param {boolean} isRequired Should a warning be thrown if
+ * loading is unsuccessful?
+ * @param {object} coordinationSetters Object where
+ * keys are coordination type names with the prefix 'set',
+ * values are coordination setter functions.
+ * @param {object} initialCoordinationValues Object where
+ * keys are coordination type names with the prefix 'initialize',
+ * values are initialization preferences as boolean values.
+ * @returns {array} [staticData]
+ */
+export function useAnnDataStatic(
+  loaders, dataset, path, dtype, setItemIsReady, isRequired,
+  coordinationSetters, initialCoordinationValues,
+) {
+  const [staticData, setStaticData] = useState();
+  const [status, setStatus] = useState(STATUS_LOADING);
+
+  const setWarning = useSetWarning();
+
+  useEffect(() => {
+    if (!loaders[dataset] || !path) {
+      return;
+    }
+
+    if (loaders[dataset].loaders['cells']) {
+      setStatus(STATUS_LOADING);
+      loaders[dataset].loaders['cells'].loadStatic(path, dtype).catch(e => warn(e, setWarning)).then((payload) => {
+        if (!payload) return;
+        setStaticData(payload);
+        setItemIsReady(path);
+        setStatus(STATUS_SUCCESS);
+      });
+    } else {
+      setStaticData(null);
+      if (isRequired) {
+        warn(new LoaderNotFoundError(dataset, 'cells', path, null), setWarning);
+        setStatus(STATUS_ERROR);
+      } else {
+        setItemIsReady(path);
+        setStatus(STATUS_SUCCESS);
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loaders, dataset, path]);
+
+  return [staticData, status];
+}
+
+export function useAnnDataDynamic(
+  loaders, dataset, path, dtype, iteration, setItemIsReady, isRequired,
+  coordinationSetters, initialCoordinationValues,
+) {
+  const [dynamicData, setDynamicData] = useState();
+  const [status, setStatus] = useState(STATUS_LOADING);
+
+  const setWarning = useSetWarning();
+
+  useEffect(() => {
+    if (!loaders[dataset] || !path) {
+      return;
+    }
+
+    if (loaders[dataset].loaders['cells']) {
+      setStatus(STATUS_LOADING);
+      loaders[dataset].loaders['cells'].loadDynamic(path, dtype, iteration).catch(e => warn(e, setWarning)).then((payload) => {
+        if (!payload) return;
+        setDynamicData(payload);
+        setItemIsReady(path);
+        setStatus(STATUS_SUCCESS);
+      });
+    } else {
+      setDynamicData(null);
+      if (isRequired) {
+        warn(new LoaderNotFoundError(dataset, 'cells', path, null), setWarning);
+        setStatus(STATUS_ERROR);
+      } else {
+        setItemIsReady(path);
+        setStatus(STATUS_SUCCESS);
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loaders, dataset, path, iteration]);
+
+  return [dynamicData, status];
+}
+
+export function useAnnDataIndices(
+  loaders, dataset, setItemIsReady, isRequired,
+  coordinationSetters, initialCoordinationValues,
+) {
+  const [obsIndex, setObsIndex] = useState();
+  const [varIndex, setVarIndex] = useState();
+  const [status, setStatus] = useState(STATUS_LOADING);
+
+  const setWarning = useSetWarning();
+
+  useEffect(() => {
+    if (!loaders[dataset]) {
+      return;
+    }
+
+    if (loaders[dataset].loaders['cells']) {
+      setStatus(STATUS_LOADING);
+      loaders[dataset].loaders['cells'].loadIndices().catch(e => warn(e, setWarning)).then((payload) => {
+        if (!payload) return;
+        const { data } = payload;
+        setObsIndex(data[0]);
+        setVarIndex(data[1]);
+        setItemIsReady('cells');
+        setStatus(STATUS_SUCCESS);
+      });
+    } else {
+      setObsIndex(null);
+      setVarIndex(null);
+      if (isRequired) {
+        warn(new LoaderNotFoundError(dataset, 'cells', null, null), setWarning);
+        setStatus(STATUS_ERROR);
+      } else {
+        setItemIsReady('cells');
+        setStatus(STATUS_SUCCESS);
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loaders, dataset]);
+
+  return [obsIndex, varIndex, status];
+}
+
+/**
+ * Convert a 2D array of gene indices to a 2D array of gene names, using an index array.
+ * @param {*} qryGenesIndex 
+ * @param {*} qryDiffGeneNameIndices 
+ * @returns 
+ */
+export function useDiffGeneNames(qryGenesIndex, qryDiffGeneNameIndices) {
+  const qryDiffGeneNames = useMemo(() => {
+    if(qryDiffGeneNameIndices && qryGenesIndex) {
+      const result = [];
+      qryDiffGeneNameIndices.data.forEach(row => {
+        const rowResult = [];
+        row.forEach(i => rowResult.push(qryGenesIndex[i]));
+        result.push(rowResult);
+      });
+      return result;
+    }
+    return null;
+  }, [qryGenesIndex, qryDiffGeneNameIndices]);
+  return qryDiffGeneNames;
+}
+
+export function useCellSetsTree(qryCellsIndex, qryFeatureColumns, qryFeatureColumnNames) {
+  const tree = useMemo(() => {
+    if(qryCellsIndex && qryFeatureColumns && qryFeatureColumnNames) {
+      // TODO(scXAI): support multiple qryFeatureColumns and corresponding names.
+      const result = dataToCellSetsTree([qryCellsIndex, qryFeatureColumns.filter(col => Array.isArray(col)), []], qryFeatureColumnNames.map(colname => ({ groupName: colname })).filter((col, i) => Array.isArray(qryFeatureColumns[i])));
+      return result;
+    }
+    return null;
+  }, [qryCellsIndex, ...qryFeatureColumns, ...qryFeatureColumnNames]);
+  return tree;
+}
+
+export function useInitialCellSetSelection(mergedQryCellSets, qryValues, qrySetters, parentKey) {
+  useEffect(() => {
+    if(qryValues.cellSetColor !== null || qryValues.cellSetSelection !== null || qryValues.cellColorEncoding !== null) {
+      return;
+    }
+
+    const node = mergedQryCellSets.tree.find(n => n.name === parentKey);
+    if(node) {
+      const newSelection = node.children.map(n => ([parentKey, n.name]));
+      qrySetters.setCellSetSelection(newSelection);
+
+      const newColors = newSelection.map((path, i) => ({
+        color: PALETTE[i % PALETTE.length],
+        path: path,
+      }));
+      qrySetters.setCellSetColor(newColors);
+      qrySetters.setCellColorEncoding('cellSetSelection');
+    }
+  }, [mergedQryCellSets, parentKey, qryValues.cellSetColor, qryValues.cellSetSelection, qryValues.cellColorEncoding]);
+}
+
+export function useAnchors(
+  loader, iteration, setItemIsReady, isRequired,
+) {
+  const [result, setResult] = useState();
+  const [status, setStatus] = useState(STATUS_LOADING);
+
+  const setWarning = useSetWarning();
+
+  useEffect(() => {
+    if (!loader) {
+      return;
+    }
+
+    if (loader) {
+      setStatus(STATUS_LOADING);
+      loader.anchorGet(iteration).catch(e => warn(e, setWarning)).then((payload) => {
+        if (!payload) return;
+        setResult(payload)
+        setItemIsReady('anchors');
+        setStatus(STATUS_SUCCESS);
+      });
+    } else {
+      setResult(null);
+      if (isRequired) {
+        warn(new LoaderNotFoundError(dataset, 'anchors', null, null), setWarning);
+        setStatus(STATUS_ERROR);
+      } else {
+        setItemIsReady('anchors');
+        setStatus(STATUS_SUCCESS);
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loader, iteration]);
+
+  return [result, status];
+}
+
+export function useProcessedAnchorSets(
+  anchors, refDiffGeneNames, refDiffGeneScores, refDiffClusters, qryPrediction, qryCellsIndex, qryCellSets, cellSetColor, parentKey
+) {
+  const qryTopGenesLists = useMemo(() => {
+    if(anchors && refDiffGeneNames && refDiffGeneScores && refDiffClusters && qryPrediction && qryCellsIndex && qryCellSets && cellSetColor) {
+      const predictionNode = qryCellSets.tree.find(n => n.name === parentKey);
+      const predictionPaths = predictionNode.children.map(n => ([parentKey, n.name]));
+
+      const NUM_GENES = 20;
+
+      const result = {};
+      Object.keys(anchors).forEach(anchorType => {
+        result[anchorType] = {};
+        anchors[anchorType].forEach((anchorObj, clusterIndex) => {
+
+          const refAnchorId = `${anchorObj.anchor_ref_id}`; // convert to string
+          const refClusterIndex = refDiffClusters.indexOf(refAnchorId);
+          const refClusterTopGeneNames = refDiffGeneNames[refClusterIndex].slice(0, NUM_GENES);
+          const refClusterAllGeneNames = refDiffGeneNames[refClusterIndex];
+          const refClusterAllGeneScores = refDiffGeneScores.data[refClusterIndex];
+          
+          let qryClusterAllGeneNames = [];
+          let qryClusterAllGeneScores = [];
+          if(!Array.isArray(anchorObj.rank_genes_groups)) {
+            qryClusterAllGeneNames = anchorObj.rank_genes_groups.name_indice;
+            qryClusterAllGeneScores = anchorObj.rank_genes_groups.score;
+          } else {
+            qryClusterAllGeneNames = anchorObj.rank_genes_groups.map(v => v.name_indice);
+            qryClusterAllGeneScores = anchorObj.rank_genes_groups.map(v => v.score);
+          }
+          const qryClusterTopGeneNames = qryClusterAllGeneNames.slice(0, NUM_GENES);
+  
+          const topGeneNames = Array.from(new Set([...qryClusterTopGeneNames, ...refClusterTopGeneNames]));
+  
+          result[anchorType][anchorObj.id] = {
+            id: anchorObj.id,
+            names: topGeneNames,
+            scores: topGeneNames.map(name => ({
+              qry: qryClusterAllGeneScores[qryClusterAllGeneNames.indexOf(name)],
+              ref: refClusterAllGeneScores[refClusterAllGeneNames.indexOf(name)],
+            })),
+            significances: topGeneNames.map(name => ({
+              qry: qryClusterTopGeneNames.includes(name),
+              ref: refClusterTopGeneNames.includes(name),
+            })),
+            latentDist: anchorObj.anchor_dist_median,
+            numCells: anchorObj.cells.length,
+            predictionProportions: predictionPaths.map(path => {
+              const [prefix, setName] = path;
+              const color = cellSetColor.find(o => isEqual(path, o.path))?.color || [60, 60, 60];
+              const numCellsInCluster = anchorObj.cells.length;
+              const numCellsInClusterAndSet = anchorObj.cells.filter(cellObj => setName === qryPrediction[qryCellsIndex.indexOf(cellObj.cell_id)]).length;
+              const proportion = numCellsInClusterAndSet / numCellsInCluster;
+              return {
+                name: setName,
+                color: color,
+                proportion: proportion,
+              };
+            }),
+          };
+        });
+      });
+      return result;
+    }
+    return null;
+  }, [anchors, refDiffGeneNames, refDiffGeneScores, refDiffClusters, qryPrediction, qryCellsIndex, anchors, qryCellSets, cellSetColor, parentKey]);
+  return qryTopGenesLists;
+}
+
+export function useAnchorSetOfInterest(
+  qryAnchorId, anchors, qryCellsIndex, qryEmbedding, refAnchorCluster, width, height, returnViewState,
+) {
+  const [qryAnchorSetFocus, refAnchorSetFocus, qryAnchorFocusIndices, refAnchorFocusIndices, qryAnchorFocusViewState] = useMemo(() => {
+    // TODO(scXAI): debounce?
+    if(qryAnchorId && anchors && qryCellsIndex && qryEmbedding && refAnchorCluster) {
+      const anchorGroup = Object.values(anchors).find(anchorSets => anchorSets.map(o => o.id).includes(qryAnchorId));
+      const anchorObj = anchorGroup.find(o => o.id === qryAnchorId);
+      const refAnchorId = `${anchorObj.anchor_ref_id}`; // convert to string
+
+      const qryCellIds = anchorObj.cells.map(c => c.cell_id);
+      const qryCellIndices = qryCellIds.map(cellId => qryCellsIndex.indexOf(cellId));
+
+      let newViewState = null;
+      if(returnViewState) {
+        const qryX = qryCellIndices.map(i => qryEmbedding.data[0][i]);
+        const qryY = qryCellIndices.map(i => -qryEmbedding.data[1][i]);
+        const qryXE = extent(qryX);
+        const qryYE = extent(qryY);
+        const qryXR = qryXE[1] - qryXE[0];
+        const qryYR = qryYE[1] - qryYE[0];
+
+        const newTargetX = sum(qryX) / qryX.length;
+        const newTargetY = sum(qryY) / qryY.length;
+        const newZoom = Math.log2(Math.min(width / qryXR, height / qryYR)) - 2;
+        newViewState = { zoom: newZoom, target: [newTargetX, newTargetY] };
+      }
+
+      const refCellIndices = []
+      refAnchorCluster.forEach((clusterId, i) => {
+        if(clusterId === refAnchorId) {
+          refCellIndices.push(i);
+        }
+      });
+      return [qryAnchorId, refAnchorId, qryCellIndices, refCellIndices, newViewState];
+    }
+    return [null, null, null, null, null];
+  }, [qryAnchorId, anchors, qryCellsIndex, qryEmbedding, refAnchorCluster, width, height]);
+
+  return [qryAnchorSetFocus, refAnchorSetFocus, qryAnchorFocusIndices, refAnchorFocusIndices, qryAnchorFocusViewState];
+}
+
+export function useAnchorContourOfInterest(
+  qryAnchorSetFocus, refAnchorSetFocus, qryAnchorFocusIndices, refAnchorFocusIndices, refCol, refParentKey, refCellSets, qryCol, qryParentKey, qryCellSets, qryCellSetColor, refCellSetColor
+) {
+  // Based on the currently focused anchor set, get all of the necessary info to render contour layers for the focused set.
+  const [qryAnchorSetFocusContour, refAnchorSetFocusContour] = useMemo(() => {
+    if(refCellSets && qryCellSets) {
+      const qryNode = qryCellSets.tree.find(n => n.name === qryParentKey);
+      const refNode = refCellSets.tree.find(n => n.name === refParentKey);
+      if(qryAnchorSetFocus && refAnchorSetFocus && qryAnchorFocusIndices && refAnchorFocusIndices && refCol && qryCol && qryCellSetColor && refCellSetColor) {
+        const qryContourData = qryNode.children.map(group => {
+          const nodePath = [qryParentKey, group.name];
+          const color = qryCellSetColor?.find(d => isEqual(d.path, nodePath))?.color || [60, 60, 60];
+          const indices = qryAnchorFocusIndices.filter(i => qryCol[i] === group.name);
+          return {
+            name: group.name,
+            indices: indices,
+            color,
+            visible: indices.length > 0,
+          };
+        });
+        const refContourData = refNode.children.map(group => {
+          const nodePath = [refParentKey, group.name];
+          const color = refCellSetColor?.find(d => isEqual(d.path, nodePath))?.color || [60, 60, 60];
+          const indices = refAnchorFocusIndices.filter(i => refCol[i] === group.name);
+          return {
+            name: group.name,
+            indices: indices,
+            color,
+            visible: indices.length > 0,
+          };
+        });
+        return [qryContourData, refContourData];
+      } else if(qryNode && refNode) {
+        return [
+          qryNode.children.map(group => {
+            const nodePath = [qryParentKey, group.name];
+            const color = qryCellSetColor?.find(d => isEqual(d.path, nodePath))?.color || [60, 60, 60];
+            return {
+              name: group.name,
+              indices: [],
+              color,
+              visible: false,
+            };
+          }),
+          refNode.children.map(group => {
+            const nodePath = [refParentKey, group.name];
+            const color = refCellSetColor?.find(d => isEqual(d.path, nodePath))?.color || [60, 60, 60];
+            return {
+              name: group.name,
+              indices: [],
+              color,
+              visible: false,
+            };
+          }),
+        ];
+      }
+    }
+    return [null, null];
+  }, [qryAnchorSetFocus, refAnchorSetFocus, qryAnchorFocusIndices, refAnchorFocusIndices, refCol, refCellSets, qryCol, qryCellSets, qryCellSetColor, refCellSetColor]);
+  return [qryAnchorSetFocusContour, refAnchorSetFocusContour];
 }

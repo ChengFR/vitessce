@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React, { useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
@@ -119,14 +120,14 @@ function ClosePaneButton(props) {
 export default function TitleInfo(props) {
   const {
     title, info, children, isScroll, isSpatial, removeGridComponent, urls,
-    isReady, options,
+    isReady, options, extraClassName = '',
   } = props;
   // eslint-disable-next-line no-nested-ternary
   const childClassName = isScroll ? SCROLL_CARD : (isSpatial ? BLACK_CARD : SECONDARY_CARD);
   return (
     // d-flex without wrapping div is not always full height; I don't understand the root cause.
     <>
-      <div className="title">
+      <div className={`title ${(title === 'Polyphony' ? 'status-title' : '')}`}>
         <div className="title-left">
           {title}
         </div>
@@ -139,17 +140,17 @@ export default function TitleInfo(props) {
               options={options}
             />
           ) }
-          {urls && urls.length > 0 && (
+          {/*urls && urls.length > 0 && (
             <DownloadOptions
               urls={urls}
             />
-          )}
-          <ClosePaneButton
+          )*/}
+          {/*<ClosePaneButton
             removeGridComponent={removeGridComponent}
-          />
+          />*/}
         </div>
       </div>
-      <div className={childClassName}>
+      <div className={`${childClassName} ${extraClassName}`}>
         { !isReady && <LoadingIndicator /> }
         {children}
       </div>

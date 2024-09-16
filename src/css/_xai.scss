@@ -1,0 +1,179 @@
+@mixin xai($theme-name, $theme-colors) {
+
+  /* Cell Sets component */
+  .qrCellSets {
+    border: 0px solid blue;
+  }
+  .qrCellSetsTableContainer {
+    width: 100%;
+    display: flex;
+  }
+  .qrCellSetsTableLeft {
+    flex: 50%;
+    .qrCellSetsTableRow {
+      width: 100%;
+      overflow-y: hidden;
+      margin-bottom: -6px;
+    }
+  }
+  .qrCellSetsTableRight {
+    flex: 50%;
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    .qrCellSetsTableRightInner {
+      .qrCellSetsTableRow {
+        overflow-y: visible;
+        width: 1400px;
+      }
+    }
+  }
+  
+  .qrCellSetsTableRow {
+    display: inline-block;
+    height: 30px;
+    max-height: 30px;
+    min-width: 2px;
+    border: 0px solid green;
+    .colArrow {
+      width: 20px;
+    }
+    .colName {
+      width: 100px;
+      button {
+        font-weight: normal;
+        border: 0;
+        margin: 0;
+        background: transparent;
+        display: inline-block;
+      }
+    }
+    .colPrediction, .colSimilarity {
+      width: 120px;
+      .predictionBar {
+        float: left;
+      }
+    }
+    .colEdit {
+      width: 20px;
+    }
+    .colTopGenes {
+      width: 120px;
+    }
+    .colGeneResult {
+      width: 30px;
+      height: 30px;
+      overflow: visible;
+      svg {
+        width: 22px;
+        height: 22px;
+        margin-top: 4px;
+        margin-left: 4px;
+        rect {
+          stroke-width: 8px !important;
+          stroke: #999 !important;
+          fill: #999 !important;
+        }
+        &.signifInBoth {
+          circle:nth-child(2) {
+            stroke-width: 12px !important;
+            stroke: #999 !important;
+          }
+          circle:nth-child(3) {
+            fill: #999 !important;
+          }
+        }
+        &.signifInRef {
+          circle:nth-child(2) {
+            stroke-width: 12px !important;
+            stroke: #999 !important;
+          }
+        }
+        &.signifInQry {
+          circle:nth-child(1) {
+            stroke-width: 12px !important;
+            stroke: #999 !important;
+          }
+          circle:nth-child(2) {
+            fill: #999 !important;
+          }
+        }
+      }
+    }
+  }
+  .qrCellSetsTableArrow {
+    display: inline-block;
+    height: 30px;
+    position: relative;
+    top: 0;
+    left: 0;
+  }
+  .qrCellSetsTableHead {
+    vertical-align: top;
+    display: inline-block;
+    height: 30px;
+    position: relative;
+    top: 0;
+    left: 0;
+  }
+  .signifIconTooltip {
+    position: absolute;
+    height: 80px;
+    width: 200px;
+    text-align: left;
+    padding: 5px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 5px;
+    box-shadow: 5px 5px 5px rgba(110, 110, 110, 0.5);
+    z-index: 100;
+  }
+
+
+  /* Status component */
+  .qrStatus {
+    display: flex;
+    flex-direction: row;
+    height: 100%;
+    & > div {
+      width: 25%;
+    }
+
+    .qrStatusCompletion {
+      padding: 5px;
+      display: flex;
+      .qrStatusCompletionInfo {
+        padding: 2px;
+        font-size: 13px;
+        margin-left: 5px;
+        color: rgb(110, 110, 110);
+      }
+    }
+    .qrStatusInstructions {
+      padding: 7px;
+      font-size: 13px;
+      color: #1976d2;
+    }
+    .qrStatusModel {
+      margin-right: 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-end;
+    }
+  }
+
+  .react-grid-item > .react-resizable-handle {
+    display: none;
+  }
+  .status-title {
+    display: none;
+  }
+
+  /* Supporting view borders */
+  .supporting-query-container {
+    border: 2px solid rgb(105, 105, 105);
+  }
+  .supporting-reference-container {
+    border: 2px solid rgb(211, 211, 211);
+  }
+}
